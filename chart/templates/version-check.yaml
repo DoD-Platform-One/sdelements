@@ -1,0 +1,6 @@
+{{/*
+Try and catch when we have an old values.yaml that is not compatible, or we can ensure some values are properly set at a top level.
+*/}}
+{{- if not .Values.valuesVersion -}}
+{{- fail "It appears you are attempting to use an older incompatible version of values.yaml with a newer chart. Refer to https://docs.sdelements.com/release/latest/sysadmin/docs/container/configuration.html for more information." -}}
+{{- end -}}

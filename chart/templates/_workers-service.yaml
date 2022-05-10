@@ -1,0 +1,28 @@
+{{/*
+#### SDElements app service template ####
+Expects a dict input with root/dot keys with context
+*/}}
+{{- define "sde.service" -}}
+{{- $root := get . "root" -}}
+{{- $dot := get . "dot" -}}
+{{- $port := default 8080 $dot.port -}}
+{{- $releaseName := printf "%v-worker-%v" ( include "library.trimmedName" $root ) $dot.niceness -}}
+{{- $serviceName := printf "%v-%v" $releaseName "service" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName | quote }}  # Used by the load-balancer(static/nginx) container
+  labels:
+    service: {{ $serviceName | quote }}
+    {{- include "library.labels" $root | nindent 4 }}
+spec:
+  ports:
+  - name: {{ $port | quote }}
+    port: {{ $port }}
+    targetPort: {{ $port }}
+  selector:
+    name: {{ $releaseName | quote }}
+status:
+  loadBalancer: {}
+{{- end }}

@@ -1,0 +1,210 @@
+{{/*
+#### SDElements environment variable template ####
+
+Expects a dict input with root/dot keys with context
+
+*/}}
+{{- define "sde.environment" -}}
+{{- $root := get . "root" -}}
+{{- $dot := get . "dot" -}}
+{{- $secretName := printf "%v-%v" $root.Release.Name "sde-secrets" -}}
+{{- $brokerSecretName :=  default ( default (printf "%v-broker-secrets" $root.Release.Name ) $root.Values.global.secretName ) ( index $root.Values "sc-broker" "secretName" ) -}}
+{{- $dbServiceName := printf "%v-database-service" ( include "library.trimmedName" $root ) -}}
+{{- $appStateChange := ternary true false (or $root.Release.IsUpgrade $root.Release.IsInstall) -}}
+{{- $sdeSiteDomain := hasKey $root.Values.sde "siteDomain" | ternary ( $root.Values.sde.siteDomain ) ( default "" $root.Values.sde.fqdn ) -}}
+{{- $sdeSiteName := hasKey $root.Values.sde "siteName" | ternary ( $root.Values.sde.siteName ) ( default "" $root.Values.sde.fqdn ) -}}
+{{- $mailServiceName := printf "%v-%v-%v" ( include "library.trimmedName" $root ) "mail" "service" -}}
+{{- $jittEnabled := default false $root.Values.sde.enableJITT -}}
+{{- $indexPath := default "/index" $root.Values.worker.indexPath -}}
+{{- $reportingEnabled := include "reportingEnabled" $root -}}
+{{- $pasEnabled := default false $root.Values.global.pas.enabled -}}
+{{- $pasBrokerUser := default "pas" $root.Values.global.pas.brokerUser -}}
+{{- $pasBrokerHost := default ( printf "%v-%v" ( include "library.trimmedName" $root ) "broker-service" ) ( index $root.Values "sc-broker" "host" ) -}}
+{{/* TODO: This port switch between 5672 for HTTP connections and 5671 for HTTPS */}}
+{{- $pasBrokerPort := default 5672 ( index $root.Values "sc-broker" "port" ) -}}
+{{- $pasBrokerVhost := default (default "rabbit" $root.Values.global.broker.adminVhost) $root.Values.global.pas.vhost -}}
+{{- $pasSecretName := printf "%v-%v" $root.Release.Name "pas-secrets" -}}
+{{- $pasUrl := default (printf "http://%v-%v:8000" ( include "library.trimmedName" $root ) "pas-api-service" ) $root.pasUrl -}}
+- name: COLLECT_STATIC
+  value: {{ $appStateChange | toString | lower | quote }}
+- name: CONTENT_PATH
+  value: {{ default "/content" $root.Values.worker.contentPath | quote }}
+- name: C_FORCE_ROOT
+  value: "true"
+{{- if $jittEnabled }}
+- name: SDE_ENABLE_JITT
+  value: "true"
+{{- end }}
+- name: LOG_DRIVER
+  value: "json-file"
+- name: SAML_DB_PIPE_MODE
+  value: "True"
+- name: SDE_SITE_FQDN
+  value: {{ $sdeSiteDomain | quote }}
+- name: SDE_SITE_NAME
+  value: {{ $sdeSiteName | quote }}
+- name: CELERY_CONCURRENCY
+  value: {{ default 2 $dot.celeryConcurrency | quote }}
+- name: MAX_TASKS
+  value: {{ default 10 $dot.maxTasks | quote }}
+- name: NICENESS
+  value: {{ default 15 $dot.niceness | quote  }}
+- name: PROJECT_PATH
+  value: {{ default "/app/sigma" $root.Values.worker.projectPath | quote }}
+{{ if $dot.queueVarVal -}}
+- name: QUEUE
+  value: {{ default "celery" $dot.queueVarVal | quote }}
+{{- end }}
+{{- range $root.Values.worker.asynchronous }}
+- name: {{ required "Queue environment variable is required for all asynchorous workers" .queueVarName }}
+  value: {{ default "celery" .queueVarVal }}
+{{- end }}
+- name: SDE_BROKER_URL
+  value: {{ include "sde.broker" $root }}
+- name: SDE_BROKER_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $brokerSecretName | quote }}
+      key: ADMIN_BROKER_PASSWORD
+- name: SDE_CACHES
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secretName | quote }}
+      key: SDE_CACHES
+- name: SDE_COMPRESS_OFFLINE
+  value: {{ default "True" $root.Values.worker.compressOffline | title | quote }}
+- name: SDE_CONFIG_PATH
+  value: {{ default "/etc/sde" $root.Values.worker.configPath | quote }}
+- name: SDE_CONSOLE_LOG_LEVEL
+  value: {{ default "INFO" $root.Values.worker.consoleLogLevel | quote }}
+- name: WSGI_LOG_LEVEL
+  value: {{ default "warn" $root.Values.worker.wsgiLogLevel | quote }}
+- name: WSGI_PROCESSES
+  value: {{ default 4 $root.Values.worker.wsgiProcesses | quote }}
+- name: SDE_DATABASES
+  value: {{ tpl ($root.Files.Get "conf/databases.json") $root | quote }}
+- name: SDE_DATABASE_USER
+  value: {{ include "sde.dbUser" $root | quote }}
+- name: SDE_DATABASE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secretName | quote }}
+      key: SDE_DATABASE_PASSWORD
+- name: SDE_DATABASE_PREFIX
+  value: {{ default "sde_" $root.Values.sde.databasePrefix | quote }}
+- name: SDE_DATABASE_HOST
+  value: {{ include "sde.dbHost" $root | quote }}
+- name: SDE_DEFAULT_FROM_EMAIL
+  value: {{ default "SDElements <noreply@sdelements.com>" $root.Values.sde.defaultFromEmail | quote }}
+- name: SDE_DEFAULT_ORG
+  value: {{ default "default" $root.Values.sde.defaultOrg | quote }}
+- name: SDE_EMAIL_HOST
+  value: {{ default $mailServiceName $root.Values.mail.host | quote }}
+- name: SDE_EMAIL_LOG_LEVEL
+  value: {{ default "ERROR" $root.Values.worker.emailLogLevel | quote }}
+- name: SDE_FEEDBACK_EMAIL
+  value: {{ default "support@sdelements.com" $root.Values.sde.feedbackEmail | quote }}
+- name: SDE_HAYSTACK_INDEX_PATH
+  value: {{ printf "%v/%v" $indexPath "haystack" | quote }}
+- name: SDE_LOGGING
+  value: {{ tpl ($root.Files.Get "conf/logging.json") $root | quote }}
+- name: SDE_MEDIA_ROOT
+  value: {{ default "/media" $root.Values.worker.mediaRoot | quote }}
+- name: SDE_MEDIA_URL
+  value: {{ default "/media/" $root.Values.worker.mediaURL | quote }}
+- name: SDE_SAML_CERT_FILE
+  value: {{ default "/run/secrets/saml2/server.crt" $root.Values.worker.sdeSamlCertFile | quote }}
+- name: SDE_SAML_KEY_FILE
+  value: {{ default "/run/secrets/saml2/server.key" $root.Values.worker.sdeSamlKeyFile | quote }}
+- name: SDE_SECRET_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secretName | quote }}
+      key: SDE_SECRET_KEY
+- name: SDE_SERVER_EMAIL
+  value: {{ default (printf "sdelements@%v" $root.Values.sde.fqdn) $root.Values.sde.serverEmail | quote }}
+- name: SDE_STATIC_ROOT
+  value: {{ default "/static" $root.Values.worker.staticRoot | quote }}
+- name: SDE_LOADER_ROOT
+  value: {{ default "/loader" $root.Values.worker.loaderRoot | quote }}
+- name: SDE_SUPERUSER
+  value: {{ default "support@sdelements.com" $root.Values.sde.superuserEmail | quote }}
+- name: SDE_SUPERUSER_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secretName | quote }}
+      key: SDE_SUPERUSER_PASSWORD
+- name: SDE_SUPPORT_EMAIL
+  value: {{ default "support@sdelements.com" $root.Values.sde.supportEmail | quote }}
+- name: SDE_DEBUG
+  value: {{ default "False" $root.Values.sde.sdeDebugMode | quote }}
+- name: LOGIN_REDIRECT_URL
+  value: {{ default "/" $root.Values.sde.loginRedirectUrl | quote }}
+- name: LOGOUT_REDIRECT_URL
+  value: {{ default "/" $root.Values.sde.logoutRedirectUrl | quote }}
+- name: SESSION_INACTIVITY_TIMEOUT
+  value: {{ default "7200" $root.Values.sde.sessionInactivityTimeout | quote }}
+- name: JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secretName | quote }}
+      key: SDE_JWT_SECRET
+- name: CUBEJS_ENABLED
+  value: {{ eq $reportingEnabled "false" | ternary "False" "True" | quote }}
+{{- if ( hasKey $root.Values.global "sharedStorage" ) }}
+- name: BACKUP_STORAGE_TYPE
+  value: {{ upper ( default "file"  $root.Values.global.sharedStorage.storageType ) | quote }}
+{{- if eq ( upper ( default "file"  $root.Values.global.sharedStorage.storageType )) "FILE" }}
+- name: BACKUP_DIR_PATH
+  value: {{ default "sdelements" $root.Values.global.sharedStorage.dirPath | quote }}
+{{- else if eq ( upper ( default "file"  $root.Values.global.sharedStorage.storageType )) "S3" }}
+- name: S3_BUCKET_NAME
+  value: {{ required "global.sharedStorage.bucketName is required when s3 storage is being used" $root.Values.global.sharedStorage.bucketName | quote }}
+- name: S3_BUCKET_PATH
+  value:  {{ quote $root.Values.global.sharedStorage.s3BucketPath }}
+- name: S3_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+        name: {{ $secretName | quote }}
+        key: S3_ACCESS_KEY
+- name: S3_SECRET_KEY
+  valueFrom:
+    secretKeyRef:
+        name: {{ $secretName | quote }}
+        key: S3_SECRET_KEY
+- name: S3_URL
+  value:  {{ quote $root.Values.global.sharedStorage.s3Url }}
+{{- end }}
+{{- end }}
+- name: SDETOOLS_IGNORE_INTERNAL_NETWORK_RESTRICTION
+  value: {{ default "False" $root.Values.sde.sdetoolsIgnoreNetworkRestriction | quote }}
+- name: SDETOOLS_NETWORK_RESTRICTION_DOMAIN_BLOCK_LIST
+  value: {{ default "localhost" $root.Values.sde.sdetoolsNetworkRestrictionDomainBlockList | quote }}
+- name: SDETOOLS_NETWORK_RESTRICTION_PORT_BLOCK_LIST
+  value: {{ default "22,23" $root.Values.sde.sdetoolsNetworkRestrictionPortBlockList | quote }}
+{{- if $pasEnabled }}
+- name: SDE_ENABLE_PAS
+  value: "true"
+- name: PAS_URL
+  value: {{ printf "%v%v/" $pasUrl (default "/pas" $root.Values.global.pas.baseUrl) }}
+- name: PAS_ASYNC_WORKER_BROKER_SERVER
+  value: {{ printf "%v:%v" $pasBrokerHost $pasBrokerPort }}
+- name: PAS_ASYNC_WORKER_BROKER_USER
+  value: {{ $pasBrokerUser | quote }}
+- name: PAS_ASYNC_WORKER_BROKER_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $pasSecretName | quote }}
+      key: PAS_BROKER_PASSWORD
+- name: PAS_ASYNC_WORKER_BROKER_VHOST
+  value: {{ $pasBrokerVhost | quote }}
+- name: PAS_SDE_METHOD
+  value: "http"
+- name: PAS_SDE_DOMAIN
+  value: {{ printf "%v-worker-%v-service:%v" ( include "library.trimmedName" $root ) $root.Values.worker.synchronous.lowPriority.niceness ( default 8080 $root.Values.worker.synchronous.lowPriority.port ) }}
+- name: VALIDATE_PAS_CERT
+  value: {{ default "true" $root.Values.sde.validateSdeCert | quote }}
+- name: PAS_PLUGIN_VALIDATE_SDE_CERT
+  value: {{ default "true" $root.Values.sde.pasPluginValidateSdeCert | quote  }}
+{{- end }}
+{{- end }}

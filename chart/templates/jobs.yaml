@@ -1,0 +1,17 @@
+{{/*
+SDElements scheduled job processing
+# Launches asynchronous jobs
+*/}}
+{{- $root := . -}}
+{{- if .Values.job }}
+{{- if hasKey .Values.job "specifications" }}
+{{- if not ( eq ( printf "%T" .Values.job.specifications ) "map[string]interface {}" ) }}
+{{- fail "Please provide specifications as a map. Refer to https://docs.sdelements.com/release/latest/sysadmin/docs/container/configuration.html for more information." }}
+{{ end}}
+{{ range $jobName, $jobSpec := .Values.job.specifications }}
+{{ dict "root" $root "jobName" $jobName "dot" $jobSpec | include "sde.job" }}
+{{ end }}
+{{ else }}
+{{- fail "Please provide asynchronous jobs specifications. Refer to https://docs.sdelements.com/release/latest/sysadmin/docs/container/configuration.html for more information." }}
+{{ end }}
+{{ end }}

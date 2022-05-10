@@ -1,17 +1,5 @@
 # This chart will install SDElements and required dependencies.
 
-## BigBang Modifications
-
-- Added `color_echo () { echo; } && source /bin/run_nginx.sh` to the web reporting and static args
-  - `templates/web-reporting-deployment-service.yaml`
-  - `templates/web-static-deployment-service.yaml`
-- Bigbang Additions
-  - Istio resources
-    - `virtualservice`
-    - `destinationRule`
-  - NetworkPolicies
-  - EFS volumes
-
 ## Installing SDElements from a Chart repo (requires Kubernetes and Helm v3)
 
 **To add the repository make sure you replace the username (acme) with your account name and

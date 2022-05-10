@@ -1,0 +1,23 @@
+apiVersion: v2
+appVersion: 1.1.1
+dependencies:
+- condition: global.enableNestedDependencies
+  name: sc-library
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 0.1.1
+description: The Security Compass Broker chart
+home: https://agra.sdelements.com/deployment/containers/broker
+icon: https://avatars0.githubusercontent.com/u/739346
+keywords:
+- broker
+- rabbitmq
+- erlang
+maintainers:
+- email: devops-support@securitycompass.com
+  name: Security Compass Technologies Ltd.
+  url: https://www.securitycompass.com/
+name: sc-broker
+sources:
+- https://agra.sdelements.com/deployment/containers/broker
+type: application
+version: 1.1.1

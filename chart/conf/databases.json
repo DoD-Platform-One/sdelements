@@ -1,0 +1,21 @@
+{{/* Database passwords get set from a secrets/env variable inside the container */}}
+{
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": {{ include "sde.dbName" . | quote }},
+        "HOST": {{ include "sde.dbHost" . | quote }},
+        "PORT": {{ include "sde.dbPort" . | quote }},
+        "USER": {{ include "sde.dbUser" . | quote }},
+        "PASSWORD": None,
+        "ATOMIC_REQUESTS": True
+    },
+    "system": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "postgres",
+        "HOST": {{ include "sde.dbHost" . | quote }},
+        "PORT": {{ include "sde.dbPort" . | quote }},
+        "USER": {{ include "sde.dbUser" . | quote }},
+        "PASSWORD": None,
+        "ATOMIC_REQUESTS": True
+    }
+}

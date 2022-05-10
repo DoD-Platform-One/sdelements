@@ -1,0 +1,166 @@
+### Default values for the SDE Worker Helm Chart.
+### This is a YAML-formatted file.
+### Declare variables to be passed into your templates.
+
+## Options & settings accessible by all charts
+global:
+  ## Default image tag.
+  ## The version of container images for SDE to run
+  ## Ref: https://docs.sdelements.com
+  ##
+  # imageTag: latest
+
+  ## Provide a name in place of `sde` for `app:` labels
+  ##
+  #nameOverride: ""
+
+  ## Provide a name to substitute for the full names of resources
+  ##
+  #fullnameOverride: ""
+
+  ## Configuration options and crentials to fetch images from private
+  ## registries/repositories. These are provided by SDElements support staff on
+  ## request upon purchase of the SDElements product.
+  ##
+  imageRegistry: docker-dev.sdelements.com
+
+  # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
+  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
+  # docker-dev.sdelements.com / dev _ (sde/3rd) / cert-creator : latest
+  imageRegistryFormat: "%s/%s_%s/%s:%s"
+  imageRegistryUsername: acmecorp
+  imageRegistryPassword: SuperSecretPassword
+  imageOrganization: dev
+  imagePullPolicy: IfNotPresent
+
+  pas:
+    enabled: false
+    databasePrefix: pas
+    database:
+      user: pas
+      #password:
+      # Secret name to use for all PAS services
+      #secretName: pas-secrets
+      # Secret key to use for all PAS services
+      passwordSecretKey: PAS_DATABASE_PASSWORD
+    broker:
+      user: pas
+      #password:
+      # Vhost to use for all PAS services
+      #vhost: rabbit
+      # Secret name to use for all PAS services
+      #secretName: pas-secrets
+      # Secret key to use for all PAS services
+      passwordSecretKey: PAS_BROKER_PASSWORD
+    baseUrl: /pas
+    # Enable or disable custom plugin functionality
+    enableCustomPlugins: true
+    # File size limit for plugin files
+    #maxPluginFileSize: 10000000
+    # Name of the plugin service celery queue to listen on
+    #pluginServiceQueueName: plugin_service_worker
+    # Name of the async worker celery queue to listen on
+    #asyncWorkerQueueName: pas_async_worker
+
+pas-api:
+  replicas: 1
+  # SDE URL
+  #sdeAPIServiceName: mock-sde-service
+  #sdeAPIServicePort: 5000
+  # Python console logging level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
+  #logLevel: INFO
+  # The number of gunicorn workers to spin up
+  #workerCount: 4
+  # Gunicorn log level
+  #gunicornLogLevel: info
+  # Size of custom plugin volume
+  #customPluginVolumeSize: 2Gi
+  # Name of queue to enqueue SDE jobs
+  #sdeQueueName: sde-medium
+  # Enable service subcharts and claims for standalone deployment
+  useBrokerSubchart: false
+  useDatabaseSubchart: false
+  includeSDESecret: false
+  sde:
+    # SDE JWT Secret for standalone deployments
+    jwtSecret: s3cr3tk3y
+    # Secret name for SDE secrets
+    #secretName:
+    # SDE broker secret config
+    broker: {}
+      #secretName:
+      #passwordSecretKey:
+  # PAS Init container config
+  admin:
+    database: {}
+      # Default database name
+      #defaultDatabase: postgres
+      # The username for a DB admin account
+      #user: postgres
+      # The secret name where the DB admin account password is stored
+      #secretName:
+      # The secret key for the DB admin account password
+      #passwordSecretKey:
+    broker: {}
+      # The username for a broker admin account
+      #user: rabbit
+      # The secret name where the broker admin account password is stored
+      #secretName:
+      # The secret key for the broker admin account password
+      #passwordSecretKey:
+
+pas-plugin-worker:
+  replicas: 1
+  # Celery log level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
+  #celeryLogLevel: INFO
+  # Number of celery worker processes to launch
+  #celeryWorkerCount: 4
+  # Max number of celery tasks before recreating the worker.
+  #celeryMaxTasksPerChild: 10
+  # Disable service subcharts
+  useBrokerSubchart: false
+  includePluginVolumeClaim: false
+  # Broker config
+  broker:
+    secretName: pas-secrets
+    #passwordSecretKey:
+
+pas-async-worker:
+  replicas: 1
+  # Python console logging level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
+  #logLevel: INFO
+  # Celery log level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
+  #celeryLogLevel: INFO
+  # Number of celery worker processes to launch
+  #celeryWorkerCount: 4
+  # Max number of celery tasks before recreating the worker.
+  #celeryMaxTasksPerChild: 10
+  # Disable service subcharts
+  useBrokerSubchart: false
+  useDatabaseSubchart: false
+  includePluginVolumeClaim: false
+  # Broker config
+  broker:
+    secretName: pas-secrets
+  # Database config
+  database:
+    secretName: pas-secrets
+
+pas-frontend:
+  replicas: 1
+  # Service name of the PAS API service
+  #backendServiceName: pas-api-service
+  # Port that the frontend service listens on
+  #port: 80
+  # Full URL to PAS API service
+  #pasBackendUrl: http://pas-api-service:8000
+  # TTL for DNS resolutions
+  #resolverTTL: 10
+
+mock-sde:
+  secretKey: s3cr3tk3y
+
+# Use mock SDE chart
+useMockSDE: false
+# Include ingress for standalone deployments
+includeIngress: false

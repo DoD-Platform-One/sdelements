@@ -1,0 +1,27 @@
+{
+    {{- if (and .Values.cache (hasKey (dict "cache" (default dict .Values.cache)).cache "host") ) -}}
+    "default": {
+        "BACKEND": "django.core.cache.backends.memcached.MemcachedCache",
+        "LOCATION": {{ printf "%v:%v" .Values.cache.host  ( default 11211 .Values.cache.port ) | quote }},
+        "TIMEOUT": {{ default "None" .Values.cache.timeout | quote }}
+    }
+    {{- else -}}
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": {{ default (printf "%v://%v-datastore-service:%v" (ternary "rediss" "redis" (eq ( include "enableInternalTls" . ) "true")) ( include "library.trimmedName" . ) ( include "datastore.port" . ) ) .Values.reporting.redisUrl | quote }},
+        "TIMEOUT": None,
+        "OPTIONS": {
+            "IGNORE_EXCEPTIONS": "true",
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": {{ .Values.datastore.clientPassword | quote }},
+            {{- if eq ( include "enableInternalTls" . ) "true" -}}
+            "CONNECTION_POOL_KWARGS": {
+                "ssl_ca_certs": {{ .tlsDataStoreCACertPath | quote}},
+                "ssl_certfile": {{ .tlsDataStoreCertPath | quote}},
+                "ssl_keyfile": {{ .tlsDataStoreKeyPath | quote}}
+            },
+            {{- end -}}
+        }
+    }
+    {{- end -}}
+}

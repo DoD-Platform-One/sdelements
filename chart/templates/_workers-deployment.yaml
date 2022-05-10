@@ -1,0 +1,197 @@
+{{/*
+#### SDElements app deployment template ####
+
+Expects a dict input with root/dot keys with context
+Enables creation of an arbitrary number of configurable/programmable SDE workers
+
+*/}}
+{{- define "sde.deployment" -}}
+{{- $root := get . "root" -}}
+{{- $dot := get . "dot" -}}
+{{- $imageTag := default ( default $root.Chart.AppVersion $root.Values.global.imageTag ) ( default $root.Values.worker.imageTag $dot.imageTag  ) | toString -}}
+{{- $imagePullPolicy := default $root.Values.global.imagePullPolicy $dot.imagePullPolicy -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" $root.Values.global.imageRegistryFormat -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" ( default $root.Values.global.imageRegistry $root.Values.worker.imageRegistry ) -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" ( default $root.Values.global.imageOrganization $root.Values.worker.imageOrganization ) -}}
+{{- $imageName := default "web-dynamic" $root.Values.worker.imageName -}}
+{{- $imageSource := default ( default "sde" $root.Values.global.imageSource ) ( default $root.Values.worker.imageSource $dot.imageSource ) -}}
+{{- $uid := default 33 $root.Values.worker.uid -}}
+{{- $gid := default 33 $root.Values.worker.gid -}}
+{{- $fsgid := default 33 $root.Values.worker.fsgid -}}
+{{- $jobsUid := default 1000 $root.Values.worker.jobsUid -}}
+{{- $deploymentName := hasKey $dot "queueVarVal" | ternary ( printf "worker-%v-%v" $dot.niceness $dot.queueVarVal ) ( printf "worker-%v" $dot.niceness ) }}
+{{- $releaseName :=  printf "%v-%v" ( include "library.trimmedName" $root ) $deploymentName -}}
+{{- $appStateChange := ternary true false (or $root.Release.IsUpgrade $root.Release.IsInstall) -}}
+{{- $haystackClaimName := printf "%v-%v" ( include "library.trimmedName" $root ) "haystack-volume-claim" -}}
+{{- $mediaClaimName := printf "%v-%v" ( include "library.trimmedName" $root ) "media-volume-claim" -}}
+{{- $staticClaimName := printf "%v-%v" ( include "library.trimmedName" $root ) "static-volume-claim" }}
+{{- $loaderClaimName := printf "%v-%v" ( include "library.trimmedName" $root ) "loader-volume-claim" }}
+
+# ssl variables
+{{- $tlsRoot := default "/tls" $root.Values.worker.tlsRoot }}
+{{- $certManagerEnabled := eq ( include "certManagerEnabled" ( merge . $root ) ) "true" -}}
+{{- $enableInternalTls := eq ( include "enableInternalTls" ( merge . $root ) ) "true" -}}
+
+# App worker ssl variables
+{{/* database and broker certs are currently disabled */}}
+{{- $tlsDatabaseSecretName := include "tlsSecretName" ( mergeOverwrite $root ( dict "serviceName" "sc-database-client" )) }}
+{{- $tlsDatabaseCACertPath := printf "%v/%v" $tlsRoot "database/ca.crt" }}
+{{- $tlsDatabaseCertPath := printf "%v/%v" $tlsRoot "database/tls.crt" }}
+{{- $tlsDatabaseKeyPath := printf "%v/%v" $tlsRoot "database/tls.key" }}
+
+# Celery worker ssl variables
+{{- $tlsBrokerSecretName := include "tlsSecretName" ( mergeOverwrite $root ( dict "serviceName" "sc-broker-client" )) }}
+{{- $tlsBrokerCACertPath := printf "%v/%v" $tlsRoot "broker/ca.crt" }}
+{{- $tlsBrokerCertPath := printf "%v/%v" $tlsRoot "broker/tls.crt" }}
+{{- $tlsBrokerKeyPath := printf "%v/%v" $tlsRoot "broker/tls.key" }}
+
+{{- $tlsDataStoreSecretName := include "tlsSecretName" ( mergeOverwrite $root ( dict "serviceName" "datastore-client" )) }}
+{{- $tlsDataStoreCACertPath := printf "%v/%v" $tlsRoot "datastore/ca.crt" }}
+{{- $tlsDataStoreCertPath := printf "%v/%v" $tlsRoot "datastore/tls.crt" }}
+{{- $tlsDataStoreKeyPath := printf "%v/%v" $tlsRoot "datastore/tls.key" }}
+{{- $tlsContext := dict "tlsDataStoreKeyPath" $tlsDataStoreKeyPath "tlsDataStoreCertPath" $tlsDataStoreCertPath "tlsDataStoreCACertPath" $tlsDataStoreCACertPath }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $releaseName | quote }}
+  labels:
+    name: {{ $releaseName | quote }}
+    {{- include "library.labels" $root | nindent 4 }}
+spec:
+  replicas: {{ default 1 $dot.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $releaseName | quote }}
+      {{- include "library.selectorLabels" $root | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ $releaseName | quote }}
+        {{- include "library.selectorLabels" $root | nindent 8 }}
+    spec:
+      securityContext:
+        {{- if not $root.Values.global.runAsRoot }}
+        runAsUser: {{ $uid }}
+        runAsGroup: {{ $gid }}
+        fsGroup: {{ $fsgid }}
+        {{- if semverCompare ">=1.23.0-0" $root.Capabilities.KubeVersion.GitVersion }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
+        {{- end }}
+      {{- if $root.Values.global.enableNodeSelector }}
+      nodeSelector:
+        customer_name: {{ printf "%v" ( include "library.trimmedName" $dot ) | quote }}
+      {{- end }}
+      initContainers:
+      - name: {{ printf "%v-%v" $releaseName "prep" | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        command: ['/bin/bash', '-c', 'set -x && if [[ "$(stat --print "%u:%g " /static /media)" != "{{ $uid }}:{{ $gid }} {{ $uid }}:{{ $gid }} " ]]; then chown --changes --recursive {{ $uid }}:{{ $gid }} /static /media || echo "Could not modify /static or /media permissions"; fi && if [[ "$(stat --print "%g" /index)" != "{{ $gid }}" ]]; then chown --changes --recursive {{ $jobsUid }}:{{ $gid }} /index || echo "Could not modify /index permissions"; fi' ]
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+        volumeMounts:
+        - mountPath: {{ default "/index" $root.Values.worker.indexMountPath | quote }}
+          name: haystack
+        - mountPath: {{ default "/static" $root.Values.worker.staticRoot | quote  }}
+          name: static
+        - mountPath: {{ default "/media" $root.Values.worker.mediaRoot | quote  }}
+          name: media
+        - mountPath: {{ default "/loader" $root.Values.worker.loaderRoot | quote }}
+          name: loader
+      containers:
+      - name: {{ $releaseName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy:  {{ $imagePullPolicy }}
+        {{- if eq ( hasKey $dot "queueVarName" ) ( false ) }}
+        readinessProbe:
+          httpGet:
+            path: {{ default "/accounts/login/" $dot.readinessPath | quote }}
+            port: {{ default 8080 $dot.port }}
+            scheme: HTTP
+          timeoutSeconds: 5
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        {{- end }}
+        args:
+        - /bin/bash
+        - -c
+        - {{ required "You must specify a startup script to run for the SDE container" $dot.startupScript | quote }}
+        securityContext:
+          allowPrivilegeEscalation: false
+        env:
+        {{- dict "root" (merge $root $tlsContext) "dot" $dot | include "sde.environment" | nindent 8 }}
+        {{- range $root.Values.worker.extraEnvVars }}
+        - name: {{ .name | quote }}
+          value: {{ .value | quote }}
+        {{- end }}
+        {{/* Disable broker internal TLS for now */}}
+        {{- if and $enableInternalTls false }}
+        - name: SDE_BROKER_USE_SSL
+          value: "TRUE"
+        - name: SDE_BROKER_CLIENT_CERT
+          value: {{ $tlsBrokerCertPath }}
+        - name: SDE_BROKER_CLIENT_KEY
+          value: {{ $tlsBrokerKeyPath }}
+        - name: SDE_BROKER_ROOT_CERT
+          value: {{ $tlsBrokerCACertPath }}
+        {{- end }}
+        {{- if $dot.resources }}
+        resources:
+        {{- range $limitType, $resources := $dot.resources }}
+            {{ $limitType }}:
+            {{- range $resourceKey, $resourceValue := $resources }}
+                {{ $resourceKey }}: {{ $resourceValue }}
+            {{- end }}
+        {{- end }}
+        {{- else }}
+        resources: {}
+        {{- end }}
+        volumeMounts:
+        - mountPath: {{ default "/index" $root.Values.worker.indexMountPath | quote }}
+          name: haystack
+        - mountPath: {{ default "/static" $root.Values.worker.staticRoot | quote  }}
+          name: static
+          readOnly:  {{ not $appStateChange }}
+        - mountPath: {{ default "/media" $root.Values.worker.mediaRoot | quote  }}
+          name: media
+        {{- if $enableInternalTls }}
+        - mountPath: {{ printf "%v/%v" $tlsRoot "datastore" | quote }}
+          name: tls-datastore
+          readOnly: true
+        {{- end }}
+        - mountPath: {{ default "/loader" $root.Values.worker.loaderRoot | quote  }}
+          name: loader
+      imagePullSecrets:
+      - name: security-compass-secret
+      restartPolicy: Always
+      volumes:
+      - name: haystack
+        persistentVolumeClaim:
+          claimName: {{ $haystackClaimName | quote }}
+      - name: static
+        persistentVolumeClaim:
+          claimName: {{ $staticClaimName | quote }}
+          readOnly: {{ not $appStateChange }}
+      - name: media
+        persistentVolumeClaim:
+          claimName: {{ $mediaClaimName | quote }}
+      {{- if $enableInternalTls }}
+      - name: tls-datastore
+        secret:
+          secretName: {{ $tlsDataStoreSecretName }}
+          defaultMode: 0400
+      {{- end }}
+      - name: loader
+        persistentVolumeClaim:
+          claimName: {{ $loaderClaimName | quote }}
+status: {}
+{{- end }}

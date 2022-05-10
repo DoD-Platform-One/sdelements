@@ -1,0 +1,21 @@
+apiVersion: v2
+appVersion: 1.0.10
+dependencies:
+- condition: global.enableNestedDependencies
+  name: sc-library
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 0.1.1
+description: The Security Compass Database chart
+icon: https://avatars0.githubusercontent.com/u/739346
+keywords:
+- database
+- sde
+- postgres
+- postgresql
+maintainers:
+- email: devops-support@securitycompass.com
+  name: Security Compass Technologies Ltd.
+  url: https://www.securitycompass.com/
+name: sc-database
+type: application
+version: 1.0.10

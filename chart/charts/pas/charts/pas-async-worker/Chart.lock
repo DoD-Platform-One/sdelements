@@ -1,0 +1,12 @@
+dependencies:
+- name: sc-library
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 0.1.1
+- name: sc-broker
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 0.1.6
+- name: sc-database
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 1.0.8
+digest: sha256:b26564a0bbac7f6de6eacfb690261a1ecad0e8e535fc0db9fdea2d26f0ab22cf
+generated: "2021-11-16T17:44:34.665482428Z"

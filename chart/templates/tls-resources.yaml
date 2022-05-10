@@ -1,0 +1,142 @@
+{{/*
+TLS resources
+Cert-manager enabled: Create CA certs for each issuer type
+Create root CA issuer for each issuer type specifie
+*/}}
+
+{{- $certManagerEnabled := eq ( include "certManagerEnabled" . ) "true" -}}
+{{- $fqdn := required "A fully qualified domain name must be be specified when cert-manager is enabled !" .Values.sde.fqdn }}
+
+{{- if $certManagerEnabled }}
+{{- range $issuer := .Values.global.certManager.issuers }}
+{{- $issuerName := printf "%v-tls-%v-issuer" $.Release.Name $issuer.name -}}
+{{- $certName := printf "%v-tls-%v-cert" $.Release.Name $issuer.name | replace "." "-" | trunc 52 | trimSuffix "-" -}}
+{{- $serviceName := ( eq $issuer.name $.Values.global.certManager.defaultIssuer ) | ternary "web-server" ( printf "web-server-%v" $issuer.name ) }}
+{{- $secretName :=  include "tlsSecretName" ( mergeOverwrite $ ( dict "serviceName" $serviceName )) }}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ $issuerName| quote }}
+spec:
+  {{- if eq $issuer.type "acme"  }}
+  acme:
+    # Let's Encrypt will use this to contact you about expiring
+    # certificates, and issues related to your account.
+    email: {{ required "An email address must be be specified when cert-manager uses an acme issuer" $.Values.global.certManager.email | quote }}
+    server: {{ $issuer.url | quote }}
+    privateKeySecretRef:
+      # Secret resource that will be used to store the account's private key.
+      name: {{ $issuer.key | quote }}
+    # Challenge solvers, default to HTTP01 using nginx but offer RFC 2136 via  DNS
+    solvers:
+    {{- if $issuer.rfc2136 }}
+    - dns01:
+        rfc2136:
+          nameserver: {{ $issuer.rfc2136.nameserver }}
+          tsigKeyName:  {{ $issuer.rfc2136.tsigKeyName }}
+          tsigAlgorithm:  {{ $issuer.rfc2136.tsigAlgorithm }}
+          tsigSecretSecretRef:
+            name: {{ printf "%v-%v" $secretName "rfc2136" }}
+            key: "tsigSecret"
+    {{- else }}
+    - http01:
+        ingress:
+          class: nginx
+    {{- end }}
+  {{- else }}
+  selfSigned: {}
+  {{- end }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $certName | quote }}
+  namespace: {{ $.Release.NameSpace }}
+spec:
+  commonName: {{ $fqdn | quote  }}
+  dnsNames:
+  - {{ $fqdn | quote }}
+  {{- range $.Values.sde.alternateDnsNames }}
+  - {{ . | quote }}
+  {{- end }}
+  secretName: {{ $secretName }}
+  issuerRef:
+    name: {{ $issuerName | quote }}
+
+{{- if eq $issuer.type "acme" }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ printf "%v-%v" $secretName "rfc2136" }}
+  labels:
+    {{- include "library.labels" $ | nindent 4 }}
+  {{- if eq ( default false $.Values.global.disableHelmHooks ) false }}
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+  {{- end }}
+data:
+    tsigSecret: {{ $issuer.rfc2136.tsigKeySecret | quote }}
+{{- end }}
+{{- end }}
+{{- else }}
+{{/* Helm Sprig self-signed certs */}}
+{{ dict "root" . "serviceName" "web-server" "commonName" $fqdn "alternateDnsNames" .Values.sde.alternateDnsNames  | include "sde.certs" }}
+{{- end }}
+
+{{/* Client specific custom TLS certs */}}
+{{- range ( tuple "web" "jitt" ) }}
+{{- $values := index $.Values . }}
+{{- $customSecretName := printf "%v-tls-%v-custom-secret" $.Release.Name . -}}
+{{- $useCertValues := and ( hasKey $values "tlsCertificate" ) ( hasKey $values "tlsKey" ) -}}
+{{- $useCertPaths := and ( hasKey $values "tlsCertificatePath" ) ( hasKey $values "tlsKeyPath" ) -}}
+{{- if and $useCertPaths $useCertValues }}
+{{- fail "SDE's Web TLS resources can be specified either by file paths or values, not both." }}
+{{- else if and ( hasKey $values "tlsCertificatePath") ( not ( hasKey $values "tlsKeyPath") )  }}
+{{- fail "Can't use web.tlsCertificatPath without specifying web.tlsKeyPath." }}
+{{- else if and ( hasKey $values "tlsKeyPath") ( not ( hasKey $values "tlsCertificatePath") )  }}
+{{- fail "Can't use web.tlsKeyPath without specifying web.tlsCertificatePath." }}
+{{- else if and ( hasKey $values "tlsCertificate") ( not ( hasKey $values "tlsKey") ) }}
+{{- fail "Can't use web.tlsCertificate without specifying web.tlsKey." }}
+{{- else if and ( hasKey $values "tlsKey") ( not ( hasKey $values "tlsCertificate") ) }}
+{{- fail "Can't use web.tlsKey without specifying web.tlsCertificate." }}
+{{- end }}
+{{- if or $useCertValues $useCertPaths }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $customSecretName | quote }}
+  labels:
+    {{- include "library.labels" $ | nindent 4 }}
+type: kubernetes.io/tls
+data:
+  tls.crt: |-
+      {{- if $useCertValues }}
+      {{ $values.tlsCertificate | b64enc -}}
+      {{ else }}
+        {{- if not (.Files.Glob $values.tlsCertificatePath) }}
+          {{ fail (printf "File with path %s does not exist." $values.tlsCertificatePath) }}
+        {{- end }}
+      {{- range $path, $_ :=  .Files.Glob  $values.tlsCertificatePath }}
+      {{ ( $.Files.Get $path ) | b64enc }}
+      {{- end }}
+      {{- end }}
+  tls.key: |-
+      {{- if $useCertValues }}
+      {{ $values.tlsKey | b64enc }}
+      {{ else }}
+        {{- if not (.Files.Glob $values.tlsKeyPath) }}
+          {{ fail (printf "File with path %s does not exist." $values.tlsKeyPath) }}
+        {{- end }}
+      {{- range $path, $_ :=  .Files.Glob  $values.tlsKeyPath }}
+      {{ ( $.Files.Get $path ) | b64enc }}
+      {{- end }}
+      {{- end }}
+{{- end }}
+{{- end }}
+
+

@@ -1,0 +1,861 @@
+### Default values for the SDElements (sde) Helm Chart.
+### This is a YAML-formatted file.
+### Declare variables to be passed into your templates.
+valuesVersion: 2.0
+
+## SDElements specific options
+sde:
+  ## Emails, passwords and keys
+  #secretKey: aRandomEncryptionString
+  superuserEmail: sde-superuser@sdelements.com
+  #superuserPassword: thePasswordForTheDefaultWebSuperUser
+  #jwtSecret: superSecretPassword
+  defaultFromEmail: "SDElements <noreply@sdelements.com>"
+  # serverEmail: sdelements@example.com
+  defaultOrg: default
+  feedbackEmail: support@sdelements.com
+  supportEmail: support@sdelements.com
+  fqdn: example.com
+  # DNS Aliases & Extra names
+  # FQDN and alternateDnsNames are used to create DNS records and
+  # get certificates issued dynamically.
+  # Connections to URLs defined in these are encrypted by default using Cert Manager
+  # and if not defined will fall back to Custom Certs/self-signed Certs.
+  # alternateDnsNames:
+  #  - alias.example.com
+  #  - othername.example.com
+  # alternateVirtualHosts are used to create config sections in the ingress and
+  # can be optionally used with a custom cert.
+  # When custom certs are configured any connections to these URLs will be encrypted using said certs,
+  # in case custom certs are not configured the ingress will back to using self signed certs.
+  # alternateVirtualHosts:
+  #  - externally-managed-dns-record.example.com
+
+  # SD Elements domain name (to generate application URLs)
+  # siteDomain: example.com     # Sets to sde.fqdn if defined, example.com otherwise
+  # siteName: My SDE Instance   # Sets to sde.fqdn if defined, example.com otherwise
+
+  #sdeDebugMode: False
+  #databasePrefix: sde_
+  #databaseHost: hard_coded_hostname.example.com
+  #loginRedirectUrl: "/"
+  #logoutRedirectUrl: "/"
+  #sessionInactivityTimeout: "7200"
+
+  ## Volume sizes
+  ## Note that not all volume types support resizing, see the Kubernetes
+  ## documentation or this subject.
+  ## Haystack
+  #indexVolumeSize: 2Gi
+  ## Volatile Storage
+  #mediaVolumeSize: 4Gi
+  ## Non-volatile Storage
+  #staticVolumeSize: 4Gi
+  ## Data Loader Temporary Storage
+  #loaderVolumeSize: 10Gi
+  #enableJITT: true
+  ## PostgreSQL
+  #databaseVolumeSize: 30Gi
+
+  ## Security options for integrations
+  # Disable network restrictions on all integrations
+  #sdetoolsIgnoreNetworkRestriction: False
+  # Block list for restricted domains that an integration can be configured for
+  #sdetoolsNetworkRestrictionDomainBlockList: localhost
+  # Block list for restricted ports that an integration can be configured for
+  #sdetoolsNetworkRestrictionPortBlockList: 22,23
+  # Whether SDE should validate the PAS certificate when making TLS requests
+  #validateSdeCert: true
+  # Whether PAS plugins should validate the SDE certificate when making TLS requests during a sync
+  #pasPluginValidateSdeCert: true
+  #
+  #
+  # This is the SDE web ingress annotations. Warning - this is a replacement of all the default annotations,
+  # not an update. Default annotations are commented below.
+  #ingress:
+  #  annotations:
+  #    kubernetes.io/ingress.class: nginx
+  #    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+  #    nginx.ingress.kubernetes.io/proxy-body-size: "2048m"
+
+ingress-nginx:
+  rbac:
+    scope: true
+  controller:
+    admissionWebhooks:
+      enabled: false
+    scope:
+      enabled: true
+    config:
+      forwarded-for-header: proxy_protocol
+      use-forwarded-headers: "true"
+      # Set a comma separated ip whitelist range here
+      # whitelist-source-range: "127.0.0.1,127.0.0.2"
+    metrics:
+      enabled: "true"
+    service:
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+      targetPorts:
+        http: http
+        https: https
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-type: nlb
+        service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+        service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
+        #service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+        #service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+        #service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:ommitted-xxx"
+        #
+    extraArgs:
+      enable-ssl-passthrough: true
+      # ssl-redirect: true
+  revisionHistoryLimit: 0
+
+## These options are global and shared by all charts and namespaces in a cluster
+global:
+  ## SDElements image tag.
+  ## The version of SDE to run, Ref: https://docs.sdelements.com
+  # imageTag: latest
+
+  ## Provide a name in place of `sde` for `app:` labels
+  ##
+  #nameOverride: ""
+
+  ## Provide a name to substitute for the full names of resources
+  ##
+  #fullnameOverride: ""
+
+  ## Configuration options and crentials to fetch images from private
+  ## registries/repositories. These are provided by SDElements support staff on
+  ## request upon purchase of the SDElements product.
+  ##
+  imageRegistry: docker.sdelements.com
+  #imageRegistry: docker-dev.sdelements.com
+
+  # Name of a kubernetes.io/dockerconfigjson secret to use for pulling containers that is defined
+  # external to the one created by the helm chart.
+  # "security-compass-secret" is a reserved name for the secret created by this helm chart.
+  registrySecretName: security-compass-secret
+
+  # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
+  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
+  # docker-dev.sdelements.com / dev _ (sde/3rd) / cert-creator : latest
+  #imageRegistryFormat: "%s/%s_%s/%s:%s"
+  imageRegistryFormat: "%s/%s-%s-%s:%s"
+  #imageRegistryUsername: acmecorp
+  #imageRegistryPassword: SuperSecretPassword
+  imageOrganization: default_organization
+  #imageOrganization: dev
+  imagePullPolicy: IfNotPresent
+  #imageSource: sde
+
+  # Settings for openssl cert generation
+  #initImageOrganization: dev
+  #initImageSource: sde
+  #initImageName: cert-creator
+  #initImageTag: latest
+
+  ## IMPORTANT: If you are upgrading from a legacy helm chart or SDE version (<5.15) you will need to set the nameOverride below
+  #nameOverride: sde
+
+  ## AWS NLB Configuration & Setup
+  awsNLB:
+    enabled: false
+  awsEFSCSI:
+    enabled: false
+  ## Nginx Ingress Configuration
+  nginxIngress:
+    enabled: true
+  enableInternalTls: false
+  ## Cert Manager
+  certManager:
+    # Note that cert manager needs to be installed prior to enabling this
+    # feature, see https://cert-manager.io/docs/installation for instructions
+    # on how to install cert-manager
+    # Note that web-server certificates specified under the web section will
+    # disable cert-manager and any certificates managed by cert-manager
+    enabled: false
+    email: sysadmin@example.com
+    defaultIssuer: self-signed
+    issuers:
+      - name: self-signed
+        type: self-signed
+    #  - name letsencrypt-staging:
+    #      type: acme
+    #      url: https://acme-staging-v02.api.letsencrypt.org/directory
+    #      key: sde-acme-staging-account-key
+    #  - name letsencrypt-prod:
+    #      type: acme
+    #      url: https://acme-v02.api.letsencrypt.org/directory
+    #      key: sde-acme-prod-account-key
+    #      rfc2136:
+    #         nameserver: ns01.example.com
+    #         tsigKeyName: dummy_keyname
+    #         tsigKeySecret: u20QIqZ6pOAeJ25jzlxhl7uV3OaRxyfbBK+9N/8tdxPY2ZJX0IJT5RXex8dJGBk7hdeSPJEujt5qrOO/vIRvBw==
+    #         tsigAlgorithm: HMACSHA512
+  # Broker customizations
+  broker: {}
+    #adminClientUser: rabbit
+    #adminVhost: rabbit
+    #url: amqp://www.example.com
+
+  ## Global Storage Class
+  # Can be overwritten for specific deployments like database in the relevant
+  # section
+  #storageClass: glusterfs-storage
+
+  # Data Loader Storage Class
+  # loaderStorageClass: ws-efs
+
+  ## Backup Storage Class
+  #backupStorageClass: ws-efs
+
+  ## Backup Volume Size
+  #backupVolumeSize: 30Gi
+
+  ## Backup Mount Path
+  #backupMountPath: /backup
+
+  ## Run containers as the root user rather than the default unpriviledged user
+  #runAsRoot: true
+
+  ## Deploy pods to nodes based on customer name
+  # enableNodeSelector: true
+
+  ## Disable helm hooks for Secrets objects
+  # disableHelmHooks: false
+
+  ## Environment variables for shared storage
+  sharedStorage:
+    # Type of storage to use: file or s3
+    storageType: "file"
+    # For file storage type path is required
+    #dirPath: "sdelements"
+    #bucketName: "bucket-name"
+    #s3Url: "https://my-bucket.s3.us-west-2.amazonaws.com/"
+    #s3BucketPath: "/path/to/storage/in/bucket/
+    #s3AccessKey: "accesskey"
+    #s3SecretKey: "secretKey"
+  pas:
+    enabled: false
+    # Enable or disable custom plugin functionality
+    enableCustomPlugins: true
+
+# Event based proxy, serves static and proxies dynamic content (nginx)
+web:
+  replicas: 1
+  #imageTag: latest
+  #imagePullPolicy: Always
+  #imageSource: dccsr
+  #initImageSource: dccsr
+
+  ## Generic Server options
+  #host: "_"
+  #httpPort: 80
+  #httpsPort: 443
+  #workerConnections: 1024
+  #workerProcesses: auto
+  #rlimitNofile: 1024
+
+  ## Certificate and encryption options
+  # Custom tls certs/keys can by specified either through file paths or the
+  # actual values themselves.
+  # For cloud deployments, it might be necessary to supply the values themselves
+  # through the clientCertificate and clientKey fields.
+  # For local deployments, supplying file paths is likely easiest, and can
+  # be done through the clientCertificatePath and the clientKeyPath fields.
+  # Note that these options are mutually exclusive.
+  # Paths/Values shouldn't be mixed and matched, nor should they both be supplied.
+  #certIssuer: self-signed
+  #tlsCertificatePath: files-static/myServerCert.pem
+  #tlsKeyPath: files-static/myServerKey.pem
+  # tlsCertificate: |-
+  #   -----BEGIN CERTIFICATE-----
+  #   MIIDrTCCApWgAwIBAgIUNX3roNLr4fQUU8WHb6PZ7T0nZ4QwDQYJKoZIhvcNAQEL
+  #   BQAwZjELMAkGA1UEBhMCQ0ExCzAJBgNVBAgMAk9OMQswCQYDVQQHDAJPTjELMAkG
+  #   A1UECgwCT04xCzAJBgNVBAsMAk9OMQ4wDAYDVQQDDAUqLmNvbTETMBEGCSqGSIb3
+  #   DQEJARYEbGV0YTAeFw0yMTAyMDYwMDQwMjNaFw0yMjAyMDYwMDQwMjNaMGYxCzAJ
+  #   BgNVBAYTAkNBMQswCQYDVQQIDAJPTjELMAkGA1UEBwwCT04xCzAJBgNVBAoMAk9O
+  #   MQswCQYDVQQLDAJPTjEOMAwGA1UEAwwFKi5jb20xEzARBgkqhkiG9w0BCQEWBGxl
+  #   dGEwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC6HDoFnvHH3gZYLox1
+  #   LHpHtOfAis6wpv2Qc3mVrpaSjkD/blxUc6JAsP4N6iteHS1stO/T5QXiY8Lstlz/
+  #   +ExTkqRoDF0nx3KKRoyjHzUWLg5WYCobGkvy2jne1kBjD5TqQRw7TqKC+8gnHbtB
+  #   Mf856mg3XPYY/i2+hlqTsIbgaKxGe/xakxiBCSPFXJ8baVBBX7y9cyrJNU9hEmkF
+  #   Jra5/qwXJydqo7yCtsrI+9pUjvJKIsIxIvFRUxilCHJBw69lA9Hi6yrFG2IaFW4e
+  #   2hnStgsHzQMmJt/m+iHFC6px8aZHu3fhAVTHxQJglL4jewJ7jMYn3a+nrq5+Q/h3
+  #   yKGvAgMBAAGjUzBRMB0GA1UdDgQWBBQQ3Etdzug0dmRgZa6O/WA/A8khJDAfBgNV
+  #   HSMEGDAWgBQQ3Etdzug0dmRgZa6O/WA/A8khJDAPBgNVHRMBAf8EBTADAQH/MA0G
+  #   CSqGSIb3DQEBCwUAA4IBAQBReyZIrJjz/AWK7UiCrdteOfGtIVtRgfPjqTSdbn0l
+  #   a32uwHmD41MXglwORH5zqV9dFPu+KTVZ5ngx02a+OZRdO5r6v+3Gjpywo6TP3B6Y
+  #   Xy7XT9oMAlIaRowNzsJHQLTjfZfe5rG6YrcmL7IqrXznJ9nDjJlyMBfpYRj7Cu46
+  #   YDq5+Awb/oyqWgubC/676ittzI3VdGNwINJb017RIbolE3foLFVmVw4DQ55CcnJ1
+  #   WQ6Lm6jmCPzZ4WpgYomst3MykXSXh/l7Rn7Ca7NZf3/bnRK9BPPF7SbmHWUITQAA
+  #   oSBpwdj8tcY/x3awRg08fWemTK/URa0RmLNutZLBz9wa
+  #   -----END CERTIFICATE-----
+
+
+  # tlsKey: |-
+  #   -----BEGIN PRIVATE KEY-----
+  #   MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC6HDoFnvHH3gZY
+  #   Lox1LHpHtOfAis6wpv2Qc3mVrpaSjkD/blxUc6JAsP4N6iteHS1stO/T5QXiY8Ls
+  #   tlz/+ExTkqRoDF0nx3KKRoyjHzUWLg5WYCobGkvy2jne1kBjD5TqQRw7TqKC+8gn
+  #   HbtBMf856mg3XPYY/i2+hlqTsIbgaKxGe/xakxiBCSPFXJ8baVBBX7y9cyrJNU9h
+  #   EmkFJra5/qwXJydqo7yCtsrI+9pUjvJKIsIxIvFRUxilCHJBw69lA9Hi6yrFG2Ia
+  #   FW4e2hnStgsHzQMmJt/m+iHFC6px8aZHu3fhAVTHxQJglL4jewJ7jMYn3a+nrq5+
+  #   Q/h3yKGvAgMBAAECggEASLFJwHRKv+Rq2fqkhgfvYx63/q64+KrhE5DnBp4A1hGW
+  #   Na7nhVz9HQOE1+6FLed7nKA3pK4p1DlfI5I/VQOo3GPEr5dUs3rltDjGKdjApX8r
+  #   vnUlPRzSWXL/c5h/4bFuWuk/m7KlK0Ao945XW6mppPd36Vf4D98IAwj7TACBThkp
+  #   2Zqlvif03BRazgM7qUJYDIlBPuHmNgzaMBUIQqitC1k0FMN5fHpf9b3DCH14PDcP
+  #   3+WdmaxJmKgGOVy4vPn0FrwK21CPmdTheIiR396kvvHSnrz3EFCRDm0mfOo2+JUe
+  #   +h5DZ/cf3NY896zEa6149//rCzKt+njjcI3G9zNBwQKBgQDdJFbnUGIViqHaHPKx
+  #   zfZS7fmL0966mptzo3nMcoBRI0zexaODxULB5h+Axugumd5RFpOGz7Reo1rR+IfE
+  #   OxozSQXroIqz0A1qj0opawlQNqO12xO0TXMFLz9aiL4FYkCnbX+yH0tAB+uWdrCQ
+  #   iZHdi+Wps6SJ1h/XxlUcIk+PcQKBgQDXckQhkqAHs9iblKHBLJYowqeja4S+/RtE
+  #   HpJOxRWmA3DIW71NHqZR6tcBnrQ8cZdd6BQludwmGgWl96i4z1SwAasd+FY8FrZd
+  #   +dy+4zbPMbe1wbMcB5wjiJBYhrjaspAtZ1ojveK57DY180ZTKOIJig5UKszeFNrD
+  #   +4vRV97zHwKBgQC1OHRm9r6KPKNKJHLWNpxndVEMv0FE1jIR36OOYT66Px1dacUH
+  #   1P1R/I1QcLAQkFNZTBD1Zvy+mUtxyiMoMe7UnEDXySYhGJwF+QqjSm3FaCFcg/1v
+  #   whBB7WgTfv+JVez5x4ffpjl6bYMoOHeU2sfIMD6yhN6PfgN2Rbe1aICeYQKBgDmp
+  #   N1rU50eodpyNFw2gZT/beQpfyFNlYlrE49t5G+YmnZTCGNP/E/xwocKpOwvCSwSz
+  #   DFFcgPMhm8ljkyCDPOMuTyHiSRIj8gMM0Gu2XADwCX73rHwf/UX1UsyeofLGP5gn
+  #   RRSzyW6BLbEavwOauYRcEqGsItB9PF+ffzg0EFN5AoGADgJAbJJHS5PhSf8MNX0L
+  #   lVPqp7rYLeunwNCVpC+9gppgwa6ZuENPgfMoMdpXcT7ijPM0GX6+lzPrlwoobmml
+  #   oioRXDvbRwSdXiMIgBNs7od6eUs47a65m30wXZHBtjaiq1hINY9oRcT/wMg8TME0
+  #   SRp7NyTyRLsTwVIzkwUCaMM=
+  #   -----END PRIVATE KEY-----
+
+
+  #tlsCiphers: "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256"
+  #tlsProtocols: "TLSv1 TLSv1.1 TLSv1.2"
+
+  ## SDE specific options
+  #staticRoot: /static
+  #mediaRoot: /media
+  #cacheRoot: /cache
+  #tlsRoot: /tls
+
+  ## User/Group options
+  # uid: 101
+  # gid: 101
+  # fsgid: 33
+
+  ## Container options
+
+  #resources: {}
+
+# Just in Time Training, serves static content (nginx)
+sc-jitt:
+  replicas: 1
+  #imageTag: latest
+  #imagePullPolicy: Always
+  #imageSource: dccsr
+  #initImageSource: dccsr
+
+  ## Generic Server options
+  #host: "_"
+  #httpPort: 7080
+  #workerConnections: 1024
+  #workerProcesses: auto
+  #rlimitNofile: 1024
+
+  ## Certificate and encryption options
+  #tlsCertificatePath: files-jitt/myServerCert.pem
+  #tlsKeyPath: files-jitt/myServerKey.pem
+  #tlsCiphers: "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256"
+  #tlsProtocols: "TLSv1 TLSv1.1 TLSv1.2"
+
+  ## SDE specific options
+  #tlsRoot: /tls
+
+  ## User/Group options
+  # uid: 101
+  # gid: 101
+  # fsgid: 33
+
+  ## Container options
+  #resources: {}
+
+## Message broker (rabbitmq)
+sc-broker:
+  replicas: 1
+  #imageTag: latest
+  #imagePullPolicy: Always
+  #imageSource: dccsr
+  #caCertificatePath: certs/myCACert.pem
+  #caKeyPath: certs/myCAKey.pem
+  #serverCertificatePath: myDBServerCert.pem
+  #serverKeyPath: myDBServerKey.pem
+  #tlsRoot: /tls
+  ## Connection parameters
+  #host: mq
+  #clientUser: sde
+  #clientPassword: myRabbitMQUserPassword
+  #vHost: sde
+  ## URL is mutually exclusive to user/pass/host/vhost and takes precidence over
+  ## those values if specified
+  #url: amqp://user:pass@host:post/vhost
+
+  ## User/Group options
+  # uid: 100
+  # gid: 101
+  # fsgid: 101
+
+  ## Container options
+  resources:
+    requests:
+      memory: 128Mi
+
+## Persistant Database (postgresql)
+sc-database:
+  replicas: 1
+  #imageTag: latest
+  #port: 5432
+  #dataStorageClass: aws-ebs
+  #dataMountPoint: /var/lib/postgresql/data
+  #dataDir: pgdata
+  #dataVolumeSize: 30Gi
+  #imageTag: latest
+  #imagePullPolicy: Always
+  #imageSource: dccsr
+  #initImageSource: dccsr
+  #clientPassword: mySuperDBPass
+  #clientUser: sde
+  #backupAdminEmail: admin@example.com
+  #backupFromEmail: noreply@example.com
+  ## backupPath should be a subfolder within your global.backupMountPath
+  #backupPath: /backup/db
+  #keepBackupDays: 14
+  #cleanBackups: true
+
+  ## User/Group options
+  # uid: 70
+  # gid: 70
+  # fsgid: 70
+
+  ## Container options
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 6
+
+## Email delivery system (postfix)
+mail:
+  replicas: 1
+  #relayHost: mailserver.example.com
+  #relayHostPort: 25
+  #approvedNetworks: "127.0.0.1/32 10.0.0.0/8 172.16.0.0/12 192.168.100.0/16"
+  #port: 25
+  #imageTag: latest
+  #imagePullPolicy: Always
+  #imageSource: dccsr
+
+  ## Container options
+  #resources: {}
+
+## SDElements worker (python process)
+worker:
+  #contentPath: /content
+  #projectPath: /project
+  #indexPath: /index
+  #indexMouthPath: /index
+  #loaderRoot: /loader
+  #cacheRoot: /cache
+  #mediaRoot: /media
+  #staticRoot: /static
+  #mediaURL: /media/
+  #compressOffline: "True"
+  #configPath: "/etc/sde"
+  # consoleLogLevel: DEBUG
+  # wsgiLogLevel: warn
+  # wsgiProcesses: 4
+  #emailLogLevel: ERROR
+  #samlLogLevel: DEBUG
+
+  # Additional environment variables to set on worker pods. Values defined
+  # here take precedence over existing variables in the _environments template
+  # extraEnvVars:
+  #   - name: SOME_ENV_VAR
+  #     value: "A Value"
+  #   - name: SOME_OTHER_ENV_VAR
+  #     value: >
+  #       {
+  #           'More_complicated_value': ('username', 'email'),
+  #           'firstname': ('first_name',),
+  #           'lastname': ('last_name',)
+  #       }
+
+  ## User/Group options
+  # uid: 33
+  # gid: 33
+  # fsgid: 33
+  # jobsUid: 1000
+  # tlsTrustSecretName: secretName
+
+  ## Synchronous SDE worker settings (apache/mod_wsgi)
+  synchronous:
+    lowPriority:
+      # Header/Session token to match for proxy_pass/map
+      # https://nginx.org/en/docs/http/ngx_http_map_module.html
+      # https://nginx.org/en/docs/http/load_balancing.html#algorithms
+      map: "  ~Token"
+      replicas: 1
+      niceness: 17
+      startupScript: "/bin/run_wsgi.sh"
+      #readinessPath: "/accounts/login/"
+      #port: 8080
+      #imagePullPolicy: Always
+      #imageSource: dccsr
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+
+    highPriority:
+      # Set the default backend if no pattern is matched
+      default: true
+      # Header/Session token to match for proxy_pass/map
+      # https://nginx.org/en/docs/http/ngx_http_map_module.html
+      # https://nginx.org/en/docs/http/load_balancing.html#algorithms
+      map: "  ~*sde-sessionid"
+      replicas: 1
+      niceness: 10
+      startupScript: "/bin/run_wsgi.sh"
+      #readinessPath: "/accounts/login/"
+      #port: 8080
+      #imagePullPolicy: Always
+      #imageSource: dccsr
+      resources:
+        requests:
+          cpu: 250m
+          memory: 1024Mi
+
+  ## Asynchronous SDE service settings (celery)
+  asynchronous:
+    lowPriority:
+      replicas: 1
+      queueVarName: CELERY_LOW_PRIORITY_QUEUE_NAME
+      queueVarVal: sde-low
+      maxTasks: 1
+      niceness: 18
+      startupScript: "/bin/run_celery.sh"
+      #celeryConcurrency: 2
+      #imagePullPolicy: Always
+      #imageSource: dccsr
+      resources:
+        requests:
+          cpu: 250m
+          memory: 256Mi
+
+    mediumPriority:
+      replicas: 1
+      queueVarName: CELERY_TASK_DEFAULT_QUEUE
+      queueVarVal: sde-medium
+      maxTasks: 1
+      niceness: 15
+      startupScript: "/bin/run_celery.sh"
+      #celeryConcurrency: 2
+      #imagePullPolicy: Always
+      #imageSource: dccsr
+      resources:
+        requests:
+          cpu: 250m
+          memory: 256Mi
+
+reporting:
+  # imageTag: latest
+  # imageSource: dccsr
+  # imagePullPolicy: Always
+  # initImageSource: dccsr
+  # imagePullPolicy: Always
+
+  replicas: 1
+  # webSockets: true
+  # dbType: "postgres"
+  # datastoreDriver: "redis"
+  # port: 4433
+  # tlsroot: "/tls"
+  # redisUrl: "redis://example.com:6379"
+  # nodeTlsRejectUnauthorized: "0"
+
+  ## Container options
+  resources:
+    requests:
+      memory: 128Mi
+
+datastore:
+  # imageTag: latest
+  # imageSource: dccsr
+  # imagePullPolicy: Always
+  # enableTls: true
+
+  replicas: 1
+  # port: 0
+  # tlsPort: 6379
+  #clientPassword: mySuperDatastorePass
+  #dataVolumeSize: 10Gi
+
+  ## Container options
+  #resources: {}
+
+job:
+  # Resource limits can be applied to all jobs here or specifically in
+  # respective job definitions
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  specifications:
+    alm-hourly:
+      schedule: "7 * * * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "almsync"
+        - "hourly"
+
+    alm-daily:
+      schedule: "26 1 * * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+       - "almsync"
+       - "daily"
+
+    alm-weekly:
+      schedule: "33 4 * * 6"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "almsync"
+        - "weekly"
+
+    alm-monthly:
+      schedule: "26 4 1 * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "almsync"
+        - "monthly"
+
+    clear-expired-sessions:
+      schedule: "33 1 * * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "clearsessions"
+
+    refresh-task-relevance:
+      schedule: "26 3 * * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "refresh-task-relevance"
+
+    send-new-relevant-task-notifications:
+      schedule: "33 3 * * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "send-new-relevant-task-notifications"
+
+    time-since:
+      schedule: "33 2 * * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "time-since"
+
+    metrics:
+      schedule: "26 0 * * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "metrics"
+
+    cancel-external-sync-jobs:
+      schedule: "53 * * * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "cancel-external-sync-jobs"
+        - "all"
+        - "--force"
+
+    update-index:
+      schedule: "15,45 0-1,3-23 * * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "update_index"
+        - "--age"
+        - "1"
+        - "--workers"
+        - "1"
+        - "--batch-size"
+        - "1000"
+      restartPolicy: Never
+      volumeWritePermission: true
+
+    rebuild-index:
+      schedule: "26 2 * * *"
+      niceness: 19
+      command: ["/bin/sde.sh"]
+      args:
+        - "rebuild_index"
+        - "--workers"
+        - "1"
+        - "--batch-size"
+        - "1000"
+        - "--noinput"
+      volumeWritePermission: true
+
+#   custom_job:
+#     schedule: "01 1 * * *"
+#     niceness: 15
+#     command: ["/bin/sde.sh"]
+#     args:
+#     - "custom_management_command"
+#     failedJobsHistoryLimit: 1
+#     successfulJobsHistoryLimit: 1
+#     concurrencyPolicy: Forbid
+#     restartPolicy: OnFailure
+#     volumeWritePermission: false
+#     suspend: false
+#     env:
+#     - name: ENV_VAR_NAME
+#       value: ENV_VAR_VALUE
+#     resources:
+#       requests:
+#         cpu: 1
+#         memory: 1024Mi
+#       limits:
+#         cpu: 2
+#         memory: 2048Mi
+
+# Set resource requests and limits (LimitRange) for containers.
+limitrange:
+  enabled: true
+  container:
+    defaultRequest:
+      cpu: 50m
+      memory: 64Mi
+    default:
+      cpu: 2
+      memory: 8192Mi
+
+
+# PCA specific image variables
+# these will take precedent over the global image variables
+sde-pca:
+  enable: false
+
+  #imageRegistry: docker.sdelements.com
+  # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
+  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
+  # docker.dev.sdelements.com / dev _ (sde/3rd) - cert-creator : latest
+  #imageRegistryFormat: "%s/%s_%s/%s:%s"
+  #imageRegistryFormat: "%s/%s-%s-%s:%s"
+  #imageOrganization: default_organization
+  #imageOrganization: dev
+  #imagePullPolicy: IfNotPresent
+  #imageSource: sde
+  #imageTag: 0.9.0
+
+  # PCA application configs
+  # pcaConfigs:
+  #   sdeHost: https://sdehost.com
+  #   logLevel: DEBUG
+  #   pcaEnvironment: development
+  #   validateTLS: "False" # This value need to be quoted
+
+  # PCA chart configs
+  # serviceName: pca-service
+  # httpPath: /pca(/|$)(.*)
+  # httpPort: 8001
+
+pas:
+  # Additional PAS configuration values are available, see PAS chart for more details.
+  pas-api:
+    # SDE API Service: Should match the service name of one of the synchronous SDE workers
+    sdeAPIServiceName: worker-17-service
+    sdeAPIServicePort: 8080
+    # Name of queue to enqueue SDE jobs
+    sdeQueueName: sde-medium
+    # PAS init configuration
+#    admin:
+#      database:
+#        # The username for a DB admin account. Change this if the database admin user is non-default.
+#        #user: postgres
+#        # The default database name
+#        #defaultDatabase: postgres
+#        # The secret name where the DB admin account password is stored
+#        #secretName: <release name>-database-secrets
+#        # The secret key for the DB admin account password
+#        #passwordSecretKey: ADMIN_DATABASE_PASSWORD
+#      broker:
+#        # The username for a broker admin account. Change this if the broker user is non-default.
+#        #user: rabbit
+#        # The secret name where the broker admin account password is stored
+#        #secretName: <release name>-broker-secrets
+#        # The secret key for the broker admin account password
+#        #passwordSecretKey: ADMIN_BROKER_PASSWORD
+#    # Python console logging level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
+#    logLevel: INFO
+#    # Gunicorn log level
+#    gunicornLogLevel: info
+#  pas-plugin-worker:
+#    # Celery log level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
+#    celeryLogLevel: INFO
+#  pas-async-worker:
+#    # Python console logging level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
+#    logLevel: INFO
+#    # Celery log level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
+#    celeryLogLevel: INFO
+  pas-frontend: {}
+
+# Bigbang Additions
+istio:
+  enabled: false
+  host: sdelements.bigbang.dev
+  gateways:
+    - istio-system/main
+  
+networkPolicies:
+  enabled: false
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            app.kubernetes.io/name: istio-controlplane
+        podSelector: {}
+      ports:
+      - port: 9443
+        protocol: TCP
+  egress:
+    - to:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+          except:
+            - 169.254.169.254/32
+  egressDns:
+    - to:
+      ports:
+        - port: 53
+          protocol: UDP
+
+createDatabaseSecret: false
+
+efsVolumes:
+  enabled: false
+  # Set AWS FS IDs to create volumes
+  loader: fs-x
+  haystack: fs-x
+  media: fs-x
+  static: fs-x
+  loaderSize: 10Gi
+  haystackSize: 2Gi
+  mediaSize: 4Gi
+  staticSize: 4Gi

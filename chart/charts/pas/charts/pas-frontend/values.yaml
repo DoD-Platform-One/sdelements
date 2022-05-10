@@ -1,0 +1,48 @@
+### Default values for the Example (example) Helm Chart.
+### This is a YAML-formatted file.
+### Declare variables to be passed into your templates.
+
+## Example specific options
+global:
+  enabled: true
+  ## Configuration options and crentials to fetch images from private
+  ## registries/repositories. These are provided by SDElements support staff on
+  ## request upon purchase of the SDElements product.
+  ##
+  # imageRegistry: docker.sdelements.com
+  imageRegistry: docker-dev.sdelements.com
+
+  # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
+  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
+  # docker-dev.sdelements.com / dev _ (sde/3rd) / cert-creator : latest
+  imageRegistryFormat: "%s/%s_%s/%s:%s"
+  # imageRegistryFormat: "%s/%s-%s-%s:%s"
+  imageRegistryUsername: acmecorp
+  imageRegistryPassword: SuperSecretPassword
+  # imageOrganization: default_organization
+  imageOrganization: dev
+  imagePullPolicy: IfNotPresent
+  imageSource: sde
+  # imageTag: 1.0.3
+
+  # Run containers as the root user rather than default unprivileged user
+  # runAsRoot: true
+
+  pas: {}
+    # Environment variables for PAS image
+    #maxPluginFileSize: '10000000'
+
+#imageName: pas-static
+#port: 80
+# Service name of the PAS API service
+#backendServiceName: pas-api-service
+# Full URL to PAS API service
+#pasBackendUrl: http://pas-api-service:8000
+# TTL for DNS resolutions
+#resolverTTL: 10
+# URL path for readiness check
+#readinessPath: /pas/api/redoc
+# User/Group values for security context
+#uid: 101
+#gid: 101
+#fsgid 33

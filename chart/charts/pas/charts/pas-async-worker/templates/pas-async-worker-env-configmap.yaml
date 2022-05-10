@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-env-configmap
+  labels:
+    {{ include "library.labels" . | nindent 4 }}
+data:
+  CUSTOM_PLUGINS_API_TOGGLE: {{ default (default "true" .Values.global.pas.enableCustomPlugins) .Values.enableCustomPlugins | quote }}
+  PLUGIN_MAX_SIZE_BYTES: {{ default (default "10000000"  .Values.global.pas.maxPluginFileSize) .Values.maxPluginFileSize | quote }}
+  {{ if .Values.celeryLogLevel }}
+  PAS_CONSOLE_LOG_LEVEL: {{ .Values.celeryLogLevel }}
+  {{ end }}
+  PLUGIN_STORAGE_FOLDER: "/custom_plugin_storage"
+  {{ if .Values.celeryMaxTasksPerChild }}
+  MAX_TASKS: {{ .Values.celeryMaxTasksPerChild }}
+  {{ end }}
+  {{ if .Values.celeryWorkerCount }}
+  CELERY_WORKER_COUNT: {{ .Values.celeryWorkerCount }}
+  {{ end }}

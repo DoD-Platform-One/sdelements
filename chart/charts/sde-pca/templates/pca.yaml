@@ -1,0 +1,84 @@
+# deployment variables
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" ( default .Values.imageRegistry .Values.global.imageRegistry ) -}}
+{{- $imageSource := hasKey .Values "imageSource" | ternary ( printf "%s" .Values.imageSource ) ( default "sde" .Values.global.imageSource ) -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" ( default .Values.imageOrganization .Values.global.imageOrganization ) -}}
+{{- $imageName := default "project-creation-automation" .Values.imageName -}}
+{{- $imageTag := hasKey .Values "imageTag" | ternary ( printf "%s" .Values.imageTag ) ( default .Chart.AppVersion .Values.global.imageTag ) -}}
+{{- $imageRegistryFormat := hasKey .Values "imageRegistryFormat" | ternary ( printf "%s" .Values.imageRegistryFormat ) ( default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat ) -}}
+{{- $imagePullPolicy := hasKey .Values "imagePullPolicy" | ternary ( printf "%s" .Values.imagePullPolicy ) ( default "IfNotPresent" .Values.global.imagePullPolicy ) -}}
+{{- $deploymentName := printf "%v-%v" .Release.Name "project-creation-automation" -}}
+{{- $mapName := printf "%v-%v" .Release.Name "pca-config" -}}
+{{- $claimName := printf "%v-%v" .Release.Name "pca-volume-claim" -}}
+{{- $enableNodeSelector := default .Values.enableNodeSelector .Values.global.enableNodeSelector -}}
+
+
+# service variables
+{{- $httpPort := default 8001 .Values.httpPort -}}
+{{- $httpsPort := default 443 .Values.httpsPort -}}
+{{- $uwsgiMapName := printf "%v-%v" .Release.Name "pca-uwsgi-config" -}}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    app: pca_creator
+    {{- include "pca.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.replicas }}
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "pca.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        service: {{ $deploymentName | quote }}
+        {{- include "pca.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if $enableNodeSelector }}
+      nodeSelector:
+        customer_name: {{ .Release.Name | quote }}
+      {{- end }}
+      containers:
+      - name: {{ $deploymentName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        resources: {}
+        args:
+          - uwsgi
+          - --ini
+          - "/etc/uwsgi/uwsgi.ini"
+          - --die-on-term
+          - --enable-threads
+          - --ssl-verbose
+        volumeMounts:
+        - mountPath: /custom/settings.cfg
+          name: pca-config
+          subPath: settings.cfg
+        - mountPath: /etc/uwsgi
+          name: pca-uwsgi
+        - mountPath: /custom
+          name: pca-plugins
+        ports:
+        - containerPort: {{ int $httpPort }}
+        - containerPort: {{ int $httpsPort }}
+      imagePullSecrets:
+        - name: security-compass-secret
+      volumes:
+      - name: pca-config
+        configMap:
+          name: {{ $mapName | quote }}
+      - name: pca-plugins
+        persistentVolumeClaim:
+          claimName: {{ $claimName | quote }}
+      - name: pca-uwsgi
+        configMap:
+          name: {{ $uwsgiMapName | quote }}
+      restartPolicy: Always
+status: {}

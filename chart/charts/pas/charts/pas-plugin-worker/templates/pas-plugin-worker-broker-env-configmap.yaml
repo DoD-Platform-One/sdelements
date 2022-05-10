@@ -1,0 +1,20 @@
+{{- $tlsEnabled := default "false" .Values.tlsEnabled -}}
+{{- $brokerHost := default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-service" ) .Values.global.broker.host -}}
+{{- $brokerPort := default (ternary 5671 5672 ( eq $tlsEnabled "true" )) .Values.global.broker.port -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-broker-env-configmap
+  labels:
+    {{ include "library.labels" . | nindent 4 }}
+data:
+  PLUGIN_SERVICE_BROKER_SERVER: {{ printf "%v:%v" $brokerHost $brokerPort }}
+  PLUGIN_SERVICE_BROKER_VHOST: {{ default (default "rabbit" .Values.global.broker.adminVhost) .Values.global.pas.broker.vhost }}
+  PLUGIN_SERVICE_BROKER_USER: {{ default (default "rabbit" .Values.global.pas.broker.user) .Values.broker.user }}
+  {{ if .Values.resultBackend}}
+  PLUGIN_SERVICE_RESULT_BACKEND: {{ .Values.resultBackend }}
+  {{ end }}
+  {{ if .Values.queueName}}
+  PLUGIN_SERVICE_QUEUE_NAME: {{ .Values.queueName }}
+  {{ end }}

@@ -1,0 +1,77 @@
+{{- $imageName := default "pas-static" .Values.imageName -}}
+{{- $imageTag := default .Chart.AppVersion .Values.imageTag -}}
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.imagePullPolicy -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" .Values.global.imageRegistry -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" .Values.global.imageOrganization -}}
+{{- $imageSource := default ( default "sde" .Values.global.imageSource ) .Values.imageSource -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $uid := default 101 .Values.uid -}}
+{{- $gid := default 101 .Values.gid -}}
+{{- $fsgid := default 33 .Values.fsgid -}}
+
+{{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "pas-frontend" -}}
+{{- $port := default 8081 .Values.port -}}
+{{- $backendServiceName := default ( printf "%v-%v" ( include "library.trimmedName" . ) "pas-api-service" ) .backendServiceName }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "library.selectorLabels" . | nindent 6 }}
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        {{- include "library.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- if not .Values.global.runAsRoot }}
+        runAsUser: {{ $uid }}
+        runAsGroup: {{ $gid }}
+        fsGroup: {{ $fsgid }}
+        {{- if semverCompare ">=1.19" .Capabilities.KubeVersion.GitVersion }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        {{- end }}
+        {{- end }}
+      {{- if .Values.global.enableNodeSelector }}
+      nodeSelector:
+        customer_name: {{ printf "%v" .Release.Name | quote }}
+      {{- end }}
+      containers:
+      - name: {{ $deploymentName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        readinessProbe:
+          httpGet:
+            path: {{ default "/pas/manifest.json" .readinessPath | quote }}
+            port: {{ $port }}
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        securityContext:
+          allowPrivilegeEscalation: false
+        env:
+        - name: PAS_BACKEND_URL
+          value: {{ default (printf "http://%v:8000" $backendServiceName) .pasBackendUrl }}
+        - name: PAS_MAX_PLUGIN_FILE_SIZE
+          value: {{ default (default "10000000"  .Values.global.pas.maxPluginFileSize) .maxPluginFileSize | quote }}
+        - name: NGINX_PORT
+          value: {{ default $port | quote }}
+        {{ if .Values.resolverTTL }}
+        - name: RESOLVER_TTL
+          value: {{ .Values.resolverTTL }}
+        {{ end }}
+      imagePullSecrets:
+      - name: {{ include "library.registrySecretName" . }}
+      restartPolicy: Always
+status: {}

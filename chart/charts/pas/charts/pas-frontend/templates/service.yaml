@@ -1,0 +1,20 @@
+{{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "pas-frontend" -}}
+{{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "pas-frontend" "service" -}}
+{{- $port := default 8081 .Values.port -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName | quote }}
+  labels:
+    service: {{ $serviceName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: {{ printf "%d" $port | quote }}
+    port: {{ $port }}
+    targetPort: {{ $port }}
+  selector:
+    name: {{ $deploymentName | quote }}
+status:
+  loadBalancer: {}

@@ -1,0 +1,19 @@
+{{- $claimName := printf "%v-%v" ( include "library.trimmedName" . ) "static-volume-claim" -}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $claimName | quote }}
+  labels:
+    service: {{ $claimName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ default "4Gi" .Values.sde.staticVolumeSize }}
+  {{ if .Values.global.storageClass -}}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+status: {}

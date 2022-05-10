@@ -1,0 +1,60 @@
+{{/*
+Main tls issuer for self-signed certs, this will issue the main cert/key pair
+used to generate self-signed CA-certs.
+*/}}
+
+{{- define "sde.certs" -}}
+{{- $root := get . "root" -}}
+{{- $certManagerEnabled := eq ( include "certManagerEnabled" ( merge . $root ) ) "true" -}}
+{{- $serviceName := get . "serviceName" }}
+{{- $primaryFqdn := default $serviceName ( get . "commonName" ) -}}
+{{- $alternateDnsNames := default ( list "" ) ( get . "alternateDnsNames" ) }}
+{{- $subjectAlternativeName := append $alternateDnsNames $primaryFqdn }}
+{{- $secretName := include "tlsSecretName" ( merge . $ ) }}
+{{- if $certManagerEnabled }}
+
+{{/* TODO: The CA issuer should be configurable */}}
+{{- $internalCAIssuerName := printf "%v-tls-internal-ca-issuer" $root.Release.Name  }}
+{{- $certName := printf "%v-tls-%v-cert" ( include "library.trimmedName" $root ) $serviceName }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $certName | quote }}
+  namespace: {{ $root.Release.Namespace }}
+spec:
+  commonName: {{ $primaryFqdn | quote  }}
+  usages:
+    - client auth
+    - server auth
+  dnsNames:
+  {{- range $alternateDnsNames }}
+  - {{ . | quote }}
+  {{- end }}
+  secretName: {{ $secretName }}
+  issuerRef:
+    name:  {{ $internalCAIssuerName }}
+{{- else }}
+{{- $ca :=  get . "ca" -}}
+{{- $cert := genSelfSignedCert $primaryFqdn nil $subjectAlternativeName 3650 }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $secretName }}
+  labels:
+    {{- include "library.labels" $ | nindent 4 }}
+  {{- if eq ( default false $.Values.global.disableHelmHooks ) false }}
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+  {{- end }}
+data:
+  {{- if $ca }}
+  {{- $cert =  genSignedCert $primaryFqdn nil $subjectAlternativeName 3650 $ca  }}
+  ca.crt: {{ $ca.Cert | b64enc | quote }}
+  {{- end }}
+  tls.crt: {{ $cert.Cert | b64enc | quote }}
+  tls.key: {{ $cert.Key  | b64enc | quote }}
+{{- end }}
+{{- end }}

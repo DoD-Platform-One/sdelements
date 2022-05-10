@@ -1,0 +1,19 @@
+{{- $sdeAPIServiceMethod := default "http" .Values.sdeAPIServiceMethod -}}
+{{- $sdeAPIServiceName := required "SDE API service name is required" .Values.sdeAPIServiceName -}}
+{{- $sdeAPIServicePort := required "SDE API service port is required" .Values.sdeAPIServicePort -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-env-configmap
+  labels:
+    {{ include "library.labels" . | nindent 4 }}
+data:
+  BASE_URL: {{ default (default "/pas" .Values.global.pas.baseUrl) .Values.pasBaseUrl | quote }}
+  SDE_URL: {{ printf "%v://%v-%v:%v" $sdeAPIServiceMethod ( include "library.trimmedName" . ) $sdeAPIServiceName $sdeAPIServicePort | quote }}
+  CUSTOM_PLUGINS_API_TOGGLE: {{ default (default "true" .Values.global.pas.enableCustomPlugins) .Values.enableCustomPlugins | quote }}
+  PLUGIN_MAX_SIZE_BYTES: {{ default (default "10000000"  .Values.global.pas.maxPluginFileSize) .Values.maxPluginFileSize | quote }}
+  PAS_CONSOLE_LOG_LEVEL: {{ default "INFO" .Values.logLevel | quote }}
+  WEB_CONCURRENCY: {{ default 4 .Values.workerCount | quote }}
+  LOG_LEVEL: {{ default "info" .Values.gunicornLogLevel | quote }}
+  PLUGIN_STORAGE_FOLDER: "/custom_plugin_storage"

@@ -1,0 +1,177 @@
+SD ELEMENTS END USER LICENSE AGREEMENT
+
+This End User License Agreement (this “Agreement”) is a legal contract between you, as either an
+individual, Entity or Government Agency (as per the Order), and Infotek Solutions Inc. dba Security
+Compass, or its affiliates (collectively “Security Compass”).
+
+THIS SOFTWARE IS COPYRIGHTED AND IT IS LICENSED TO YOU UNDER THIS AGREEMENT, NOT
+SOLD TO YOU. BY DOWNLOADING, INSTALLING, OBTAINING A LICENSE KEY, OR OTHERWISE
+ACCESSING OR USING THIS SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ THIS
+AGREEMENT, YOU UNDERSTAND IT, AND THAT YOU ACCEPT AND AGREE TO BE BOUND BY ITS
+TERMS.
+
+IF YOU ARE ACCEPTING THIS AGREEMENT ON BEHALF OF A COMPANY, ORGANIZATION, OR
+OTHER LEGAL ENTITY (AN “ENTITY”), YOU REPRESENT AND WARRANT THAT YOU HAVE FULL
+POWER AND AUTHORITY TO BIND SUCH ENTITY TO THESE TERMS, AND REFERENCES TO “YOU”
+OR “YOUR” HEREIN REFER TO BOTH YOU, THE INDIVIDUAL END USER, AND THE ENTITY ON
+WHOSE BEHALF YOU ARE ACCEPTING THIS AGREEMENT.
+
+1. Intellectual Property Rights. Security Compass or its licensors retain ownership of all intellectual
+property rights in and to the Software, including any modifications, translations, or derivatives thereof,
+even if unauthorized, and all applicable rights in patents, copyrights, trade secrets, and trademarks.
+The Software is valuable, proprietary, and unique, and you agree to be bound by and observe the
+proprietary nature thereof. The Software contains material that is protected by patent, copyright, and
+trade secret laws. Your rights to use the Software are limited to those expressly granted by this
+Agreement. All rights not granted to you in this Agreement are reserved to Security Compass. No
+ownership of the Software passes to you. Security Compass may make changes to the Software at any
+time without notice. You may not remove any proprietary notice of Security Compass or any third party
+from the Software.
+
+
+2. Protection and Restrictions.
+
+2.1. You agree to take all reasonable steps to safeguard access to the Software to ensure that no
+unauthorized person has access thereto and that no unauthorized copy, publication, disclosure,
+or distribution, in whole or in part, in any form is made.
+
+2.2. You acknowledge that the Software contains valuable, confidential information and trade secrets
+and that unauthorized use and/or copying is harmful to Security Compass. You also understand
+and agree that the copying or modifying of the Documentation provided with or as part of the
+Software is strictly prohibited. Any third-party software included in the Software may not be used
+independently from the Software.
+
+2.3. You will not, and will not allow a third party to, directly or indirectly: sell, sublicense, transfer, assign,
+publish, display, disclose, rent, lease, timeshare, modify, loan, distribute, market, commercialize,
+or create derivative works based on the Software or any part thereof, incorporate the Software into
+or with other products, or use the Software for timesharing or service bureau purposes.
+
+2.4. You will not reverse engineer, decompile, translate, adapt, or disassemble the Software, nor will
+you attempt to reconstruct or discover any source code, underlying ideas, algorithms, file formats
+or programming interfaces of the Software by any means whatsoever (except and only to the
+extent that applicable law prohibits or restricts reverse engineering restrictions, and then only with
+prior written notice to Security Compass).
+
+
+3. Limitation of Liability. TO THE FULLEST EXTENT PERMITTED BY LAW, UNDER NO
+CIRCUMSTANCES WILL SECURITY COMPASS, ITS AFFILIATES, ITS LICENSORS OR
+RESELLERS BE LIABLE FOR ANY INDIRECT, CONSEQUENTIAL, SPECIAL, PUNITIVE OR
+
+SD Elements Corporate End User License Agreement (July 2017)
+INCIDENTAL DAMAGES, WHETHER FORESEEABLE OR UNFORESEEABLE, ARISING OUT OF
+OR RELATED TO THIS AGREEMENT INCLUDING, BUT NOT LIMITED TO CLAIMS FOR
+INACCURACY, LOSS OF DATA, COST OF PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES, GOODWILL, OPPORTUNITY, REVENUE, PROFITS, OR USE OF THE PRODUCTS,
+INTERRUPTION IN USE OR AVAILABILITY OF DATA, STOPPAGE OF OTHER WORK OR
+IMPAIRMENT OF OTHER ASSETS OR OTHER BUSINESS LOSS, PRIVACY, NEGLIGENCE,
+BREACH OF CONTRACT, TORT OR OTHERWISE AND THIRD PARTY CLAIMS, EVEN IF
+SECURITY COMPASS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. IN NO
+EVENT WILL SECURITY COMPASS’ AGGREGATE LIABILITY ARISING OUT OF OR RELATED TO
+THIS AGREEMENT, BASED ON ANY LEGAL THEORY, INCLUDING BUT NOT LIMITED TO
+CONTRACT, TORT, BREACH OF WARRANTY INFRINGEMENT OR OTHERWISE, EXCEED THE
+TOTAL AMOUNT ACTUALLY PAID BY YOU TO SECURITY COMPASS FOR THE LICENSE.
+
+
+4. Usage Review. Where you host the Software, Security Compass may at its option request from you a
+record of your usage to review and ensure compliance with this Agreement. You agree to cooperate
+with Security Compass’ audit and provide reasonable assistance and access to information. Any such
+audit shall not unreasonably interfere with your normal business operations. If any audit reveals a
+breach of this Agreement by you, you will reimburse any amount revealed to be due to Security
+Compass as a result of such breach within thirty (30) days after receipt of an invoice.
+5. SD Elements Specific Terms. Your use of SD Elements shall be subject to Licensor’s per-application usage
+and pricing terms and conditions as set out in Schedule A to this Agreement.
+
+
+SCHEDULE A
+
+PER-APPLICATION PRICING TERMS AND CONDITIONS
+
+Additional or alternate terms and conditions that apply to SD Elements are provided below and form part of the
+Agreement.
+
+
+1. Definitions
+
+1.1. “Active Application(s)” shall mean an Application being developed within the SD Elements Software, which
+has not been archived, and for which at least one (1) Project has been created.
+
+1.2. “Application” shall have the meaning set out in Section 3.1 below.
+
+1.3. “Archived Application(s)” shall mean an Active Application which has been moved to an archive within the
+Software, whereupon it shall cease to be an Active Application.
+
+1.4. “Licensee” shall mean the individual, entity or government agency entering into this Agreement
+
+1.5. “License Year” shall mean a license year within the License Term
+
+1.6. “Project” shall mean an instance, component or release of Licensee’s software code base(s) being
+developed/managed within an Application
+
+1.7. All Capitalized terms not defined in this Schedule shall have the meanings assigned to such terms in the
+Agreement
+
+
+2. License Metric
+
+2.1. The License granted to the SD Elements Software shall entitle Licensee to utilize the Software in the
+development of a maximum number of Applications stated in the Order Form (hereinafter the “License
+Limit”).
+
+2.2. Active Applications shall apply towards the usage of the License Limit. Archiving an Active Application shall
+not free up the license for the Archived Application in the current License Year.
+
+2.3. The License Limit utilization cycle shall be reset upon the expiry of a License Year. As of the first day of the
+renewal License Year, only Active Applications shall apply towards the License Limit.
+
+
+3. Application
+
+3.1. For the purpose of the Agreement, an “Application” is a set of software instructions (source code, bytecode),
+which compile and/or execute in a single run time environment within the Software, subject to any exception
+stated below:
+
+(a) Licensee may create an unlimited number of new releases as Projects within an Application. Such
+new releases shall not count as additional usage against the License Limit
+
+(b) Where Licensee utilizes the Software in the development of a web application, the browser space
+code and server side code may be considered different parts of the same Application where the
+technical profile of each code base is intended to produce a single list of requirements within the SD
+Elements Software.
+
+(c) Technologies that operate as independent Licensee Applications shall be considered separate
+Applications. This includes but is not limited to Java applets and browser plugins. The development
+of the same Application for different mobile operating systems shall be considered to be separate
+Applications, whereby each such Application shall apply as usage against the License Limit.
+
+(d) Server side applications which include components that run in a different run time space may be
+considered the same Application where (i) a similar technology stack is utilized; and (ii) a single list
+of requirements is intended for all components.
+
+(e) Where the Software is used to develop micro services architecture, all services shall be considered
+to be a single application for the purpose of licensing where (i) all services use a similar technology
+stack; and (ii) a single list of requirements is intended for all services.
+
+
+4. Usage reporting obligations and auditing
+
+4.1. Where Licensee hosts the SD Elements Software On-Site, Licensee shall be required to report the number
+of Applications developed using the Software, once at the end of each quarter in each License Year. A quarter
+shall be measured as each three (3) month period starting from the License Effective Date stated on the
+Order Form. Licensor reserves the right to refuse access to Standard Technical Support and Software
+Updates until Licensee usage data is provided to Licensor. Usage reports shall be sent to
+usagereport@sdelements.com
+
+
+5. Pricing
+
+5.1. Pricing for the SD Elements Software is stated in the Order Form. Prices represent the License Limit and
+SD Elements Corporate End User License Agreement (July 2017)
+type of license granted. All prices are in United States Dollars, and are based upon an annual subscription
+with a minimum one (1) year License Term.
+
+
+6. Over-Usage
+
+6.1. At any time during the License Term, where Licensee’s usage exceeds the License Limit, Licensee shall pay
+Licensor over-usage fees for the number of Active Applications used in excess of the License Limit at the per
+Application rate set forth in the Order. Over-usage fees shall be calculated and invoiced annually after each
+License Year.

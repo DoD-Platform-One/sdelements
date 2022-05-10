@@ -1,0 +1,8 @@
+{{- define "pca.settings" -}}
+{{ $runAsSubchart := default false .Values.enable }}
+{{- $sdeHost := ( default false $runAsSubchart ) | ternary ( printf "https://%v-web-service.default.svc.cluster.local" .Release.Name ) ( printf "%s" .Values.pcaConfigs.sdeHost ) -}}
+SDE_HOST={{ $sdeHost | quote }}
+ENV={{ .Values.pcaConfigs.pcaEnvironment | quote }}
+LOG_LEVEL={{ .Values.pcaConfigs.logLevel | quote }}
+SDE_TLS_VALIDATE={{ .Values.pcaConfigs.validateTLS }}
+{{- end -}}

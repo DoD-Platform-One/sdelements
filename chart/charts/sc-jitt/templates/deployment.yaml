@@ -1,0 +1,138 @@
+{{- $imageTag := default .Chart.AppVersion .Values.imageTag | toString -}}
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.imagePullPolicy -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" .Values.global.imageRegistry -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" .Values.global.imageOrganization -}}
+{{- $imageName := default "jitt" .Values.imageName -}}
+{{- $imageSource := hasKey .Values "imageSource" | ternary ( printf "%s" .Values.imageSource ) ( default "sde" .Values.global.imageSource ) -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $uid := default 101 .Values.uid -}}
+{{- $gid := default 101 .Values.gid -}}
+{{- $fsgid := default 33 .Values.fsgid -}}
+{{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "jitt" -}}
+{{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "jitt" "service" -}}
+{{- $httpPort := default 9080 .Values.httpPort -}}
+{{- $httpsPort := default 7443 .Values.httpsPort -}}
+
+#TLC integration is going to be refactored once tlc lib is ready
+#here "as is" copy from current sde-docker
+{{- $tlsRoot := default "/tls" .Values.tlsRoot -}}
+{{- $hasCustomCertPaths := and ( hasKey .Values "tlsCertificatePath" ) ( hasKey .Values "tlsKeyPath" ) -}}
+{{- $hasCustomCertValues := and ( hasKey .Values "tlsCertificate" ) ( hasKey .Values "tlsKey" ) -}}
+{{- $hasCustomCerts := or $hasCustomCertPaths $hasCustomCertValues -}}
+{{- define "tlsSecretName" -}}
+{{- printf "%v-%v-tls-secrets" ( include "library.trimmedName" . ) .serviceName -}}
+{{- end -}}
+{{- $jittTlsSecretName :=  ternary ( printf "%v-tls-jitt-custom-secret" ( include "library.trimmedName" . )) ( include "tlsSecretName" ( mergeOverwrite . ( dict "serviceName" "web-server" ))) $hasCustomCerts  -}}
+{{- $tlsCertPath := printf "%v/tls.crt" $tlsRoot }}
+{{- $tlsKeyPath := printf "%v/tls.key" $tlsRoot }}
+
+{{- $mapName := printf "%v-%v" ( include "library.trimmedName" . ) "jitt-resources" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "library.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        {{- include "library.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- if not .Values.global.runAsRoot }}
+        runAsUser: {{ $uid }}
+        runAsGroup: {{ $gid }}
+        fsGroup: {{ $fsgid }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
+        {{- end }}
+      {{- if .Values.global.enableNodeSelector }}
+      nodeSelector:
+        customer_name: {{ printf "%v" .Release.Name | quote }}
+      {{- end }}
+      containers:
+      - name: {{ $deploymentName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+        args:
+        - /bin/bash
+        - -c
+        - /bin/run_nginx.sh
+        env:
+        - name: NGINX_HOST
+          value: {{ default "_" .Values.host | quote }}
+        - name: NGINX_PORT
+          value: {{ default $httpPort | quote }}
+        - name: NGINX_TLS_PORT
+          value: {{ default $httpsPort | quote }}
+        - name: NGINX_SSL_CERT_PATH
+          value: {{ $tlsCertPath }}
+        - name: NGINX_SSL_CIPHERS
+          value: {{ default "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256" .Values.tlsCiphers | quote}}
+        - name: NGINX_SSL_KEY_PATH
+          value: {{ $tlsKeyPath }}
+        - name: NGINX_SSL_PROTOCOLS
+          value: {{ default "TLSv1 TLSv1.1 TLSv1.2" .Values.tlsProtocols | quote }}
+        - name: NGINX_WORKER_CONNECTIONS
+          value: {{ default 1024 .Values.workerConnections | quote }}
+        - name: NGINX_WORKER_PROCESSES
+          value: {{ default "2" .Values.workerProcesses | quote }}
+        - name: NGINX_WORKER_RLIMIT_NOFILE
+          value: {{ default 1024 .Values.rlimitNofile | quote }}
+        ports:
+        - containerPort: {{ int $httpPort }}
+        - containerPort: {{ int $httpsPort }}
+        {{- if .Values.resources }}
+        resources:
+        {{- range $limitType, $resources := $.Values.resources }}
+            {{ $limitType }}:
+            {{- range $resourceKey, $resourceValue := $resources }}
+                {{ $resourceKey }}: {{ $resourceValue }}
+            {{- end }}
+        {{- end }}
+        {{- else }}
+        resources: {}
+        {{- end }}
+        volumeMounts:
+        - mountPath: /run/nginx
+          name: jitt
+          readOnly: true
+        - mountPath: {{ $tlsRoot }}
+          name: tls
+          readOnly: true
+      imagePullSecrets:
+      - name: {{ include "library.registrySecretName" . }}
+      restartPolicy: Always
+      volumes:
+      - name: jitt
+        configMap:
+          name: {{ $mapName | quote }}
+          items:
+          {{- range $path, $bytes := .Files.Glob "files-jitt/**.conf" }}
+          - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-jitt/"  ) | replace "/" "_" }}
+            path: {{ toString $path | trimPrefix "files-jitt/" | quote }}
+          {{- end }}
+      - name: tls
+        secret:
+          secretName: {{ $jittTlsSecretName }}
+          defaultMode: 0400
+status: {}
+

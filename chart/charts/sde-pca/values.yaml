@@ -1,0 +1,61 @@
+# Empty global to allow parent to override
+global: {}
+
+replicas: 1
+# imageTag: 0.9.0
+# imagePullPolicy: Never
+# deploymentName: Name
+
+## Configuration options and crentials to fetch images from private
+## registries/repositories. These are provided by SDElements support staff on
+## request upon purchase of the SDElements product.
+##
+imageRegistry: docker.sdelements.com
+# Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
+# docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
+# imageRegistryFormat: "%s/%s-%s-%s:%s"
+# imageRegistryUsername: acmecorp
+# imageRegistryPassword: SuperSecretPassword
+imageOrganization: default_organization
+# imageSource: sde
+
+## Storage Class
+#storageClass: glusterfs-storage
+
+# PCA kubernetes variables
+httpPort: 8001
+# serviceName: pca-service
+storageSize: "20Mi"
+
+# Deploy to specific node
+#enableNodeSelector: true
+
+## Custom Configs
+pcaConfigs:
+  sdeHost: https://sdehost.com
+  logLevel: DEBUG
+  pcaEnvironment: development
+  validateTLS: "False" # This value need to be quoted
+
+## uwsgi settings
+uwsgi:
+  env: "LANG=en_US.utf8"
+  module: "app.main"
+  callable: "app"
+  plugins: "/usr/lib/uwsgi/python3"
+  master: "true"
+  touch-reload: "/run/uwsgi"
+
+  uid: "uwsgi"
+  gid: "uwsgi"
+  # socket = /tmp/uwsgi.sock
+  http-socket: ":8001"
+  # chown-socket = uwsgi:uwsgi
+  # chmod-socket = 664
+
+  cheaper: "1"
+  processes: "%(%k + 1)"
+  listen: "200"
+
+  http-timeout: "300"
+  socket-timeout: "300"

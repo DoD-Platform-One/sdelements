@@ -1,0 +1,11 @@
+{{/* SDElements app worker processing */}}
+# Creates synchronous web (apache/mod-wsgi/python/django) instances as specified/needed
+{{- $root := . -}}
+{{ range .Values.worker.synchronous }}
+  {{ dict "root" $root "dot" . | include "sde.deployment" }}
+  {{ dict "root" $root "dot" . | include "sde.service" }}
+{{ end }}
+# Creates asynchronous worker (celery) instances as specified/needed
+{{ range .Values.worker.asynchronous -}}
+  {{ dict "root" $root "dot" . | include "sde.deployment" }}
+{{ end }}
