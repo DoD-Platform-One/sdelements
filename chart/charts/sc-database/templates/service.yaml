@@ -1,0 +1,21 @@
+{{- $deploymentName := include "database.deploymentName" . -}}
+{{- $serviceName := include "database.serviceName" . -}}
+{{- $port := include "database.port" . -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName | quote }}
+  labels:
+    service: {{ $serviceName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: {{ printf "%v" $port | quote }}
+    port: {{ int $port }}
+    targetPort: {{ int $port }}
+  selector:
+    name: {{ $deploymentName | quote }}
+status:
+  loadBalancer: {}
+

@@ -1,0 +1,116 @@
+### Default values for the SDE Worker Helm Chart.
+### This is a YAML-formatted file.
+### Declare variables to be passed into your templates.
+
+## Options & settings accessible by all charts
+global:
+  ## Provide a name in place of `sde` for `app:` labels
+  ##
+  #nameOverride: ""
+
+  ## Provide a name to substitute for the full names of resources
+  ##
+  #fullnameOverride: ""
+
+  ## Configuration options and crentials to fetch images from private
+  ## registries/repositories. These are provided by SDElements support staff on
+  ## request upon purchase of the SDElements product.
+  ##
+  imageRegistry: docker.sdelements.com
+  #imageRegistry: docker-dev.sdelements.com
+
+  # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
+  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
+  # docker-dev.sdelements.com / dev _ (sde/3rd) / cert-creator : latest
+  #imageRegistryFormat: "%s/%s_%s/%s:%s"
+  imageRegistryFormat: "%s/%s-%s-%s:%s"
+  imageRegistryUsername: acmecorp
+  imageRegistryPassword: SuperSecretPassword
+  imageOrganization: default_organization
+  #imageOrganization: dev
+  imagePullPolicy: IfNotPresent
+  #imageSource: sde
+  #
+  # Fully Qualified Domain Name(s)
+  #
+  # fqdn: example.com
+  # DNS Aliases & Extra names
+  # FQDN and alternateDnsNames are used to create DNS records and
+  # get certificates issued dynamically.
+  # Connections to URLs defined in these are encrypted by default using Cert Manager
+  # and if not defined will fall back to Custom Certs/self-signed Certs.
+  # alternateDnsNames:
+  #  - alias.example.com
+  #  - othername.example.com
+  # alternateVirtualHosts are used to create config sections in the ingress and
+  # can be optionally used with a custom cert.
+  # When custom certs are configured any connections to these URLs will be encrypted using said certs,
+  # in case custom certs are not configured the ingress will back to using self signed certs.
+  # alternateVirtualHosts:
+  #  - externally-managed-dns-record.example.com
+
+  ## Feature flags that enable/disable subcharts and subchart features
+  # that need to be specified before runtime because they affect how subcharts
+  # deploy themselves
+  #
+
+  pas:
+    #pluginServiceQueueName: plugin_service_worker
+    ## Specifying this value implies the use of an external volume so the defa
+    #    ## Volume claim name for custom plugins.ult volume claim will not be created.
+    #pluginVolumeClaimName: pas-custom-plugin-volume-claim
+    # Global PAS broker config
+    broker: {}
+      ## Username for broker user
+      #user: pas
+      #password:
+      #secretName:
+      #passwordSecretKey:
+      #vhost:
+
+  broker: {}
+    #adminClientUser: sde
+    #adminVhost: sde
+
+#  enableNodeSelector: true
+
+## Chart Configuration
+# Include broker subchart in deployment
+useBrokerSubchart: true
+# Include plugin volume claim
+includePluginVolumeClaim: true
+
+### PAS Plugin Service container configuration
+#imageName: pas-plugin-service
+##  Default image tag.
+#imageTag: <App Version>
+
+## Name of the celery queue to listen on
+#queueName: plugin_service_worker
+## Celery result backend
+#resultBackend: rpc://
+## Celery log level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
+#celeryLogLevel: INFO
+## Number of celery worker processes to launch
+#celeryWorkerCount: 4
+## Max number of celery tasks before recreating the worker.
+## Lowering the amount can help keep memory usage lower over time.
+#celeryMaxTasksPerChild: 10
+## Custom plugin volume size
+## Only used if the plugin volume is included in the deployment
+#customPluginVolumeSize: 2Gi
+
+## Username for broker user
+#brokerUser: pas
+## Name of secret containing the broker password
+#brokerSecretName: broker-secrets
+## Secret key containing the broker password
+#brokerPasswordSecretKey: ADMIN_BROKER_PASSWORD
+## Volume claim name for custom plugins.
+## Specifying this value implies the use of an external volume so the default volume claim will not be created.
+#pluginVolumeClaimName: pas-custom-plugin-volume-claim
+
+# PAS broker config
+broker: {}
+  #secretName:
+  #passwordSecretKey:

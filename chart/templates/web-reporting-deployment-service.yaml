@@ -1,0 +1,233 @@
+{{- $root := . -}}
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.reporting.imagePullPolicy -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" ( default .Values.global.imageRegistry .Values.reporting.imageRegistry ) -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" ( default .Values.global.imageOrganization .Values.reporting.imageOrganization ) -}}
+{{- $imageSource := hasKey .Values.reporting "imageSource" | ternary ( printf "%s" .Values.reporting.imageSource ) ( default "sde" .Values.global.imageSource ) -}}
+{{- $imageName := default "web-reporting" .Values.reporting.imageName -}}
+{{- $imageTag := default ( default .Chart.AppVersion .Values.global.imageTag ) .Values.reporting.imageTag | toString -}}
+{{- $nginxImageOrganization := required "An image organization needs to be specified in your configuration values!" ( default $imageOrganization .Values.web.imageOrganization ) -}}
+{{- $nginxImageSource := default $imageSource .Values.web.imageSource -}}
+{{- $nginxImageName := default "web-static" .Values.web.imageName -}}
+{{- $nginxImageTag := default $imageTag ( default .Values.web.imageTag .Values.reporting.nginxImageTag ) | toString -}}
+{{- $fsgid := default 33 .Values.reporting.fsgid -}}
+{{- $uid := default 1000 .Values.reporting.uid -}}
+{{- $gid := default 1000 .Values.reporting.gid -}}
+{{- $nginxuid := default 101 .Values.reporting.nginxuid -}}
+{{- $nginxgid := default 101 .Values.reporting.nginxgid -}}
+{{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "reporting" -}}
+{{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "reporting" "service" -}}
+{{- $tlsRoot := default "/tls" .Values.reporting.tlsRoot -}}
+{{- $tlsCertPath := printf "%v/tls.crt" $tlsRoot }}
+{{- $tlsKeyPath := printf "%v/tls.key" $tlsRoot }}
+{{- $mapName := printf "%v-%v" .Release.Name "reporting-resources" -}}
+{{- $reportingEnabled := include "reportingEnabled" . -}}
+{{- $reportingPort := include "reportingPort" . -}}
+{{- $cubejsPort := default 2823 .Values.reporting.cubejsPort -}}
+{{- $certManagerEnabled := eq ( include "certManagerEnabled" . ) "true" -}}
+{{- $enableInternalTls := eq ( include "enableInternalTls" . ) "true" -}}
+
+# Env vars
+{{- $secretName := printf "%v-%v" .Release.Name "sde-secrets" -}}
+{{- $dbServiceName := printf "%v-database-service" ( include "library.trimmedName" $root ) -}}
+{{- $redisUrl := default (printf "redis://%v-datastore-service:%v" ( include "library.trimmedName" . ) ( include "datastore.port" . ) ) .Values.reporting.redisUrl -}}
+{{- $cacheQueueServiceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "cache-queue" "service" -}}
+
+# Sanity Check
+{{- if eq (int $reportingPort) (int $cubejsPort) -}}
+{{- fail "Reporting port and CubeJS port cannot be the same due to port conflicts." }}
+{{- end -}}
+
+{{- if eq $reportingEnabled "true" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.reporting.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "library.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        {{- include "library.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- if not .Values.global.runAsRoot }}
+        runAsUser: {{ $uid }}
+        runAsGroup: {{ $gid }}
+        fsGroup: {{ $fsgid }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
+        {{- end }}
+      {{- if .Values.global.enableNodeSelector }}
+      nodeSelector:
+        customer_name: {{ printf "%v" ( include "library.trimmedName" . ) | quote }}
+      {{- end }}
+      containers:
+      - name: {{ printf "%s-nginx" $deploymentName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $nginxImageOrganization $nginxImageSource $nginxImageName $nginxImageTag | quote }}
+        args:
+        - /bin/bash
+        - -c
+        - color_echo () { echo; } && source /bin/run_nginx.sh
+        env:
+        - name: REPORTING_PORT
+          value: {{ $reportingPort | quote }}
+        - name: CUBEJS_PORT
+          value: {{ $cubejsPort | quote }}
+        {{- if $enableInternalTls }}
+        - name: LISTEN_SUFFIX
+          value: "default ssl"
+        - name: NGINX_SSL_INCLUDE_CONF
+          value: "include /etc/nginx/reporting-tls.conf;"
+        - name: CUBEJS_TLS_PRIVATE_KEY_FILE
+          value: {{ $tlsKeyPath | quote }}
+        - name: CUBEJS_TLS_PRIVATE_FULLCHAIN_FILE
+          value: {{ $tlsCertPath | quote }}
+        - name: NGINX_SSL_CIPHERS
+          value: {{ default "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256" .Values.reporting.tlsCiphers | quote}}
+        - name: NGINX_SSL_PROTOCOLS
+          value: {{ default "TLSv1 TLSv1.1 TLSv1.2" .Values.reporting.tlsProtocols | quote }}
+        {{ else }}
+        - name: LISTEN_SUFFIX
+          value: "default"
+        - name: NGINX_SSL_INCLUDE_CONF
+          value: ""
+        {{- end }}
+        - name: NGINX_WORKER_PROCESSES
+          value: {{ default "2" .Values.reporting.workerProcesses | quote }}
+        - name: NGINX_WORKER_RLIMIT_NOFILE
+          value: {{ default 1024 .Values.reporting.rlimitNofile | quote }}
+        - name: NGINX_WORKER_CONNECTIONS
+          value: {{ default 1024 .Values.reporting.workerConnections | quote }}
+        ports:
+        - containerPort: {{ int $reportingPort }}
+        volumeMounts:
+        - mountPath: /run/nginx
+          name: reporting-nginx
+          readOnly: true
+        {{- if $enableInternalTls }}
+        - name: tls
+          mountPath: {{ $tlsRoot }}
+          readOnly: true
+        {{- end }}
+        securityContext:
+          {{- if not .Values.global.runAsRoot }} 
+          runAsUser: {{ $nginxuid }}
+          runAsGroup: {{ $nginxgid }}
+          {{- else }}
+          runAsUser: 0
+          runAsGroup: 0
+          {{- end }} 
+      - name: {{ $deploymentName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        args:
+        - yarn
+        - start
+        securityContext:
+          allowPrivilegeEscalation: false
+        env:
+        # https://cube.dev/docs/@cubejs-backend-server#api-reference-this-listen-options
+        - name: PORT
+          value: {{ $cubejsPort | quote }}
+        - name: CUBEJS_WEB_SOCKETS
+          value: {{ default "true" .Values.reporting.webSockets | quote }}
+        - name: CUBEJS_DB_TYPE
+          value: {{ default "postgres" .Values.reporting.dbType | quote }}
+        - name: CUBEJS_CACHE_AND_QUEUE_DRIVER
+          value: {{ default "redis" .Values.reporting.datastoreDriver | quote }}
+        - name: CUBEJS_DB_HOST
+          value: {{ include "sde.dbHost" . | quote }}
+        - name: CUBEJS_DB_NAME
+          value: {{ include "sde.dbName" . | quote }}
+        - name: CUBEJS_DB_USER
+          value: {{ include "sde.dbUser" . | quote }}
+        - name: CUBEJS_DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: {{ $secretName | quote }}
+              key: SDE_DATABASE_PASSWORD
+        - name: CUBEJS_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ $secretName | quote }}
+              key: SDE_JWT_SECRET
+        # Production mode requires enabling security: https://cube.dev/docs/deployment#production-mode-redis
+        - name: NODE_ENV
+          value: production
+        - name: REDIS_TLS
+          value: {{ $enableInternalTls | quote }}
+        - name: REDIS_URL
+          value: {{ $redisUrl | quote }}
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ $secretName | quote }}
+              key: SDE_DATASTORE_PASSWORD
+        - name: NODE_TLS_REJECT_UNAUTHORIZED # Ignore self-signed certs
+          value: {{ default "0" .Values.reporting.nodeTlsRejectUnauthorized | quote }}
+        {{- if .Values.reporting.resources }}
+        resources:
+        {{- range $limitType, $resources := $.Values.reporting.resources }}
+            {{ $limitType }}:
+            {{- range $resourceKey, $resourceValue := $resources }}
+                {{ $resourceKey }}: {{ $resourceValue }}
+            {{- end }}
+        {{- end }}
+        {{- else }}
+        resources: {}
+        {{- end }}
+      imagePullSecrets:
+      - name: security-compass-secret
+      restartPolicy: Always
+      volumes:
+      - name: reporting-nginx
+        configMap:
+          name: {{ $mapName | quote }}
+          items:
+          {{- range $path, $bytes := .Files.Glob "files-reporting/**.conf" }}
+          - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-reporting/"  ) | replace "/" "_" }}
+            path: {{ toString $path | trimPrefix "files-reporting/" | quote }}
+          {{- end }}
+      {{- if $enableInternalTls }}
+      - name: tls
+        secret:
+          secretName: {{ include "tlsSecretName" ( mergeOverwrite . (dict "serviceName" "reporting-server")) | quote }}
+          defaultMode: 0400
+      {{- end }}
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName | quote }}
+  labels:
+    service: {{ $serviceName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: "port"
+    port: {{ int $reportingPort }}
+    targetPort: {{ int $reportingPort }}
+  selector:
+    name: {{ $deploymentName | quote }}
+status:
+  loadBalancer: {}
+
+{{ dict "root" $root "serviceName" "reporting-server" "commonName" $serviceName | include "sde.certs" }}
+{{- end -}}

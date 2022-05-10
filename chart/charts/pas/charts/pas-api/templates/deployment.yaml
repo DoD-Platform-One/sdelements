@@ -1,0 +1,135 @@
+{{- $imageName := default "pas-api" .Values.imageName -}}
+{{- $imageTag := default .Chart.AppVersion .Values.imageTag -}}
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.imagePullPolicy -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" .Values.global.imageRegistry -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" .Values.global.imageOrganization -}}
+{{- $imageSource := default ( default "sde" .Values.global.imageSource ) .Values.imageSource -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $contextDict := dict "root" . "dot" .Values -}}
+
+# Pas Init
+{{- $initImageName := default "pas-app-init" .Values.initImageName -}}
+{{- $initImageTag := default .Chart.AppVersion .Values.initImageTag -}}
+
+# Deployment config vars
+{{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "pas-api" -}}
+{{- $port := default 8000 .Values.port -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "library.selectorLabels" . | nindent 6 }}
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        {{- include "library.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.global.enableNodeSelector }}
+      nodeSelector:
+        customer_name: {{ printf "%v" .Release.Name | quote }}
+      {{- end }}
+      initContainers:
+        - name: {{ printf "%v-%v" $deploymentName "init" | quote }}
+          image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $initImageName $initImageTag | quote }}
+          imagePullPolicy: {{ $imagePullPolicy }}
+          env:
+            - name: ADMIN_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pas-api.admin.database.secretName" $contextDict }}
+                  key: {{ include "pas-api.admin.database.passwordSecretKey" $contextDict }}
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pas-api.database.secretName" $contextDict }}
+                  key: {{ include "pas-api.database.passwordSecretKey" $contextDict }}
+            - name: BROKER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pas-api.broker.secretName" $contextDict }}
+                  key: {{ include "pas-api.broker.passwordSecretKey" $contextDict }}
+            - name: ADMIN_BROKER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pas-api.admin.broker.secretName" $contextDict }}
+                  key: {{ include "pas-api.admin.broker.passwordSecretKey" $contextDict }}
+          envFrom:
+          - configMapRef:
+              name: {{ .Release.Name }}-{{ .Chart.Name }}-init-env-configmap
+          - configMapRef:
+              name: {{ .Release.Name }}-{{ .Chart.Name }}-db-env-configmap
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+      containers:
+      - name: {{ $deploymentName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        ports:
+          - containerPort: {{ int $port }}
+        readinessProbe:
+          httpGet:
+            path: {{ default (printf "%v/api/redoc" (default (default "/pas" .Values.global.pas.baseUrl) .pasBaseUrl)) .readinessPath | quote }}
+            port: {{ $port }}
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-{{ .Chart.Name }}-env-configmap
+        - configMapRef:
+            name: {{ .Release.Name }}-{{ .Chart.Name }}-db-env-configmap
+        - configMapRef:
+            name: {{ .Release.Name }}-{{ .Chart.Name }}-broker-env-configmap
+        env:
+          - name: SECRET_SESSION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-api.sde.secretName" $contextDict }}
+                key: {{ include "pas-api.sde.jwtSecretKey" $contextDict }}
+          - name: DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-api.database.secretName" $contextDict }}
+                key: {{ include "pas-api.database.passwordSecretKey" $contextDict }}
+          - name: PLUGIN_SERVICE_BROKER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-api.broker.secretName" $contextDict }}
+                key: {{ include "pas-api.broker.passwordSecretKey" $contextDict }}
+          - name: PAS_ASYNC_WORKER_BROKER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-api.broker.secretName" $contextDict }}
+                key: {{ include "pas-api.broker.passwordSecretKey" $contextDict }}
+          - name: SDE_ASYNC_WORKER_BROKER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-api.sde.broker.secretName" $contextDict }}
+                key: {{ include "pas-api.sde.broker.passwordSecretKey" $contextDict }}
+        volumeMounts:
+          - mountPath: "/custom_plugin_storage"
+            name: custom-plugin
+      volumes:
+        - name: custom-plugin
+          persistentVolumeClaim:
+            claimName: {{ printf "%v-%v" ( include "library.trimmedName" . ) "pas-custom-plugin-volume-claim" | quote }}
+      imagePullSecrets:
+      - name: {{ include "library.registrySecretName" . }}
+      restartPolicy: Always
+status: {}

@@ -1,0 +1,18 @@
+{{- $claimName := printf "%v-%v" ( include "library.trimmedName" . ) "haystack-volume-claim" -}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $claimName | quote }}
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ default "2Gi" .Values.sde.indexVolumeSize }}
+  {{ if .Values.global.storageClass -}}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+status: {}

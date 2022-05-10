@@ -1,0 +1,43 @@
+{{- $imageName := default "mock-sde" .Values.imageName -}}
+{{- $imageTag := default .Chart.AppVersion .Values.imageTag -}}
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.imagePullPolicy -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" .Values.global.imageRegistry -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" .Values.global.imageOrganization -}}
+{{- $imageSource := hasKey .Values "imageSource" | ternary ( printf "%s" .Values.imageSource ) ( default "sde" .Values.global.imageSource ) -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+
+# Deployment config vars
+{{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "mock-sde" -}}
+{{- $port := default 5000 .Values.port -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+spec:
+  replicas: {{ default 1 .Values.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+    spec:
+      containers:
+      - name: {{ $deploymentName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        ports:
+          - containerPort: {{ int $port }}
+        env:
+          - name: SECRET_SESSION_KEY
+            value: {{ .Values.secretKey | quote }}
+      imagePullSecrets:
+      - name: {{ include "library.registrySecretName" . }}
+      restartPolicy: Always
+status: {}

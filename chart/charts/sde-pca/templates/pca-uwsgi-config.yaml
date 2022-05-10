@@ -1,0 +1,14 @@
+{{- $mapName := printf "%v-%v" .Release.Name "pca-uwsgi-config" -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ quote $mapName }}
+  labels:
+    {{- include "pca.labels" . | nindent 4 }}
+data:
+  {{ printf "uwsgi.ini: |" | nindent 2 }}
+  {{ printf "[uwsgi]" | nindent 4 }}
+  {{- range $key, $value := .Values.uwsgi -}}
+    {{ printf "%v = %v" $key $value | nindent 4}}
+  {{- end -}}

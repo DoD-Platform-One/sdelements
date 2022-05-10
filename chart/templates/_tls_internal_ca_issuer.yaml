@@ -1,0 +1,39 @@
+{{/*
+NOTE: This code is currently not supported by our cert-manager version
+cert-manager bug: https://github.com/jetstack/cert-manager/issues/2166
+  - due to this bug cert-manager is exhibiting unexpected behavior.
+cert-manager version required: https://github.com/jetstack/cert-manager/releases/tag/v1.2.0
+CertManager need to be upgraded before this change will work
+*/}}
+
+{{- define "sde.caIssuer" }}
+{{- $root := get . "root" -}}
+{{- $deploymentName := get . "deploymentName" }}
+{{- $issuerName := default ( printf "tls-%v" $deploymentName ) ( get . "issuerName" ) }}
+{{- $caIssuerName := printf "tls-%v-internal-ca-issuer" $root.Release.Name }}
+{{- $caSecretName := printf "tls-%v-ca-secret" $deploymentName }}
+{{- $caCertName := printf "tls-%v-ca-cert" $deploymentName }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $caCertName }}
+  namespace: {{ $root.Release.NameSpace }}
+spec:
+  commonName: {{ $deploymentName }}-ca
+  secretName: {{ $caSecretName }}
+  usages:
+    - signing
+    - cert sign
+  issuerRef:
+    name: {{ $caIssuerName }}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ $issuerName }}
+spec:
+  ca:
+    secretName: {{ $caSecretName }}
+{{- end }}

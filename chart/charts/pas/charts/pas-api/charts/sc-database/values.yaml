@@ -1,0 +1,89 @@
+### Default values for the Example (example) Helm Chart.
+### This is a YAML-formatted file.
+### Declare variables to be passed into your templates.
+
+global:
+  enabled: true
+  enableNestedDependencies: false
+
+  ## Default image tag.
+  ## The version of container images for SDE to run
+  ## Ref: https://docs.sdelements.com
+  ##
+  # imageTag: latest
+
+  ## Provide a name in place of `sde` for `app:` labels
+  ##
+  #nameOverride: ""
+
+  ## Provide a name to substitute for the full names of resources
+  ##
+  #fullnameOverride: ""
+
+  ## Configuration options and crentials to fetch images from private
+  ## registries/repositories. These are provided by SDElements support staff on
+  ## request upon purchase of the SDElements product.
+  ##
+  imageRegistry: docker.sdelements.com
+  #imageRegistry: docker-dev.sdelements.com
+
+  # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
+  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
+  # docker-dev.sdelements.com / dev _ (sde/3rd) / cert-creator : latest
+  #imageRegistryFormat: "%s/%s_%s/%s:%s"
+  imageRegistryFormat: "%s/%s-%s-%s:%s"
+  #imageRegistryUsername: acmecorp
+  #imageRegistryPassword: myPassword
+  imageOrganization: default_organization
+  #imageOrganization: dev
+  imagePullPolicy: Always
+  #storageClass: aws-ebs
+
+replicas: 1
+#databaseName: myDbName
+#port: 5432
+#dataStorageClass: aws-ebs
+#dataMountPoint: /var/lib/postgresql/data
+#dataDir: pgdata
+#dataVolumeSize: 30Gi
+#imageTag: latest
+#imagePullPolicy: Always
+#imageSource: dccsr
+#imageName: postgres-bespoke
+#clientCertificatePath: certs/myDBClientCert.pem
+#clientKeyPath: certs/myDBClientKey.pem
+#caCertificatePath: certs/myCACert.pem
+#caKeyPath: certs/myCAKey.pem
+#serverCertificatePath: myDBServerCert.pem
+#serverKeyPath: myDBServerKey.pem
+#clientPassword: myPassword
+#clientUser: sde
+#backupAdminEmail: admin@example.com
+#backupFromEmail: noreply@example.com
+## backupPath should be a subfolder within your global.backupMountPath
+#backupPath: /backup/db
+#keepBackupDays: 14
+#cleanBackups: true
+
+## User/Group options
+# uid: 33
+# gid: 33
+# fsgid: 33
+backup:
+  # mountPoint: /backup
+  # failedJobsHistoryLimit:
+  # successfulJobsHistoryLimit:
+  # schedule: "*/20 * * * *"
+  # concurrencyPolicy: Forbid
+  # mailRelayHost: ""
+  # mailRelayPort: 25
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+## Container options
+resources:
+  requests:
+    memory: 512Mi
+

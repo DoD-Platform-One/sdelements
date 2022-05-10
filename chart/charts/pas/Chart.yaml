@@ -1,0 +1,39 @@
+apiVersion: v2
+appVersion: 1.2.1
+dependencies:
+- condition: global.enableNestedDependencies
+  name: sc-library
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 0.1.1
+- condition: useMockSDE,global.enableNestedDependencies
+  name: mock-sde
+  repository: file://../mock_sde
+  version: 0.0.1
+- name: pas-api
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 1.2.1
+- name: pas-plugin-worker
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 1.2.1
+- name: pas-async-worker
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 1.2.1
+- name: pas-frontend
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 1.2.1
+description: SD Elements Pluggable Framework
+home: https://docker.sdelements.com
+icon: https://avatars0.githubusercontent.com/u/739346
+keywords:
+- sde
+- sdelements
+- pas
+maintainers:
+- email: devops-support@securitycompass.com
+  name: Security Compass Technologies Ltd.
+  url: https://www.securitycompass.com/
+name: pas
+sources:
+- https://agra.sdelements.com/sd-elements/management_command_system
+type: application
+version: 1.2.1

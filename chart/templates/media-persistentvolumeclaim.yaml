@@ -1,0 +1,18 @@
+{{- $claimName := printf "%v-%v" ( include "library.trimmedName" . ) "media-volume-claim" -}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $claimName | quote }}
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ default "4Gi" .Values.sde.mediaVolumeSize }}
+  {{ if .Values.global.storageClass -}}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+status: {}

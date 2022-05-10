@@ -1,0 +1,19 @@
+{{- $claimName := printf "%v-%v" ( include "library.trimmedName" . ) "pas-custom-plugin-volume-claim" -}}
+{{- $storageClass:= default .Values.global.storageClass .Values.storageClass  -}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $claimName | quote }}
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ default "2Gi" .Values.customPluginVolumeSize }}
+  {{ if $storageClass -}}
+  storageClassName: {{ $storageClass | quote }}
+  {{- end }}
+status: {}

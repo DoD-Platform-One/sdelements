@@ -1,0 +1,122 @@
+{{- $imageTag := default .Chart.AppVersion .Values.imageTag -}}
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.imagePullPolicy -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" .Values.global.imageRegistry -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" .Values.global.imageOrganization -}}
+{{- $imageName := default "postgres-bespoke" .Values.imageName -}}
+{{- $imageSource := hasKey .Values "imageSource" | ternary ( printf "%s" .Values.imageSource ) ( default "sde" .Values.global.imageSource ) -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $uid := default 33 .Values.uid -}}
+{{- $gid := default 33 .Values.gid -}}
+{{- $fsgid := default 33 .Values.fsgid -}}
+{{- $deploymentName := include "database.deploymentName" . -}}
+{{- $port := include "database.port" . -}}
+{{- $dataMountPoint := default "/var/lib/postgresql/data" .Values.dataMountPoint -}}
+{{- $backupMountPoint := default "/backup" .Values.global.backupMountPoint -}}
+{{- $dataDir := default "pgdata" .Values.dataDir -}}
+{{- $dataClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "db-volume-claim" -}}
+{{- $backupClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "backup-volume-claim" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "library.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        service: {{ $deploymentName | quote }}
+        {{- include "library.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- if not .Values.global.runAsRoot }}
+        runAsUser: {{ $uid }}
+        runAsGroup: {{ $gid }}
+        fsGroup: {{ $fsgid }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
+        {{- end }}
+      {{- if and .Values.global.enableNodeSelector .Values.nodeSelector }}
+      nodeSelector:
+        {{- with .Values.nodeSelector }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      initContainers:
+      - name: {{ printf "%v-%v" $deploymentName "prep" | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        command: ['/bin/bash', '-c', 'set -x && cd {{ $dataMountPoint }}; if [[ -d {{ $dataDir }} ]]; then chown --recursive {{ $uid }}:{{ $gid }} {{ $dataDir }}; else mkdir --mode 770 {{ $dataDir }} &&  find . ! -name {{ $dataDir }} ! -name . ! -name lost+found -maxdepth 1 -exec mv {{`{}`}} {{ $dataDir }}/ \;; chown --recursive {{ $uid }}:{{ $gid }} {{ $dataDir }}; fi' ]
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+        volumeMounts:
+        - mountPath: {{ $dataMountPoint | quote }}
+          name: db
+      containers:
+      - name: {{ $deploymentName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        command: ["/bin/run_postgres.sh", "postgres"]
+        securityContext:
+          allowPrivilegeEscalation: false
+        env:
+        - name: POSTGRES_DB
+          value: {{ default "postgres" .Values.databaseName }}
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "database.secretName" . }}
+              key: ADMIN_DATABASE_PASSWORD
+        - name: POSTGRES_USER
+          value: {{ default "postgres" .Values.clientUser }}
+        - name: PGDATA
+          value: {{ printf "%s/%s" $dataMountPoint $dataDir | quote }}
+        - name: POSTGRES_UID
+          value: {{ $uid | quote }}
+        - name: POSTGRES_GID
+          value: {{ $gid | quote }}
+        ports:
+        - containerPort: {{ int $port }}
+        {{- if .Values.resources }}
+        resources:
+        {{- range $limitType, $resources := .Values.resources }}
+            {{ $limitType }}:
+            {{- range $resourceKey, $resourceValue := $resources }}
+                {{ $resourceKey }}: {{ $resourceValue }}
+            {{- end }}
+        {{- end }}
+        {{- else }}
+        resources: {}
+        {{- end }}
+        volumeMounts:
+        - mountPath: {{ $dataMountPoint | quote }}
+          name: db
+        - mountPath: {{ $backupMountPoint | quote }}
+          name: backup
+      imagePullSecrets:
+      - name: {{ include "library.registrySecretName" . }}
+      restartPolicy: Always
+      volumes:
+      - name: db
+        persistentVolumeClaim:
+          claimName: {{ $dataClaimName | quote }}
+      - name: backup
+        persistentVolumeClaim:
+          claimName: {{ $backupClaimName | quote }}
+status: {}

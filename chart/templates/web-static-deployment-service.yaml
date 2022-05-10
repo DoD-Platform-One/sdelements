@@ -1,0 +1,255 @@
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.web.imagePullPolicy -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" ( default .Values.global.imageRegistry .Values.web.imageRegistry ) -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" ( default .Values.global.imageOrganization .Values.web.imageOrganization ) -}}
+{{- $imageSource := default ( default "sde" .Values.global.imageSource ) .Values.web.imageSource -}}
+{{- $imageName := default "web-static" .Values.web.imageName -}}
+{{- $imageTag := default ( default .Chart.AppVersion .Values.global.imageTag ) .Values.web.imageTag | toString -}}
+{{- $uid := default 101 .Values.web.uid -}}
+{{- $gid := default 101 .Values.web.gid -}}
+{{- $fsgid := default 33 .Values.web.fsgid -}}
+{{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "web" -}}
+{{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "web" "service" -}}
+{{- $pcaIngressName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "pca" "ingress" -}}
+{{- $httpPort := default 9080 .Values.web.httpPort -}}
+{{- $httpsPort := default 9443 .Values.web.httpsPort -}}
+{{- $jittHttpsPort := include "jittHttpsPort" . -}}
+
+{{- $certManagerEnabled := eq ( include "certManagerEnabled" . ) "true" -}}
+{{- $enableInternalTls := eq ( include "enableInternalTls" . ) "true" -}}
+{{- $pasPort := default 8081 (index .Values "pas" "pas-frontend" "port") -}}
+{{- $pasPath := default "pas" .Values.global.pas.baseUrl | trimPrefix "/" -}}
+{{- $tlsRoot := default "/tls" .Values.web.tlsRoot -}}
+{{- $hasCustomCertPaths := and ( hasKey .Values.web "tlsCertificatePath" ) ( hasKey .Values.web "tlsKeyPath" ) -}}
+{{- $hasCustomCertValues := and ( hasKey .Values.web "tlsCertificate" ) ( hasKey .Values.web "tlsKey" ) -}}
+{{- $hasCustomCerts := or $hasCustomCertPaths $hasCustomCertValues -}}
+{{- $tlsCertPath := printf "%v/tls.crt" $tlsRoot }}
+{{- $tlsKeyPath := printf "%v/tls.key" $tlsRoot }}
+{{- $webTlsSecretName :=  ternary ( printf "%v-tls-web-custom-secret" ( include "library.trimmedName" . )) ( include "tlsSecretName" ( mergeOverwrite . (dict "serviceName" "web-server") )) $hasCustomCerts -}}
+
+{{- $root := . -}}
+{{- $staticClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "static-volume-claim" -}}
+{{- $mediaClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "media-volume-claim" -}}
+{{- $mapName := printf "%v-%v" .Release.Name "nginx-resources" -}}
+{{- $jittEnabled := default false .Values.sde.enableJITT -}}
+{{- $pasEnabled := default false .Values.global.pas.enabled -}}
+{{- $pcaEnabled := default false ( index .Values "sde-pca" "enable" ) -}}
+{{- $pcaServiceName := default ( printf "%v-%v-%v" ( include "library.trimmedName" . ) "pca" "service" ) ( index .Values "sde-pca" "serviceName" ) -}}
+{{- $pcaHttpPort := default 8001 ( index .Values "sde-pca" "httpPort" ) -}}
+{{- $pcaHttpPath := default "pca" ( index .Values "sde-pca" "httpPath" ) -}}
+{{- $reportingEnabled := include "reportingEnabled" . -}}
+{{- $reportingPort := include "reportingPort" . -}}
+{{- $reportingScheme := ternary "https" "http" $enableInternalTls -}}
+{{- $reportingBackendUrl := printf "%v://%v-%v-%v:%v" $reportingScheme ( include "library.trimmedName" . ) "reporting" "service" $reportingPort -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.web.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "library.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        {{- include "library.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- if not .Values.global.runAsRoot }}
+        runAsUser: {{ $uid }}
+        runAsGroup: {{ $gid }}
+        fsGroup: {{ $fsgid }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
+        {{- end }}
+      {{- if .Values.global.enableNodeSelector }}
+      nodeSelector:
+        customer_name: {{ printf "%v" ( include "library.trimmedName" . ) | quote }}
+      {{- end }}
+      containers:
+      - name: {{ $deploymentName | quote }}
+        securityContext:
+          allowPrivilegeEscalation: false
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        args:
+        - /bin/bash
+        - -c
+        - color_echo () { echo; } && source /bin/run_nginx.sh
+        env:
+        {{/* Create entries for all configured workers including nginx map/proxy config */}}
+        {{- range .Values.worker.synchronous -}}
+          {{- if .default -}}
+            {{- $workerServiceName :=  printf "%v-worker-%v-service.%v.svc.cluster.local" ( include "library.trimmedName" $root ) .niceness $root.Release.Namespace -}}
+            {{- $port := default 8080 .port -}}
+            {{- printf "- name: DEFAULT_NGINX_BACKEND_URL" | nindent 8 -}}
+            {{- printf "value: %s" ( printf "http://%v:%v" $workerServiceName $port | quote ) | nindent 10 }}
+          {{- end -}}
+        {{- end }}
+        - name: NGINX_BACKEND_MAP
+          value: |+
+          {{- range .Values.worker.synchronous -}}
+          {{- $workerServiceName := printf "%v-worker-%v-service.%v.svc.cluster.local" ( include "library.trimmedName" $root ) .niceness $root.Release.Namespace -}}
+          {{- $port := default 8080 .port -}}
+          {{- printf "%-32s http://%s:%v;\n" .map $workerServiceName $port | nindent 12 }}
+          {{ end }}
+        - name: NGINX_HOST
+          value: {{ default "_" .Values.web.host | quote }}
+        {{- if $jittEnabled }}
+        - name: NGINX_JITT_URL
+          value: {{ printf "https://%v-%v-%v:%v" ( include "library.trimmedName" . ) "jitt" "service" $jittHttpsPort | quote }}
+        {{- end }}
+        {{- if $pasEnabled }}
+        - name: NGINX_PAS_URL
+          value: {{ printf "http://%v-pas-frontend-service:%v/%v/" ( include "library.trimmedName" . ) $pasPort $pasPath | quote }}
+        - name: NGINX_PAS_PATH
+          value: {{ $pasPath | quote }}
+        {{- end }}
+        {{- if $pcaEnabled }}
+        - name: NGINX_PCA_PATH
+          value: {{ $pcaHttpPath | quote }}
+        - name: NGINX_PCA_BACKEND_URL
+          value: {{ printf "%v-%v-%v:%v" ( include "library.trimmedName" . ) "pca" "service" $pcaHttpPort | quote }}
+        {{- end }}
+        - name: NGINX_REPORTING_INCLUDE_CONF
+          value: {{ eq $reportingEnabled "true" | ternary "include reporting/*.conf;" "" | quote }}
+        - name: NGINX_REPORTING_BACKEND_URL
+          value: {{ $reportingBackendUrl | quote }}
+        - name: NGINX_REPORTING_PATH
+          value: {{ default "cubejs-api" .Values.web.reportingPath | quote }}
+        - name: NGINX_PCA_INCLUDE_CONF
+          value: {{ ternary "include pca/*.conf;" "" $pcaEnabled | quote }}
+        - name: NGINX_JITT_TRY_FILES
+          value: {{ ternary "try_files $uri @jitt;" "" $jittEnabled | quote }}
+        - name: NGINX_JITT_INCLUDE_CONF
+          value: {{ ternary "include jitt/*.conf;" "" $jittEnabled | quote }}
+        - name: NGINX_PAS_INCLUDE_CONF
+          value: {{ ternary "include pas/*.conf;" "" $pasEnabled | quote }}
+        - name: NGINX_PORT
+          value: {{ default $httpPort | quote }}
+        - name: NGINX_TLS_PORT
+          value: {{ default $httpsPort | quote }}
+        - name: NGINX_SSL_KEY_PATH
+          value: {{ $tlsKeyPath }}
+        - name: NGINX_SSL_CERT_PATH
+          value: {{ $tlsCertPath }}
+        - name: NGINX_SSL_CIPHERS
+          value: {{ default "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256" .Values.web.tlsCiphers | quote}}
+        - name: NGINX_SSL_PROTOCOLS
+          value: {{ default "TLSv1 TLSv1.1 TLSv1.2" .Values.web.tlsProtocols | quote }}
+        - name: NGINX_WORKER_CONNECTIONS
+          value: {{ default 1024 .Values.web.workerConnections | quote }}
+        - name: NGINX_WORKER_PROCESSES
+          value: {{ default "2" .Values.web.workerProcesses | quote }}
+        - name: NGINX_WORKER_RLIMIT_NOFILE
+          value: {{ default 1024 .Values.web.rlimitNofile | quote }}
+        - name: WEBPACK_BUNDLES_PATH
+          value: {{ default "/static/bundles" .Values.web.staticRoot | quote }}
+        ports:
+        - containerPort: {{ int $httpPort }}
+        - containerPort: {{ int $httpsPort }}
+        {{- if .Values.web.resources }}
+        resources:
+        {{- range $limitType, $resources := $.Values.web.resources }}
+            {{ $limitType }}:
+            {{- range $resourceKey, $resourceValue := $resources }}
+                {{ $resourceKey }}: {{ $resourceValue }}
+            {{- end }}
+        {{- end }}
+        {{- else }}
+        resources: {}
+        {{- end }}
+        volumeMounts:
+        - mountPath: /run/nginx
+          name: nginx
+          readOnly: true
+        - mountPath: {{ default "/static" .Values.web.staticRoot }}
+          name: static
+          readOnly: true
+        - mountPath: {{ default "/media" .Values.web.mediaRoot }}
+          name: media
+          readOnly: true
+        - mountPath: {{ $tlsRoot }}
+          name: tls
+          readOnly: true
+      imagePullSecrets:
+      - name: security-compass-secret
+      restartPolicy: Always
+      volumes:
+      - name: nginx
+        configMap:
+          name: {{ $mapName | quote }}
+          items:
+          {{- range $path, $bytes := .Files.Glob "files-static/custom_status_pages/images/*" }}
+          - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-static/" ) | replace "/" "_" }}
+            path: {{ toString $path | trimPrefix "files-static/" | quote }}
+          {{- end }}
+          {{- range $path, $bytes := .Files.Glob "files-static/custom_status_pages/js/*" }}
+          - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-static/"  ) | replace "/" "_" }}
+            path: {{ toString $path | trimPrefix "files-static/" | quote }}
+          {{- end }}
+          {{- range $path, $bytes := .Files.Glob "files-static/**.html" }}
+          - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-static/"  ) | replace "/" "_" }}
+            path: {{ toString $path | trimPrefix "files-static/" | quote }}
+          {{- end }}
+          # nginx.conf/reporting.conf
+          {{- range $path, $bytes := .Files.Glob "files-static/{sites-enabled/,reporting/,}*.conf" }}
+          - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-static/"  ) | replace "/" "_" }}
+            path: {{ toString $path | trimPrefix "files-static/" | quote }}
+          {{- end }}
+          # jitt/pca/pas
+          {{- range $path, $bytes := .Files.Glob "files-static/*/*.conf" }}
+          {{- if ( or ( and (contains "jitt" $path) $jittEnabled ) ( and (contains "pca" $path) $pcaEnabled ) (and (contains "pas" $path) $pasEnabled)) }}
+          - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-static/"  ) | replace "/" "_" }}
+            path: {{ toString $path | trimPrefix "files-static/" | quote }}
+          {{- end }}
+          {{- end }}
+      {{/*
+      NOTE: When encrypting with only custom certificate, the set of cert must
+      have a valid CNAME for both the alternateVirtualHosts names as well as the
+      fqdn specified in values.yaml. Otherwise the ingress controller will fall
+      back to using the default cert
+      */}}
+      - name: tls
+        secret:
+          secretName: {{ $webTlsSecretName }}
+          defaultMode: 0400
+      - name: static
+        persistentVolumeClaim:
+          claimName: {{ $staticClaimName | quote }}
+          readOnly: true
+      - name: media
+        persistentVolumeClaim:
+          claimName: {{ $mediaClaimName | quote }}
+          readOnly: true
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName | quote }}
+  labels:
+    service: {{ $serviceName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: "https"
+    port: {{ int $httpsPort }}
+    targetPort: {{ int $httpsPort }}
+  selector:
+    name: {{ $deploymentName | quote }}
+status:
+  loadBalancer: {}

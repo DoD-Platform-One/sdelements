@@ -1,0 +1,32 @@
+{{- $ingressName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "pas-web" "ingress" -}}
+{{- if .Values.includeIngress -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $ingressName | quote }}
+  labels:
+    service: {{ $ingressName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /pas
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ printf "%v-%v-%v-service" ( include "library.trimmedName" . ) "pas" "frontend" }}
+            port:
+              number: 8081
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ printf "%v-%v-%v-service" ( include "library.trimmedName" . ) "mock" "sde" }}
+            port:
+              number: 5000
+status:
+  loadBalancer: {}
+{{- end -}}

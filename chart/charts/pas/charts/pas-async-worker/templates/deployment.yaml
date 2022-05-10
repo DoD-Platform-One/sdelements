@@ -1,0 +1,83 @@
+{{- $imageName := default "pas-async-worker" .Values.imageName -}}
+{{- $imageTag := default .Chart.AppVersion .Values.imageTag -}}
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.imagePullPolicy -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" .Values.global.imageRegistry -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" .Values.global.imageOrganization -}}
+{{- $imageSource := default ( default "sde" .Values.global.imageSource ) .Values.imageSource -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $contextDict := dict "root" . "dot" .Values -}}
+
+# Deployment config vars
+{{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "pas-async-worker" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "library.selectorLabels" . | nindent 6 }}
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        {{- include "library.selectorLabels" . | nindent 8 }}
+    spec:
+      {{ if .Values.global.enableNodeSelector }}
+      nodeSelector:
+        customer_name: {{ printf "%v" .Release.Name | quote }}
+      {{ end }}
+      securityContext:
+        {{- if not .Values.global.runAsRoot }}
+        runAsUser: {{ default 100 .Values.uid }}
+        runAsGroup: {{ default 101 .Values.gid }}
+        {{- if semverCompare ">=1.19" .Capabilities.KubeVersion.GitVersion }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        {{- end }}
+        {{- end }}
+      containers:
+      - name: {{ $deploymentName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        envFrom:
+          - configMapRef:
+              name: {{ .Release.Name }}-{{ .Chart.Name }}-env-configmap
+          - configMapRef:
+              name: {{ .Release.Name }}-{{ .Chart.Name }}-db-env-configmap
+          - configMapRef:
+              name: {{ .Release.Name }}-{{ .Chart.Name }}-broker-env-configmap
+        env:
+          - name: DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-async-worker.database.secretName" $contextDict }}
+                key: {{ include "pas-async-worker.database.passwordSecretKey" $contextDict }}
+          - name: PLUGIN_SERVICE_BROKER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-async-worker.broker.secretName" $contextDict }}
+                key: {{ include "pas-async-worker.broker.passwordSecretKey" $contextDict }}
+          - name: PAS_ASYNC_WORKER_BROKER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-async-worker.broker.secretName" $contextDict }}
+                key: {{ include "pas-async-worker.broker.passwordSecretKey" $contextDict }}
+        volumeMounts:
+          - mountPath: "/custom_plugin_storage"
+            name: custom-plugin
+      volumes:
+        - name: custom-plugin
+          persistentVolumeClaim:
+            claimName: {{ printf "%v-%v" ( include "library.trimmedName" . ) ( default ( default "pas-custom-plugin-volume-claim" .Values.global.pas.pluginVolumeClaimName ) .pluginVolumeClaimName ) | quote }}
+      imagePullSecrets:
+      - name: {{ include "library.registrySecretName" . }}
+      restartPolicy: Always
+status: {}

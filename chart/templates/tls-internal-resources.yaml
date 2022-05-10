@@ -1,0 +1,51 @@
+{{- $certManagerEnabled := eq ( include "certManagerEnabled" . ) "true" -}}
+{{- $enableInternalTls := eq ( include "enableInternalTls" . ) "true" -}}
+{{- $tlsRoot := default "/tls" .Values.datastore.tlsRoot -}}
+{{- $internalCAName := printf "internal-ca" }}
+{{- $internalCACert := printf "%v-tls-%v-cert" .Release.Name $internalCAName }}
+{{- $internalCASecret := printf "%v-tls-%v-secret" .Release.Name $internalCAName }}
+{{- $internalCAIssuer := printf "%v-tls-%v-issuer" .Release.Name $internalCAName }}
+{{- $rootInternalCACert := printf "%v-tls-root-%v-cert" .Release.Name $internalCAName }}
+{{- $rootInternalCASecret := printf "%v-tls-root-%v-secret" .Release.Name $internalCAName }}
+{{- $rootInternalCAIssuer := printf "%v-tls-root-%v-issuer" .Release.Name $internalCAName }}
+
+{{/*
+Regardless of whether or not enableInternalTls is set to True we always want
+to create self signed certs for our services. This is because our web-static
+containers must run with TLS and require a certificate present
+*/}}
+{{- if $certManagerEnabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ $rootInternalCAIssuer }}
+spec:
+  selfSigned: {}
+####The root CA cert
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $rootInternalCAIssuer }}
+  namespace: {{ .Release.NameSpace }}
+spec:
+  commonName: {{ $internalCAName }}
+  secretName: {{ $rootInternalCASecret }}
+  isCA: true
+  usages:
+    - signing
+    - cert sign
+  issuerRef:
+    name: {{ $rootInternalCAIssuer }}
+###The CA issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ $internalCAIssuer }}
+spec:
+  ca:
+    secretName: {{ $rootInternalCASecret }}
+{{- end }}
+

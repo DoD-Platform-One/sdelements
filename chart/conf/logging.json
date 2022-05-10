@@ -1,0 +1,49 @@
+{
+    "version": 1,
+    "disable_existing_loggers": True,
+    "formatters": {
+        "simple": {
+            "format": "%(asctime)s [%(levelname)s] %(message)s"
+        }
+    },
+    "handlers": {
+        "console": {
+            "level": {{ default "INFO" .Values.worker.consoleLogLevel | quote }},
+            "class": "logging.StreamHandler",
+            "formatter": "simple"
+        },
+        "mail_admins": {
+            "level": {{ default "ERROR" .Values.worker.emailLogLevel | quote }},
+            "class": "django.utils.log.AdminEmailHandler"
+        },
+        "saml": {
+            "level": {{ default "ERROR" .Values.worker.samlLogLevel | quote }},
+            "class": "logging.StreamHandler"
+        }
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["console", "mail_admins"],
+            "level": "ERROR"
+        },
+        "djangosaml2": {
+          "handlers": ["saml"],
+          "level": {{ default "ERROR" .Values.worker.samlLogLevel | quote }},
+          "propagate": False
+        },
+        "pysaml2": {
+            "handlers": ["saml"],
+            "level": {{ default "ERROR" .Values.worker.samlLogLevel | quote }},
+            "propagate": False
+        },
+        "saml2": {
+            "handlers": ["saml"],
+            "level": {{ default "ERROR" .Values.worker.samlLogLevel | quote }},
+            "propagate": False
+        },
+        "": {
+            "handlers": ["console"],
+            "level": {{ default "INFO" .Values.worker.consoleLogLevel | quote }}
+        }
+    }
+}

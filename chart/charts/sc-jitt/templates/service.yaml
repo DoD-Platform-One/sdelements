@@ -1,0 +1,21 @@
+{{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "jitt" "service" -}}
+{{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "jitt" -}}
+{{- $httpsPort := default 7443 .Values.httpsPort -}}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName | quote }}
+  labels:
+    service: {{ $serviceName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: "https"
+    port: {{ int $httpsPort }}
+    targetPort: {{ int $httpsPort }}
+  selector:
+    name: {{ $deploymentName | quote }}
+status:
+  loadBalancer: {}

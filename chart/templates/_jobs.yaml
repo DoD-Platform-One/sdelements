@@ -1,0 +1,161 @@
+{{/*
+#### SDElements job template ####
+
+Expects a dict input with root/dot keys with context
+
+*/}}
+{{- define "sde.job" -}}
+{{- $root := get . "root" -}}
+{{- $dot := get . "dot" -}}
+{{- $jobName := get . "jobName" -}}
+{{- $imagePullPolicy := default $root.Values.global.imagePullPolicy $dot.imagePullPolicy -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" $root.Values.global.imageRegistryFormat -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" $root.Values.global.imageRegistry -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" ( default $root.Values.global.imageOrganization $root.Values.worker.imageOrganization ) -}}
+{{- $imageSource := default ( default "sde" $root.Values.global.imageSource ) $root.Values.worker.imageSource -}}
+{{- $imageName := default "web-dynamic" $root.Values.worker.imageName -}}
+{{- $imageTag := default ( default $root.Chart.AppVersion $root.Values.global.imageTag ) ( default $root.Values.worker.imageTag $dot.imageTag ) | toString -}}
+{{- $releaseName := printf "%v-job-%v" ( include "library.trimmedName" $root | trunc 10 ) $jobName | trimSuffix "-" -}}
+{{- $haystackClaimName := printf "%v-%v" $root.Release.Name "haystack-volume-claim" -}}
+{{- $uid := default 33 $root.Values.worker.uid -}}
+{{- $gid := default 33 $root.Values.worker.gid -}}
+{{- $fsgid := default 33 $root.Values.worker.fsgid }}
+{{- $failedJobsHistoryLimit := default (default 1 $root.Values.job.failedJobsHistoryLimit) $dot.failedJobsHistoryLimit -}}
+{{- $successfulJobsHistoryLimit := default (default 0 $root.Values.job.successfulJobsHistoryLimit) $dot.successfulJobsHistoryLimit -}}
+
+{{/*
+     TLS Configurations
+     These tls artifacts are created in the datastore deployment
+     service templates
+*/}}
+{{- $enableInternalTls := eq ( include "enableInternalTls" ( merge . $root ) ) "true" -}}
+{{- $tlsRoot := default "/tls" $root.Values.web.tlsRoot }}
+{{- $tlsDatastoreCACertPath := printf "%v/%v" $tlsRoot "datastore/ca.crt" }}
+{{- $tlsDatastoreSecretName := include "tlsSecretName" ( mergeOverwrite $ ( dict "serviceName" "datastore-client" )) }}
+
+{{- $resourceLimits :=  default $root.Values.job.resources $dot.resources }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ $releaseName | quote }}
+  labels:
+    name: {{ $releaseName | quote }}
+    {{- include "library.labels" $root | nindent 4 }}
+spec:
+  schedule: {{ required "Jobs are required to have a cron style schedule" $dot.schedule | quote }}
+  concurrencyPolicy: {{ default "Forbid" $dot.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ $failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ $successfulJobsHistoryLimit }}
+  suspend: {{ default false $dot.suspend }}
+  jobTemplate:
+    metadata:
+      labels:
+        name: {{ $releaseName | quote }}
+        {{- include "library.selectorLabels" $root | nindent 8 }}
+    spec:
+      template:
+        metadata:
+          labels:
+            app: {{ $releaseName }}
+            cron: {{ $releaseName }}
+        spec:
+          securityContext:
+            {{- if not $root.Values.global.runAsRoot }}
+            runAsUser: {{ $uid }}
+            runAsGroup: {{ $gid }}
+            fsGroup: {{ $fsgid }}
+            {{- if semverCompare ">=1.23.0-0" $root.Capabilities.KubeVersion.GitVersion }}
+            fsGroupChangePolicy: "OnRootMismatch"
+            {{- end }}
+            {{- else }}
+            runAsUser: 0
+            runAsGroup: 0
+            {{- end }}
+          initContainers:
+          - name: {{ printf "%v-%v" $releaseName "sleep" | quote }}
+            image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+            imagePullPolicy: {{ $dot.imagePullPolicy }}
+            command: ['/bin/bash', '-c', 'wait=$(shuf --input-range=1-600 --head-count=1); echo "$(date): Waiting for ${wait} seconds..."; sleep "${wait}"; echo "$(date): Done waiting!"' ]
+          containers:
+          - name: {{ $releaseName | quote }}
+            image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+            {{- if $dot.imagePullPolicy }}
+            imagePullPolicy:  {{ $dot.imagePullPolicy }}
+            {{- end }}
+            command: {{ required "Jobs are required to specify a command to run"  $dot.command }}
+            env:
+            {{- dict "root" $root "dot" $dot | include "sde.environment" | nindent 12}}
+            {{- with $dot.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if $dot.args }}
+            args:
+              {{- with $dot.args }}
+                {{- toYaml . | nindent 12 }}
+              {{- end }}
+            {{- end }}
+            {{- if $resourceLimits }}
+            resources:
+              {{- with $resourceLimits }}
+                {{- toYaml . | nindent 14 }}
+              {{- end }}
+            {{- end }}
+            {{- if semverCompare ">=1.19.0-0" $root.Capabilities.KubeVersion.GitVersion }}
+            securityContext:
+              allowPrivilegeEscalation: false
+            {{- end }}
+            volumeMounts:
+            {{- if regexMatch "-index" $releaseName }}
+            - mountPath: {{ default "/index" $root.Values.worker.indexMountPath | quote }}
+              name: haystack
+            {{- end }}
+            {{- if $enableInternalTls }}
+            - mountPath: {{ printf "%v/%v" $tlsRoot "datastore" | quote }}
+              name: tls-datastore
+              readOnly: true
+            {{- end }}
+            {{- with $dot.volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if $dot.nodeSelector }}
+          nodeSelector:
+            {{- with $dot.nodeSelector }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if $dot.affinity }}
+          affinity:
+            {{- with $dot.affinity }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if $dot.tolerations }}
+          tolerations:
+            {{- with $dot.tolerations }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          restartPolicy: {{ default "OnFailure" $dot.restartPolicy }}
+          imagePullSecrets:
+          - name: security-compass-secret
+          volumes:
+          {{- if regexMatch "-index" $releaseName }}
+          - name: haystack
+            persistentVolumeClaim:
+              claimName: {{ $haystackClaimName | quote }}
+          {{- end }}
+          {{- if $enableInternalTls }}
+          - name: tls-datastore
+            secret:
+              secretName: {{ $tlsDatastoreSecretName }}
+              defaultMode: 0444
+              {{/* kubernetes 1.18 does not support fsGroup
+                   need to set this as world readable until we
+                   upgrade to kubernetes 1.19 */}}
+          {{- end }}
+          {{ with $dot.volumes }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+status: {}
+{{- end }}

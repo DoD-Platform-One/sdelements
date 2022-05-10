@@ -1,0 +1,24 @@
+apiVersion: v2
+appVersion: 5.19.4
+dependencies:
+- condition: global.enableNestedDependencies
+  name: sc-library
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 1.0.0
+description: The Security Compass JITT Chart
+home: https://agra.sdelements.com/sd-elements/sde-training
+icon: https://avatars0.githubusercontent.com/u/739346
+keywords:
+- training
+- nginx
+- jitt
+- security
+maintainers:
+- email: devops-support@securitycompass.com
+  name: Security Compass Technologies Ltd.
+  url: https://www.securitycompass.com/
+name: sc-jitt
+sources:
+- https://agra.sdelements.com/sd-elements/sde-training
+type: application
+version: 5.19.4

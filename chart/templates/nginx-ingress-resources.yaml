@@ -1,0 +1,126 @@
+{{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "web" "service" -}}
+{{- $ingressName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "web" "ingress" -}}
+{{- $customCertsProvided := or ( and ( hasKey .Values.web "tlsCertificate" ) ( hasKey .Values.web "tlsKey" )) ( and ( hasKey .Values.web "tlsCertificatePath" ) ( hasKey .Values.web "tlsKeyPath" )) -}}
+{{- $customTlsSecretName := printf "%v-tls-web-custom-secret" .Release.Name -}}
+{{- $dynamicTlsSecretName := ternary ( include "tlsSecretName" ( mergeOverwrite $ ( dict "serviceName" "web-server" ))) $customTlsSecretName ( eq ( include "certManagerEnabled" . ) "true" )  -}}
+{{- if or .Values.global.nginxIngress.enabled ( eq ( .Values.global.nginxIngress.enabled | toString ) "<nil>" ) }}
+---
+{{- if semverCompare ">=1.19.0-0" .Capabilities.KubeVersion.GitVersion }}
+apiVersion: networking.k8s.io/v1
+{{- else }}
+apiVersion: networking.k8s.io/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $ingressName | quote }}
+  labels:
+    service: {{ $ingressName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+  annotations:
+    {{- if ((.Values.sde).ingress).annotations -}}
+    {{ toYaml .Values.sde.ingress.annotations | nindent 4 }}
+    {{- else }}
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/proxy-body-size: "2048m"
+    {{- end }}
+
+spec:
+  {{- if semverCompare ">=1.19.0-0" .Capabilities.KubeVersion.GitVersion }}
+  defaultBackend:
+    service:
+      name: {{ $serviceName | quote }}
+      port:
+        name: "https"
+  {{- else }}
+  backend:
+    serviceName: {{ $serviceName | quote }}
+    servicePort: "https"
+  {{- end }}
+  {{- if or ( ne .Values.sde.fqdn "example.com" ) ( hasKey .Values.sde "alternateVirtualHosts" ) }}
+  tls:
+  - hosts:
+    - {{ .Values.sde.fqdn | quote }}
+    {{- range .Values.sde.alternateDnsNames }}
+    - {{ . | quote }}
+    {{- end }}
+    secretName: {{ $dynamicTlsSecretName | quote }}
+  {{- if ( hasKey .Values.sde "alternateVirtualHosts" ) }}
+  - hosts:
+    {{- range .Values.sde.alternateVirtualHosts }}
+    - {{ . | quote }}
+    {{- end }}
+    {{- if $customCertsProvided }}
+    secretName: {{ $customTlsSecretName }}
+    {{- else }}
+    secretName: {{ $dynamicTlsSecretName | quote }}
+    {{- end }}
+  {{- end }}
+  {{- if semverCompare ">=1.19.0-0" .Capabilities.KubeVersion.GitVersion }}
+  rules:
+  - host: {{ .Values.sde.fqdn | quote }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $serviceName | quote }}
+            port:
+              name: "https"
+  {{- range .Values.sde.alternateDnsNames }}
+  - host: {{ . | quote }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $serviceName | quote }}
+            port:
+              name: "https"
+  {{- end }}
+  {{- range .Values.sde.alternateVirtualHosts }}
+  - host: {{ . | quote }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $serviceName | quote }}
+            port:
+              name: "https"
+  {{- end }}
+  {{- else }}
+  rules:
+  - host: {{ .Values.sde.fqdn | quote }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ $serviceName | quote }}
+          servicePort: "https"
+  {{- range .Values.sde.alternateDnsNames }}
+  - host: {{ . | quote }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ $serviceName | quote }}
+          servicePort: "https"
+  {{- end }}
+  {{- range .Values.sde.alternateVirtualHosts }}
+  - host: {{ . | quote }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ $serviceName | quote }}
+          servicePort: "https"
+  {{- end }}
+  {{- end }}
+  {{- end }}
+status:
+  loadBalancer: {}
+{{- end -}}

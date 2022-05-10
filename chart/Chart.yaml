@@ -1,0 +1,51 @@
+apiVersion: v2
+appVersion: 5.19.19
+dependencies:
+- condition: sde.enableJITT
+  name: sc-jitt
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 5.19.4
+- name: sc-library
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 0.1.1
+- condition: sc-database.enabled
+  name: sc-database
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 1.0.10
+- name: sc-broker
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 1.1.1
+- condition: sde-pca.enable
+  name: sde-pca
+  repository: file://../../project-creation-automation/helm
+  version: 0.0.0
+- condition: global.awsNLB.enabled
+  name: ingress-nginx
+  repository: https://kubernetes.github.io/ingress-nginx
+  tags:
+  - nlb
+  - aws
+  version: 2.0.3
+- condition: global.awsEFSCSI.enabled
+  name: aws-efs-csi-driver
+  repository: https://kubernetes-sigs.github.io/aws-efs-csi-driver
+  tags:
+  - efs
+  - csi
+  - aws
+  version: v0.1.0
+- condition: global.pas.enabled
+  name: pas
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 1.2.1
+description: SDElements by Security Compass Ltd.
+icon: https://avatars0.githubusercontent.com/u/739346
+keywords:
+- security appsec code secure
+maintainers:
+- email: devops-support@securitycompass.com
+  name: Security Compass Technologies Ltd.
+  url: https://www.securitycompass.com/
+name: sde
+type: application
+version: 5.19.19

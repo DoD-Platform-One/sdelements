@@ -1,0 +1,40 @@
+{{- $tlsEnabled := default "false" .Values.tlsEnabled -}}
+{{- $brokerHost := default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-service" ) .Values.global.broker.host -}}
+{{- $brokerPort := default (ternary 5671 5672 ( eq $tlsEnabled "true" )) .Values.global.broker.port -}}
+{{- $brokerServer := printf "%v:%v" $brokerHost $brokerPort -}}
+{{- $brokerVhost := include "pas.brokerVhost" (dict "root" . "dot" .Values) -}}
+{{- $brokerUser := include "pas.brokerUser" (dict "root" . "dot" .Values) -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-broker-env-configmap
+  labels:
+    {{ include "library.labels" . | nindent 4 }}
+data:
+  PLUGIN_SERVICE_BROKER_SERVER: {{ $brokerServer }}
+  PLUGIN_SERVICE_BROKER_VHOST: {{ $brokerVhost }}
+  PLUGIN_SERVICE_BROKER_USER: {{ $brokerUser }}
+  {{ if .Values.pluginServiceResultBackend}}
+  PLUGIN_SERVICE_RESULT_BACKEND: {{ .Values.pluginServiceResultBackend }}
+  {{ end }}
+  {{ if .Values.pluginServiceQueueName}}
+  PLUGIN_SERVICE_QUEUE_NAME: {{ .Values.pluginServiceQueueName }}
+  {{ end }}
+
+  PAS_ASYNC_WORKER_BROKER_SERVER: {{ $brokerServer }}
+  PAS_ASYNC_WORKER_BROKER_VHOST: {{ $brokerVhost }}
+  PAS_ASYNC_WORKER_BROKER_USER: {{ $brokerUser }}
+  {{ if .Values.asyncWorkerResultBackend}}
+  PAS_ASYNC_WORKER_RESULT_BACKEND: {{ .Values.asyncWorkerResultBackend }}
+  {{ end }}
+  {{ if .Values.asyncWorkerQueueName}}
+  PAS_ASYNC_WORKER_QUEUE_NAME: {{ .Values.asyncWorkerQueueName }}
+  {{ end }}
+
+  SDE_ASYNC_WORKER_BROKER_SERVER: {{ $brokerServer }}
+  SDE_ASYNC_WORKER_BROKER_VHOST: {{ default (default "rabbit" .Values.global.broker.adminVhost) .Values.sdeVhost | quote }}
+  SDE_ASYNC_WORKER_BROKER_USER: {{ default (default "rabbit" .Values.global.broker.adminClientUser) .Values.sdeBrokerUser | quote }}
+  {{ if .Values.sdeQueueName }}
+  SDE_QUEUE_NAME: {{ .Values.sdeQueueName | quote }}
+  {{ end }}

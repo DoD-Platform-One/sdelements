@@ -1,0 +1,66 @@
+### Default values for the Example (example) Helm Chart.
+### This is a YAML-formatted file.
+### Declare variables to be passed into your templates.
+
+## Example specific options
+global:
+  enableNestedDependencies: false
+  ## SDElements image tag.
+  ## The version of SDE to run, Ref: https://docs.sdelements.com
+  # imageTag: latest
+
+  ## Provide a name in place of `sde` for `app:` labels
+  ##
+  #nameOverride: ""
+
+  ## Provide a name to substitute for the full names of resources
+  ##
+  #fullnameOverride: ""
+
+  ## Configuration options and crentials to fetch images from private
+  ## registries/repositories. These are provided by SDElements support staff on
+  ## request upon purchase of the SDElements product.
+  ##
+  imageRegistry: docker.sdelements.com
+  #imageRegistry: docker-dev.sdelements.com
+
+  # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
+  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
+  # docker-dev.sdelements.com / dev _ (sde/3rd) / cert-creator : latest
+  #imageRegistryFormat: "%s/%s_%s/%s:%s"
+  imageRegistryFormat: "%s/%s-%s-%s:%s"
+  #imageRegistryUsername: acmecorp
+  #imageRegistryPassword: SuperSecretPassword
+  imageOrganization: default_organization
+  #imageOrganization: dev
+  imagePullPolicy: IfNotPresent
+  #imageSource: sde
+  broker:
+    enabled: true
+    #adminClientUser: admin
+    #adminClientPassword: myRabbitMQUserPassword
+    #adminVhost: admin
+  useStandalone: true
+
+## Message broker (rabbitmq)
+#imageName: rabbitmq
+#imageTag: 3-alpine
+#imagePullPolicy: Always
+#imageSource: dccsr
+replicas: 1
+#caCertificatePath: certs/myCACert.pem
+#caKeyPath: certs/myCAKey.pem
+#serverCertificatePath: myDBServerCert.pem
+#serverKeyPath: myDBServerKey.pem
+## Connection parameters
+#host: mq
+
+## User/Group options
+# uid: 100
+# gid: 101
+# fsgid: 101
+
+## Container options
+resources:
+  requests:
+    memory: 128Mi
