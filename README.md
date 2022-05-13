@@ -2,9 +2,6 @@
 
 ## BigBang Modifications
 
-- Added `color_echo () { echo; } && source /bin/run_nginx.sh` to the web reporting and static args
-  - `templates/web-reporting-deployment-service.yaml`
-  - `templates/web-static-deployment-service.yaml`
 - Bigbang Additions
   - Istio resources
     - `virtualservice`

@@ -4,6 +4,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [5.19.19-bb.1] - 2022-05-13
+### Added
+- Add BB version
+- Fixed Web deployments argument
+
 ## [5.19.19] - 2022-05-10
 ### Added
 - Initial upstream version
