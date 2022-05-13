@@ -84,7 +84,7 @@ spec:
         args:
         - /bin/bash
         - -c
-        - color_echo () { echo; } && source /bin/run_nginx.sh
+        - /bin/run_nginx.sh
         env:
         - name: REPORTING_PORT
           value: {{ $reportingPort | quote }}
