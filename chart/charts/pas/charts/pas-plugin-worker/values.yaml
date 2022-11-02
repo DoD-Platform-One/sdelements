@@ -56,9 +56,6 @@ global:
 
   pas:
     #pluginServiceQueueName: plugin_service_worker
-    ## Specifying this value implies the use of an external volume so the defa
-    #    ## Volume claim name for custom plugins.ult volume claim will not be created.
-    #pluginVolumeClaimName: pas-custom-plugin-volume-claim
     # Global PAS broker config
     broker: {}
       ## Username for broker user
@@ -67,18 +64,65 @@ global:
       #secretName:
       #passwordSecretKey:
       #vhost:
+    # PAS S3 config
+    sharedStorage: {}
+      #secretName:
+      # Name of secret key for Access Key Id
+      #accessKeyIdSecretKey: PAS_S3_ACCESS_KEY
+      # Name of secret key for Secret Access Key
+      #secretAccessKeySecretKey: PAS_S3_SECRET_ACCESS_KEY
+      # S3 Bucket name for PAS
+      #bucketName: "pas"
+      # S3 URL for API Endpoint
+      #s3Url:
+      # S3 bucket subpath
+      #s3BucketPath:
+      # AWS region (if applicable)
+      #region: "ca-central-1"
+      # Maximum number of retries for initialization
+      #initMaxRetryAttempts: 5
+      # Number of seconds in between retries for initializaiton
+      #initRetrySleepDuration: 5
+      # Boolean representing whether to use SSL or not
+      #useSsl: "true"
+      # Boolean representing whether to verify SSL certs or not
+      #verifyCerts: "true"
 
   broker: {}
     #adminClientUser: sde
     #adminVhost: sde
+
+  # S3 config from SDE
+  sharedStorage: {}
+    #secretName:
+    # Name of secret key for Access Key Id
+    #accessKeyIdSecretKey: PAS_S3_ACCESS_KEY
+    # Name of secret key for Secret Access Key
+    #secretAccessKeySecretKey: PAS_S3_SECRET_ACCESS_KEY
+    # S3 Bucket name for PAS
+    #bucketName: "pas"
+    # S3 URL for API Endpoint
+    #s3Url: "https://my-bucket.s3.us-west-2.amazonaws.com/"
+    # S3 bucket subpath
+    #s3BucketPath: "/path/to/storage/in/bucket/
+    #s3AccessKey: "accesskey"
+    #s3SecretKey: "secretKey"
+
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
 
 #  enableNodeSelector: true
 
 ## Chart Configuration
 # Include broker subchart in deployment
 useBrokerSubchart: true
-# Include plugin volume claim
-includePluginVolumeClaim: true
+# Include shared storage subchart in deployment
+minio:
+    enabled: false
 
 ### PAS Plugin Service container configuration
 #imageName: pas-plugin-service
@@ -96,9 +140,6 @@ includePluginVolumeClaim: true
 ## Max number of celery tasks before recreating the worker.
 ## Lowering the amount can help keep memory usage lower over time.
 #celeryMaxTasksPerChild: 10
-## Custom plugin volume size
-## Only used if the plugin volume is included in the deployment
-#customPluginVolumeSize: 2Gi
 
 ## Username for broker user
 #brokerUser: pas
@@ -106,11 +147,37 @@ includePluginVolumeClaim: true
 #brokerSecretName: broker-secrets
 ## Secret key containing the broker password
 #brokerPasswordSecretKey: ADMIN_BROKER_PASSWORD
-## Volume claim name for custom plugins.
-## Specifying this value implies the use of an external volume so the default volume claim will not be created.
-#pluginVolumeClaimName: pas-custom-plugin-volume-claim
 
 # PAS broker config
 broker: {}
   #secretName:
   #passwordSecretKey:
+
+# PAS Plugin Worker service S3 config
+sharedStorage: {}
+  # Name of secret key for Access Key Id
+  #accessKeyIdSecretKey: PAS_S3_ACCESS_KEY
+  # Name of secret key for Secret Access Key
+  #secretAccessKeySecretKey: PAS_S3_SECRET_ACCESS_KEY
+  # S3 Bucket name for PAS
+  #bucketName:
+  # S3 bucket subpath
+  #s3BucketPath:
+  # AWS region (if applicable)
+  #region:
+  # Maximum number of retries for initialization
+  #initMaxRetryAttempts: 5
+  # Number of seconds in between retries for initializaiton
+  #initRetrySleepDuration: 5
+  # Boolean representing whether to use SSL or not
+  #useSsl:
+  # Boolean representing whether to verify SSL certs or not
+  #verifyCerts:
+
+## Configuration for Sentry
+# sentry:
+#   enabled: false
+#   dsn: https://xxxxxx.ingest.sentry.io/000000
+#   environment: develop
+#   sampleRate: 0.1
+#   traceSampleRate: 0.1

@@ -4,7 +4,7 @@ Helm chart for PAS Plugin Service
 ## Setup
 Configure a `dev-values.yaml` file with the following values:
 
-```
+```yaml
 global:
   imageRegistryUsername: <SDELEMENTS.COM FREEIPA USERNAME>
   imageRegistryPassword: <SDELEMENTS.COM FREEIPA PASSWORD>

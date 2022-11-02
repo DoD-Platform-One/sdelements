@@ -45,15 +45,13 @@ sde:
   ## Volume sizes
   ## Note that not all volume types support resizing, see the Kubernetes
   ## documentation or this subject.
-  ## Haystack
-  #indexVolumeSize: 2Gi
   ## Volatile Storage
   #mediaVolumeSize: 4Gi
   ## Non-volatile Storage
   #staticVolumeSize: 4Gi
   ## Data Loader Temporary Storage
   #loaderVolumeSize: 10Gi
-  #enableJITT: true
+  enableJITT: false
   ## PostgreSQL
   #databaseVolumeSize: 30Gi
 
@@ -77,8 +75,20 @@ sde:
   #    kubernetes.io/ingress.class: nginx
   #    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
   #    nginx.ingress.kubernetes.io/proxy-body-size: "2048m"
+  #    # Default annotations for .global.openshift.enabled: true
+  #    kubernetes.io/ingress.class: openshift-default
+  #    route.openshift.io/termination: "passthrough"
 
+  gainsight:
+    enabled: false
+    #id: gainsight-id
+    #tagKey: gainsight-tag-key
+
+## Deploy Nginx Controller with SDE. The `ingress-nginx.controller.scope.enabled` parameter below
+## defaults to `true` which restricts the scope of the controller to a namespace (vs. cluster).
+## See: https://kubernetes.github.io/ingress-nginx/deploy/#scope
 ingress-nginx:
+  enabled: false
   rbac:
     scope: true
   controller:
@@ -159,12 +169,7 @@ global:
   ## IMPORTANT: If you are upgrading from a legacy helm chart or SDE version (<5.15) you will need to set the nameOverride below
   #nameOverride: sde
 
-  ## AWS NLB Configuration & Setup
-  awsNLB:
-    enabled: false
-  awsEFSCSI:
-    enabled: false
-  ## Nginx Ingress Configuration
+  ## This enables Ingress object. For IngresController configuration, see ingress-nginx: section above. 
   nginxIngress:
     enabled: true
   enableInternalTls: false
@@ -225,13 +230,32 @@ global:
 
   ## Disable helm hooks for Secrets objects
   # disableHelmHooks: false
+  
+  ## Enable pod affinity for public cloud deployments such as AWS, Azure, GSK
+  ## For pod affinity to work, the nodes MUST have topology.kubernetes.io/zone label. 
+  ## Enabling this feature will schedule worker-10 and worker-17 into the same zone as database.
+  # enableWorkerDatabaseAffinity: true
 
-  ## Environment variables for shared storage
-  sharedStorage:
-    # Type of storage to use: file or s3
-    storageType: "file"
-    # For file storage type path is required
-    #dirPath: "sdelements"
+  ## Configuration for running in Openshift
+  # openshift:
+  #   enabled: false
+
+  ## Configuration for ReadWriteMany
+  ## For fresh installs, you generally want rwx.enabled to be 'false' here.
+  ## For upgrades, you probably want rwx.enabled to be 'true' instead. For details, see:
+  ## https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html
+  # rwx:
+  #   enabled: false
+
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
+
+  ## Configuration for aws s3 bucket storage 
+  sharedStorage: {}
     #bucketName: "bucket-name"
     #s3Url: "https://my-bucket.s3.us-west-2.amazonaws.com/"
     #s3BucketPath: "/path/to/storage/in/bucket/
@@ -241,6 +265,31 @@ global:
     enabled: false
     # Enable or disable custom plugin functionality
     enableCustomPlugins: true
+
+    ## Configurations for the service to connect with a shared storage
+    sharedStorage:
+      # Name of secret where S3 credentials are configured
+      secretName: sde-secrets
+      # Name of secret key for Access Key Id
+      #accessKeyIdSecretKey: S3_ACCESS_KEY
+      # Name of secret key for Secret Access Key
+      #secretAccessKeySecretKey: S3_SECRET_KEY
+      # S3 Bucket name for PAS
+      #bucketName: "pas"
+      # S3 URL for API Endpoint
+      #s3Url:
+      # S3 bucket subpath
+      #s3BucketPath: /pas
+      # AWS region (if applicable)
+      #region: "ca-central-1"
+      # Maximum number of retries for initialization
+      #initMaxRetryAttempts: 5
+      # Number of seconds in between retries for initialization
+      #initRetrySleepDuration: 5
+      # Boolean representing whether to use SSL or not
+      #useSsl: true
+      # Boolean representing whether to verify SSL certs or not
+      #verifyCerts: true
 
 # Event based proxy, serves static and proxies dynamic content (nginx)
 web:
@@ -257,6 +306,20 @@ web:
   #workerConnections: 1024
   #workerProcesses: auto
   #rlimitNofile: 1024
+  #clientMaxBodySize: "10m"
+  #staticAccessLog: off
+
+  ## This setting should match ingress-nginx.controller.ingressClassResource.name
+  ## when ingress-nginx.enabled is true, otherwise we default to 'nginx'.
+  #ingressClassName: "nginx"
+
+  readinessProbe:
+    enabled: true
+  #  path: "/404.html"
+  #  scheme: "HTTPS"
+  #  timeoutSeconds: 3
+  #  initialDelaySeconds: 5
+  #  periodSeconds: 5
 
   ## Certificate and encryption options
   # Custom tls certs/keys can by specified either through file paths or the
@@ -432,6 +495,8 @@ sc-database:
   # uid: 70
   # gid: 70
   # fsgid: 70
+  commands: {}
+  # jit: "off"
 
   ## Container options
   resources:
@@ -441,38 +506,55 @@ sc-database:
     limits:
       cpu: 6
 
-## Email delivery system (postfix)
-mail:
+sc-mail:
   replicas: 1
-  #relayHost: mailserver.example.com
-  #relayHostPort: 25
-  #approvedNetworks: "127.0.0.1/32 10.0.0.0/8 172.16.0.0/12 192.168.100.0/16"
-  #port: 25
-  #imageTag: latest
-  #imagePullPolicy: Always
-  #imageSource: dccsr
+  config:
+    #smartHostType: SMARTHOST # type is either SES, GMAIL, or SMARTHOST
+    #smartHostUser: ""
+    #smartHostPassword: ""
+    #smartHostPort: 25
+    #smartHostRegion: us-east-1 # required if using SES type
+    #smartHostAddress: relay.mydomain.com # required if using SMARTHOST type
+    #smartHostAliases: "" # - format: "alias1:user:password,alias2:user:password"
 
-  ## Container options
-  #resources: {}
+    #tls:
+    #  enabled: false
+    #  tlsKey:
+    #  tlsCertificate:
+    #  tlsKeyPath: /path/to/tls/key
+    #  tlsCertificatePath: /path/to/tls/cert
+
+    #useSplitConfiguration: false
+
+    mailFrom: noreply@sdelements.com
+    #localDomains: "@"
+    #localPort: "8025"
+    #disableIpv6: "true"
+    #relayNetworks: "10.0.0.0/8:172.16.0.0/12:192.168.0.0/16:10.1.3.0/24"
+    #relayDomains: "localdomain"
+    #otherHostnames: ""
 
 ## SDElements worker (python process)
 worker:
   #contentPath: /content
   #projectPath: /project
-  #indexPath: /index
-  #indexMouthPath: /index
   #loaderRoot: /loader
   #cacheRoot: /cache
   #mediaRoot: /media
   #staticRoot: /static
+  #wsgiDocumentRoot: /static
   #mediaURL: /media/
   #compressOffline: "True"
   #configPath: "/etc/sde"
-  # consoleLogLevel: DEBUG
-  # wsgiLogLevel: warn
-  # wsgiProcesses: 4
+  #consoleLogLevel: DEBUG
+  #wsgiLogLevel: warn
+  #wsgiProcesses: 4
+  #wsgiThreads: 1
+  #wsgiMaxClients: 20
+  #wsgiExtraArgs: ""
   #emailLogLevel: ERROR
   #samlLogLevel: DEBUG
+  #shellVerbosity: ""
 
   # Additional environment variables to set on worker pods. Values defined
   # here take precedence over existing variables in the _environments template
@@ -486,6 +568,14 @@ worker:
   #           'firstname': ('first_name',),
   #           'lastname': ('last_name',)
   #       }
+
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   dsn: https://xxxxxx.ingest.sentry.io/000000
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
 
   ## User/Group options
   # uid: 33
@@ -512,6 +602,8 @@ worker:
         requests:
           cpu: 250m
           memory: 512Mi
+        limits:
+          cpu: 4
 
     highPriority:
       # Set the default backend if no pattern is matched
@@ -531,6 +623,8 @@ worker:
         requests:
           cpu: 250m
           memory: 1024Mi
+        limits:
+          cpu: 4
 
   ## Asynchronous SDE service settings (celery)
   asynchronous:
@@ -548,6 +642,8 @@ worker:
         requests:
           cpu: 250m
           memory: 256Mi
+        limits:
+          cpu: 2
 
     mediumPriority:
       replicas: 1
@@ -563,6 +659,8 @@ worker:
         requests:
           cpu: 250m
           memory: 256Mi
+        limits:
+          cpu: 2
 
 reporting:
   # imageTag: latest
@@ -579,11 +677,25 @@ reporting:
   # tlsroot: "/tls"
   # redisUrl: "redis://example.com:6379"
   # nodeTlsRejectUnauthorized: "0"
+  # preAggregations: true
 
   ## Container options
   resources:
     requests:
       memory: 128Mi
+
+  ## Additional environment variables to set on the reporting pod
+  # extraEnvVars:
+  #   - name: SOME_ENV_VAR
+  #     value: "A Value"
+
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   dsn: https://xxxxxx.ingest.sentry.io/000000
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
 
 datastore:
   # imageTag: latest
@@ -640,6 +752,12 @@ job:
         - "almsync"
         - "monthly"
 
+    database-backup:
+      schedule: "*/20 * * * *"
+      niceness: 19
+      command: ["/bin/sh"]
+      args: ["-c", "/bin/sde.sh backup && /bin/sde.sh delete_backups 14"]
+
     clear-expired-sessions:
       schedule: "33 1 * * *"
       niceness: 19
@@ -684,34 +802,6 @@ job:
         - "all"
         - "--force"
 
-    update-index:
-      schedule: "15,45 0-1,3-23 * * *"
-      niceness: 19
-      command: ["/bin/sde.sh"]
-      args:
-        - "update_index"
-        - "--age"
-        - "1"
-        - "--workers"
-        - "1"
-        - "--batch-size"
-        - "1000"
-      restartPolicy: Never
-      volumeWritePermission: true
-
-    rebuild-index:
-      schedule: "26 2 * * *"
-      niceness: 19
-      command: ["/bin/sde.sh"]
-      args:
-        - "rebuild_index"
-        - "--workers"
-        - "1"
-        - "--batch-size"
-        - "1000"
-        - "--noinput"
-      volumeWritePermission: true
-
 #   custom_job:
 #     schedule: "01 1 * * *"
 #     niceness: 15
@@ -746,36 +836,6 @@ limitrange:
       cpu: 2
       memory: 8192Mi
 
-
-# PCA specific image variables
-# these will take precedent over the global image variables
-sde-pca:
-  enable: false
-
-  #imageRegistry: docker.sdelements.com
-  # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
-  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
-  # docker.dev.sdelements.com / dev _ (sde/3rd) - cert-creator : latest
-  #imageRegistryFormat: "%s/%s_%s/%s:%s"
-  #imageRegistryFormat: "%s/%s-%s-%s:%s"
-  #imageOrganization: default_organization
-  #imageOrganization: dev
-  #imagePullPolicy: IfNotPresent
-  #imageSource: sde
-  #imageTag: 0.9.0
-
-  # PCA application configs
-  # pcaConfigs:
-  #   sdeHost: https://sdehost.com
-  #   logLevel: DEBUG
-  #   pcaEnvironment: development
-  #   validateTLS: "False" # This value need to be quoted
-
-  # PCA chart configs
-  # serviceName: pca-service
-  # httpPath: /pca(/|$)(.*)
-  # httpPort: 8001
-
 pas:
   # Additional PAS configuration values are available, see PAS chart for more details.
   pas-api:
@@ -784,17 +844,19 @@ pas:
     sdeAPIServicePort: 8080
     # Name of queue to enqueue SDE jobs
     sdeQueueName: sde-medium
+    #Turn of defualt dev conf
+    useLocalDevDbConfig: false
     # PAS init configuration
-#    admin:
-#      database:
-#        # The username for a DB admin account. Change this if the database admin user is non-default.
-#        #user: postgres
-#        # The default database name
-#        #defaultDatabase: postgres
-#        # The secret name where the DB admin account password is stored
-#        #secretName: <release name>-database-secrets
-#        # The secret key for the DB admin account password
-#        #passwordSecretKey: ADMIN_DATABASE_PASSWORD
+    admin:
+      database:
+        # The username for a DB admin account. Change this if the database admin user is non-default.
+        #user: postgres
+        # The default database name
+        #defaultDatabase: postgres
+        # The secret name where the DB admin account password is stored
+        secretName: sde-secrets
+        # The secret key for the DB admin account password
+        passwordSecretKey: SDE_DATABASE_PASSWORD
 #      broker:
 #        # The username for a broker admin account. Change this if the broker user is non-default.
 #        #user: rabbit
@@ -809,53 +871,57 @@ pas:
 #  pas-plugin-worker:
 #    # Celery log level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
 #    celeryLogLevel: INFO
-#  pas-async-worker:
+  pas-async-worker:
+    #Turn of defualt dev conf
+    useLocalDevDbConfig: false
 #    # Python console logging level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
 #    logLevel: INFO
 #    # Celery log level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
 #    celeryLogLevel: INFO
   pas-frontend: {}
 
-# Bigbang Additions
-istio:
+# MinIO is a software product used to replace S3 as shared object storage.
+# It's available to use if you do not have access to an S3 bucket, an AWS
+# environment, or an existing MinIO deployment in your infrastructure.
+minio:
+  image:
+    repository: docker.sdelements.com/default_organization-sde-minio
+  mcImage:
+    repository: docker.sdelements.com/default_organization-sde-mc
   enabled: false
-  host: sdelements.bigbang.dev
-  gateways:
-    - istio-system/main
-  
-networkPolicies:
-  enabled: false
-  ingress:
-    - from:
-      - namespaceSelector:
-          matchLabels:
-            app.kubernetes.io/name: istio-controlplane
-        podSelector: {}
-      ports:
-      - port: 9443
-        protocol: TCP
-  egress:
-    - to:
-      - ipBlock:
-          cidr: 0.0.0.0/0
-          except:
-            - 169.254.169.254/32
-  egressDns:
-    - to:
-      ports:
-        - port: 53
-          protocol: UDP
-
-createDatabaseSecret: false
-
-efsVolumes:
-  enabled: false
-  # Set AWS FS IDs to create volumes
-  loader: fs-x
-  haystack: fs-x
-  media: fs-x
-  static: fs-x
-  loaderSize: 10Gi
-  haystackSize: 2Gi
-  mediaSize: 4Gi
-  staticSize: 4Gi
+  mode: standalone
+  rootUser: admin
+  rootPassword: YOUR_MINIO_ADMIN_PASSWORD
+  environment:
+    MINIO_BROWSER: "off"
+  persistence:
+    #storageClass: ebs-storageclass
+    size: 10Gi
+  resources:
+    requests:
+      memory: 256Mi
+  # MinIO can accept an existing secret with a TLS certificate and key, or
+  # we can create a self-signed copy by enabling tlsCreateSelfSigned.
+  tlsCreateSelfSigned: false
+  tls:
+    enabled: false
+    # This should be a pre-existing secret unless global.minio.tlsCreateSelfSigned
+    # is enabled. See the minio documentation for examples:
+    # https://github.com/minio/minio/tree/master/helm/minio#configure-tls
+    certSecret: "sde-minio-server-tls-secrets"
+    publicCrt: "tls.crt"
+    privateKey: "tls.key"
+  # The users accesskey and secretkey should match your settings in
+  # global.sharedStorage.s3AccessKey and global.sharedStorage.s3SecretKey
+  users:
+    - accessKey: backup
+      secretKey: YOUR_BACKUP_USER_PASSWORD
+      policy: readwrite
+  # The bucket name should match what you've defined in global.sharedStorage.bucketName
+  buckets:
+    - name: backup
+      policy: none
+      purge: false
+  serviceAccount:
+    create: true
+    name: "minio-sa"

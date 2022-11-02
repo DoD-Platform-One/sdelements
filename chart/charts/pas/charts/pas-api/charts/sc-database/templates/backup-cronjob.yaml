@@ -14,6 +14,8 @@
 {{- $backupClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "backup-volume-claim" -}}
 {{- $failedJobsHistoryLimit := default (default 1 .Values.global.failedJobsHistoryLimit) .Values.backup.failedJobsHistoryLimit -}}
 {{- $successfulJobsHistoryLimit := default (default 0 .Values.global.successfulJobsHistoryLimit) .Values.backup.successfulJobsHistoryLimit -}}
+{{- $rwxEnabled := required "For this release, global.rwx.enabled must be set. See https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html for details." (.Values.global.rwx).enabled -}}
+{{- if $rwxEnabled }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -39,15 +41,20 @@ spec:
             app: {{ $jobName }}
             cron: {{ $jobName }}
         spec:
+          {{- if not ((.Values.global.openshift).enabled) }}
           securityContext:
             {{- if not .Values.global.runAsRoot }}
             runAsUser: {{ $uid }}
             runAsGroup: {{ $gid }}
             fsGroup: {{ $fsgid }}
-            {{- if semverCompare ">=1.19" .Capabilities.KubeVersion.GitVersion }}
+            {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
             fsGroupChangePolicy: "OnRootMismatch"
             {{- end }}
+            {{- else }}
+            runAsUser: 0
+            runAsGroup: 0
             {{- end }}
+          {{- end }}
           containers:
           - name: {{ $jobName | quote }}
             image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
@@ -78,14 +85,14 @@ spec:
             - name: KEEP_BACKUP_DAYS
               value: {{ default "14" .Values.keepBackupDays | quote }}
             - name: CLEANUP_BACKUPS
-              value: {{ default "true" .Values.cleanupBackups | quote }}
+              value: {{ default (true | quote) (.Values.cleanupBackups | quote) }}
             {{- if .Values.backup.resources }}
             resources:
               {{- with .Values.backup.resources }}
                 {{- toYaml . | nindent 14 }}
               {{- end }}
             {{- end }}
-            {{- if semverCompare ">=1.19" .Capabilities.KubeVersion.GitVersion }}
+            {{- if semverCompare ">=1.19.0-0" .Capabilities.KubeVersion.GitVersion }}
             securityContext:
               allowPrivilegeEscalation: false
             {{- end }}
@@ -106,3 +113,4 @@ spec:
             persistentVolumeClaim:
               claimName: {{ $backupClaimName | quote }}
 status: {}
+{{- end }}

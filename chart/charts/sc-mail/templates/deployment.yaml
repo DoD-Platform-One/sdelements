@@ -1,0 +1,103 @@
+{{- $imageTag := default .Chart.AppVersion .Values.imageTag -}}
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.imagePullPolicy -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" .Values.global.imageRegistry -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" .Values.global.imageOrganization -}}
+{{- $imageName := default "exim" .Values.imageName -}}
+{{- $imageSource := hasKey .Values "imageSource" | ternary ( printf "%s" .Values.imageSource ) ( default "3rd" .Values.global.imageSource ) -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $deploymentName := (include "mail.deploymentName" .) -}}
+{{- $port := default 8025 .Values.port -}}
+{{- $mailSecretName := printf "%v-%v" .Release.Name "mailer-secrets" -}}
+{{- $serviceAccountName := (include "mail.serviceAccountName" .) -}}
+{{- $tlsMountPath := default "/etc/exim4" ((.Values.config).tls).mountPath -}}
+{{- $tlsSecretName :=  printf "%v-%v" .Chart.Name "tls-secrets" -}}
+{{- $smartHostType := (include "mail.smartHostType" .) -}}
+{{- $useCertValues := and ( hasKey .Values.config.tls "tlsCertificate" ) ( hasKey .Values.config.tls "tlsKey" ) -}}
+{{- $useCertPaths := and ( hasKey .Values.config.tls "tlsCertificatePath" ) ( hasKey .Values.config.tls "tlsKeyPath" ) -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "library.selectorLabels" . | nindent 6 }}
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        {{- include "library.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if and .Values.global.enableNodeSelector .Values.nodeSelector }}
+      nodeSelector:
+        {{- with .Values.nodeSelector }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      serviceAccountName: {{ $serviceAccountName | quote }}
+      {{- if not ((.Values.global.openshift).enabled) }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ $deploymentName | quote }}
+        {{- if not ((.Values.global.openshift).enabled) }}
+        securityContext:
+        {{- toYaml .Values.securityContext | nindent 12 }}
+        {{- end }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        envFrom:
+          - secretRef:
+              name: {{ $mailSecretName | quote }}
+          - configMapRef:
+              name: {{ $deploymentName | quote }}
+        {{- if or $useCertValues $useCertPaths }}
+        volumeMounts:
+        - mountPath: {{ $tlsMountPath }}
+          name: tls
+        {{- end }}
+        ports:
+          - name: smtp
+            containerPort: {{ $port }}
+            protocol: TCP
+        readinessProbe:
+          tcpSocket:
+            port: smtp
+          initialDelaySeconds: 5
+          periodSeconds: 30
+        livenessProbe:
+          tcpSocket:
+            port: smtp
+          initialDelaySeconds: 15
+          periodSeconds: 60
+        {{- if .Values.resources }}
+        resources:
+        {{- range $limitType, $resources := $.Values.resources }}
+            {{ $limitType }}:
+            {{- range $resourceKey, $resourceValue := $resources }}
+                {{ $resourceKey }}: {{ $resourceValue }}
+            {{- end }}
+        {{- end }}
+        {{- else }}
+        resources: {}
+        {{- end }}
+      imagePullSecrets:
+      - name: {{ include "library.registrySecretName" . }}
+      restartPolicy: Always
+      {{- if or $useCertValues $useCertPaths }}
+      volumes:
+      - name: tls
+        secret:
+          secretName: {{ $tlsSecretName }}
+          defaultMode: 0277
+      {{- end }}
+status: {}

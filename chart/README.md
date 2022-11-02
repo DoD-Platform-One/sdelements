@@ -44,16 +44,3 @@ helm install ./ --set global.imageRegistryUsername=$USER \
                 --set global.imageRegistryFormat="%s/%s_%s/%s:%s"
 ```
 
-## Installing Project Creation Automation as a subchart
-Execute the following command to include project creation automation as a subchart, substitute the imageRegistryUsername and imageRegistryPassword with your freeipa username and password:
-```
-$ git submodule update --init --recursive
-$ helm dependency update
-$ helm install sdelements/sde --set global.imageRegistryUsername=<freeipa sdelemements user> --set global.imageRegistryPassword=<freeipa sdelements password> --set sde-pca.enable=true
-```
-Alternatively you can also set the runAsSubchart variable to true in values.yaml:
-```
-sde-pca:
-  enable: true
-```
-See values.yaml for list of possible configurations on the pca project

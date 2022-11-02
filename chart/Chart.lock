@@ -1,27 +1,27 @@
 dependencies:
 - name: sc-jitt
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 5.19.4
+  version: 2022.2.7
 - name: sc-library
   repository: https://harbor-dev.sdelements.com/chartrepo/library
   version: 0.1.1
 - name: sc-database
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.0.10
+  version: 1.2.4
 - name: sc-broker
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.1.1
-- name: sde-pca
-  repository: file://../../project-creation-automation/helm
-  version: 0.0.0
+  version: 1.2.1
+- name: sc-mail
+  repository: https://harbor-dev.sdelements.com/chartrepo/library
+  version: 0.0.15
 - name: ingress-nginx
   repository: https://kubernetes.github.io/ingress-nginx
-  version: 2.0.3
-- name: aws-efs-csi-driver
-  repository: https://kubernetes-sigs.github.io/aws-efs-csi-driver
-  version: 0.1.0
+  version: 4.0.19
 - name: pas
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.2.1
-digest: sha256:dbe87b8bc4f8a12b5fc0bd135af507064f76697b948b1e70d8fc0a18ce06656a
-generated: "2022-02-04T18:36:44.891298078Z"
+  version: 1.5.1
+- name: minio
+  repository: https://charts.min.io/
+  version: 3.4.6
+digest: sha256:4a16f00c57edcb44dde81d82228f0b1cfad791b1b46fb913ba1da7bb878a9d18
+generated: "2022-08-15T21:25:15.650975756Z"

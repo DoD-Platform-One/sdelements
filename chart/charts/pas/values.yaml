@@ -61,6 +61,52 @@ global:
     #pluginServiceQueueName: plugin_service_worker
     # Name of the async worker celery queue to listen on
     #asyncWorkerQueueName: pas_async_worker
+    # PAS S3 config
+    sharedStorage: {}
+      #secretName:
+      # Name of secret key for Access Key Id
+      #accessKeyIdSecretKey: PAS_S3_ACCESS_KEY
+      # Name of secret key for Secret Access Key
+      #secretAccessKeySecretKey: PAS_S3_SECRET_ACCESS_KEY
+      # S3 Bucket name for PAS
+      #bucketName: "pas"
+      # S3 URL for API Endpoint
+      #s3Url:
+      # S3 bucket subpath
+      #s3BucketPath:
+      # AWS region (if applicable)
+      #region: "ca-central-1"
+      # Maximum number of retries for initialization
+      #initMaxRetryAttempts: 5
+      # Number of seconds in between retries for initializaiton
+      #initRetrySleepDuration: 5
+      # Boolean representing whether to use SSL or not
+      #useSsl: true
+      # Boolean representing whether to verify SSL certs or not
+      #verifyCerts: true
+  # S3 config from SDE
+  sharedStorage: {}
+    #secretName:
+    # Name of secret key for Access Key Id
+    #accessKeyIdSecretKey: PAS_S3_ACCESS_KEY
+    # Name of secret key for Secret Access Key
+    #secretAccessKeySecretKey: PAS_S3_SECRET_ACCESS_KEY
+    # S3 Bucket name for PAS
+    #bucketName: "pas"
+    # S3 URL for API Endpoint
+    #s3Url: "https://my-bucket.s3.us-west-2.amazonaws.com/"
+    # S3 bucket subpath
+    #s3BucketPath: "/path/to/storage/in/bucket/
+    #s3AccessKey: "accesskey"
+    #s3SecretKey: "secretKey"
+
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
+
 
 pas-api:
   replicas: 1
@@ -73,13 +119,13 @@ pas-api:
   #workerCount: 4
   # Gunicorn log level
   #gunicornLogLevel: info
-  # Size of custom plugin volume
-  #customPluginVolumeSize: 2Gi
   # Name of queue to enqueue SDE jobs
   #sdeQueueName: sde-medium
   # Enable service subcharts and claims for standalone deployment
   useBrokerSubchart: false
   useDatabaseSubchart: false
+  minio:
+    enabled: false
   includeSDESecret: false
   sde:
     # SDE JWT Secret for standalone deployments
@@ -108,6 +154,17 @@ pas-api:
       #secretName:
       # The secret key for the broker admin account password
       #passwordSecretKey:
+  sharedStorage: {}
+    # secretName: pas-secrets
+
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   dsn: https://xxxxxx.ingest.sentry.io/000000
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
+
 
 pas-plugin-worker:
   replicas: 1
@@ -119,11 +176,22 @@ pas-plugin-worker:
   #celeryMaxTasksPerChild: 10
   # Disable service subcharts
   useBrokerSubchart: false
-  includePluginVolumeClaim: false
+  minio:
+    enabled: false
   # Broker config
   broker:
     secretName: pas-secrets
     #passwordSecretKey:
+  sharedStorage: {}
+    # secretName: pas-secrets
+  
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   dsn: https://xxxxxx.ingest.sentry.io/000000
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
 
 pas-async-worker:
   replicas: 1
@@ -138,13 +206,24 @@ pas-async-worker:
   # Disable service subcharts
   useBrokerSubchart: false
   useDatabaseSubchart: false
-  includePluginVolumeClaim: false
+  minio:
+    enabled: false
   # Broker config
   broker:
     secretName: pas-secrets
   # Database config
   database:
     secretName: pas-secrets
+  sharedStorage: {}
+    # secretName: pas-secrets
+  
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   dsn: https://xxxxxx.ingest.sentry.io/000000
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
 
 pas-frontend:
   replicas: 1
@@ -156,6 +235,14 @@ pas-frontend:
   #pasBackendUrl: http://pas-api-service:8000
   # TTL for DNS resolutions
   #resolverTTL: 10
+
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   dsn: https://xxxxxx.ingest.sentry.io/000000
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
 
 mock-sde:
   secretKey: s3cr3tk3y

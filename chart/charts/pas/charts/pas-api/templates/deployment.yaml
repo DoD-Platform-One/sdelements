@@ -29,7 +29,8 @@ spec:
     matchLabels:
       name: {{ $deploymentName | quote }}
       {{- include "library.selectorLabels" . | nindent 6 }}
-  strategy: {}
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -40,10 +41,26 @@ spec:
       nodeSelector:
         customer_name: {{ printf "%v" .Release.Name | quote }}
       {{- end }}
+      {{- if not ((.Values.global.openshift).enabled) }}
+      securityContext:
+        {{- if not .Values.global.runAsRoot }}
+        runAsUser: {{ default 999 .Values.uid }}
+        runAsGroup: {{ default 999 .Values.gid }}
+        fsGroup: {{ default 999 .Values.fsgid }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
+        {{- end }}
+      {{- end }}
       initContainers:
         - name: {{ printf "%v-%v" $deploymentName "init" | quote }}
           image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $initImageName $initImageTag | quote }}
           imagePullPolicy: {{ $imagePullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
           env:
             - name: ADMIN_DATABASE_PASSWORD
               valueFrom:
@@ -65,18 +82,31 @@ spec:
                 secretKeyRef:
                   name: {{ include "pas-api.admin.broker.secretName" $contextDict }}
                   key: {{ include "pas-api.admin.broker.passwordSecretKey" $contextDict }}
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pas-api.sharedStorage.secretName" $contextDict }}
+                  key: {{ include "pas-api.sharedStorage.accessKeyIdSecretKey" $contextDict }}
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pas-api.sharedStorage.secretName" $contextDict }}
+                  key: {{ include "pas-api.sharedStorage.secretAccessKeySecretKey" $contextDict }}
           envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-{{ .Chart.Name }}-init-env-configmap
           - configMapRef:
+              name: {{ include "pas-api.dbConfigmap" . | quote }}
+          - configMapRef:
               name: {{ .Release.Name }}-{{ .Chart.Name }}-db-env-configmap
-          securityContext:
-            runAsUser: 0
-            runAsGroup: 0
+          - configMapRef:
+              name: {{ .Release.Name }}-{{ .Chart.Name }}-shared-storage-env-configmap
       containers:
       - name: {{ $deploymentName | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
         imagePullPolicy: {{ $imagePullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
         ports:
           - containerPort: {{ int $port }}
         readinessProbe:
@@ -86,14 +116,15 @@ spec:
             scheme: HTTP
           initialDelaySeconds: 5
           periodSeconds: 5
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
         envFrom:
         - configMapRef:
             name: {{ .Release.Name }}-{{ .Chart.Name }}-env-configmap
         - configMapRef:
+            name: {{ include "pas-api.dbConfigmap" . | quote }}
+        - configMapRef:
             name: {{ .Release.Name }}-{{ .Chart.Name }}-db-env-configmap
+        - configMapRef:
+            name: {{ .Release.Name }}-{{ .Chart.Name }}-shared-storage-env-configmap
         - configMapRef:
             name: {{ .Release.Name }}-{{ .Chart.Name }}-broker-env-configmap
         env:
@@ -122,13 +153,16 @@ spec:
               secretKeyRef:
                 name: {{ include "pas-api.sde.broker.secretName" $contextDict }}
                 key: {{ include "pas-api.sde.broker.passwordSecretKey" $contextDict }}
-        volumeMounts:
-          - mountPath: "/custom_plugin_storage"
-            name: custom-plugin
-      volumes:
-        - name: custom-plugin
-          persistentVolumeClaim:
-            claimName: {{ printf "%v-%v" ( include "library.trimmedName" . ) "pas-custom-plugin-volume-claim" | quote }}
+          - name: S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-api.sharedStorage.secretName" $contextDict }}
+                key: {{ include "pas-api.sharedStorage.accessKeyIdSecretKey" $contextDict }}
+          - name: S3_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-api.sharedStorage.secretName" $contextDict }}
+                key: {{ include "pas-api.sharedStorage.secretAccessKeySecretKey" $contextDict }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always

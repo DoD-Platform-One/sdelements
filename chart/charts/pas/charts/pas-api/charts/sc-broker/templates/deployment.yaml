@@ -10,7 +10,6 @@
 {{- $gid := default 101 .Values.gid -}}
 {{- $fsgid := default 101 .Values.fsgid -}}
 {{- $port := default 5672 .Values.port -}}
-{{- $brokerClaimName := printf "%v-%v" .Release.Name "broker-volume-claim" -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -26,23 +25,28 @@ spec:
     matchLabels:
       name: {{ $deploymentName | quote }}
       {{- include "library.selectorLabels" . | nindent 6 }}
-  strategy: {}
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
         name: {{ $deploymentName | quote }}
         {{- include "library.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
         runAsUser: {{ $uid }}
         runAsGroup: {{ $gid }}
         fsGroup: {{ $fsgid }}
-        {{- if semverCompare ">=1.19" .Capabilities.KubeVersion.GitVersion }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
         fsGroupChangePolicy: "OnRootMismatch"
-        allowPrivilegeEscalation: false
         {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
         {{- end }}
+      {{- end }}
       {{- if .Values.global.enableNodeSelector }}
       nodeSelector:
         customer_name: {{ printf "%v" ( include "library.trimmedName" . ) | quote }}
@@ -51,7 +55,13 @@ spec:
       - name: {{ $deploymentName | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
         imagePullPolicy: {{ $imagePullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
         env:
+        {{ if (.Values.global.openshift).enabled -}}
+        - name: SDE_OPENSHIFT_ENABLED
+          value: "true"
+        {{ end -}}
         {{ if and .Values.caCertificatePath ( and .Values.serverCertificatePath .Values.serverKeyPath ) -}}
         - name: RABBITMQ_SSL_CACERTFILE
           value: {{ quote .Values.caCertificatePath }}
@@ -78,8 +88,8 @@ spec:
               name: {{ include "broker.secretName" . }}
               key: ADMIN_BROKER_PASSWORD
         volumeMounts:
-        - mountPath: "/var/lib/rabbitmq"
-          name: schema
+        - mountPath: /var/lib/rabbitmq/mnesia
+          name: broker-volume
         ports:
         - containerPort: {{ int $port }}
         {{- if .Values.resources }}
@@ -93,11 +103,11 @@ spec:
         {{- else }}
         resources: {}
         {{- end }}
+      volumes:
+      - name: broker-volume
+        persistentVolumeClaim:
+          claimName: "{{ include "library.trimmedName" . }}-broker-volume-claim"
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
-      volumes:
-      - name: schema
-        persistentVolumeClaim:
-          claimName: {{ $brokerClaimName | quote }}
       restartPolicy: Always
 status: {}

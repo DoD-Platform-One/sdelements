@@ -1,0 +1,101 @@
+global:
+  imageRegistryUsername: <YOUR IRONBANK USERNAME>
+  imageRegistryPassword: <YOUR IRONBANK PASSWORD>
+  imageRegistry: registry1.dso.mil
+  imageRegistryFormat: "%s/%s/%s/%s:%s"
+  imagePullPolicy: Always
+  imageOrganization: ironbank/security-compass
+  imageSource: sd-elements
+  imageTag: 2022.2.68
+  storageClass: gp2 # Should be any RWO storageclass with dynamic provisioning, if possible
+  sharedStorage:
+    bucketName: <NAME-OF-THE-BUCKET>
+    s3Url: https://s3.<region>.amazonaws.com
+    s3AccessKey: <S3-ACCESS-KEY>
+    s3SecretKey: <S3-SECRET-KEY>
+  rwx:
+    enabled: false
+  nginxIngress:
+    enabled: false # This will stop the creation of an Ingress resource, which isn't required when using Istio.
+sde:
+  fqdn: <YOUR-SDE-FQDN>
+  jwtSecret: <YOUR-JWT-SECRET>
+  secretKey: <YOUR-SECRET-KEY>
+  superuserPassword: <YOUR-SUPERUSER-PASSWORD>
+  enableJITT: false
+web:
+  replicas: 1
+  imageName: nginx
+  imageTag: 12.5
+  uid: 998
+  gid: 996
+  fsgid: 49
+sc-jitt:
+  replicas: 1
+  imageSource: jitt
+  imageName: nginx
+  imageTag: 2022.2.7
+  uid: 998
+  gid: 996
+  fsgid: 49
+sc-broker:
+  replicas: 1
+  imageName: rabbitmq38
+  imageOrganization: ironbank/pivotal
+  imageTag: v3.8.35
+  imageSource: rabbitmq
+  clientPassword: <YOUR-BROKER-PASSWORD>
+  uid: 1000
+  gid: 100
+  fsgid: 1000
+sc-database:
+  replicas: 1
+  imageTag: "12.9"
+  clientPassword: <YOUR-DATABASE-PASSWORD>
+  uid: 26
+  gid: 26
+  fsgid: 26
+sc-mail:
+  imageName: exim
+  imageTag: "1.0"
+worker:
+  imageName: mod_wsgi
+  imageTag: 2022.2.68
+  uid: 48
+  gid: 48
+  fsgid: 49
+reporting:
+  enabled: true
+  imageName: reporting
+  imageTag: 2022.2.68
+  imagePullPolicy: Always
+  enableTls: true
+  uid: 1001
+  gid: 1001
+  nginxuid: 998
+  nginxgid: 996
+  replicas: 1
+datastore:
+  clientPassword: <YOUR-DATASTORE-PASSWORD>
+  initImageSource: sd-elements
+  initImageName: openssl
+  initImageTag: 1.1
+  imageOrganization: ironbank/opensource
+  initImageOrganization: ironbank/security-compass
+  imageSource: redis
+  imageName: redis6
+  imageTag: 6.2.7
+  uid: 1001
+  gid: 1001
+  fsgid: 1001
+  replicas: 1
+# The settings below are for adjusting the big bang customizations
+istio:
+  enabled: true
+  gateways:
+    - istio-system/public
+  host: sdelements.bigbang.dev
+efsVolumes:
+  enabled: false
+networkPolicies:
+  enabled: true

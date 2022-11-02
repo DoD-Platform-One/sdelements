@@ -58,6 +58,14 @@ additional service indentifiers.
 {{- end -}}
 
 {{/*
+Create a tls secret name that will match the name of the service/deployment 
+that the secret belongs to.
+*/}}
+{{- define "library.tlsSecretName" -}}
+{{- printf "%v-%v-tls-secrets" ( include "library.trimmedName" . ) .serviceName -}}
+{{- end -}}
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "library.chart" -}}
@@ -117,4 +125,12 @@ Flatten and filter based on key and return those that contain pass/secret/key
       {{- $subLabel }}: {{ $value | quote }}
 {{ end -}}
 {{- end }}
+{{- end }}
+
+{{- define "library.certManagerEnabled" -}}
+{{- ternary "true" "false" ( or ( .Values.global.certManager.enabled ) ( eq ( .Values.global.certManager.enabled | toString ) "<nil>" ) ) -}}
+{{- end -}}
+
+{{- define "library.certs" -}}
+{{ ( eq ( include "library.certManagerEnabled" .root ) "true" ) | ternary ( include "library.certs.certManager" . ) ( include "library.certs.sprig" . ) }}
 {{- end }}

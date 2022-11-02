@@ -1,10 +1,9 @@
-{{- $claimName := printf "%v-%v" .Release.Name "broker-volume-claim" -}}
-{{- $storageClassName:= default .Values.global.storageClass .Values.storageClass -}}
+{{- $storageClassName:= default .Values.global.storageClass .Values.brokerStorageClass -}}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Release.Name }}-broker-volume-claim
+  name: {{ include "library.trimmedName" . }}-broker-volume-claim
   labels:
     {{- include "library.labels" . | nindent 4 }}
 spec:
@@ -12,8 +11,8 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: {{ default "50M" .Values.brokerVolumeSize }}
+      storage: {{ default "4Gi" .Values.brokerVolumeSize }}
   {{ if $storageClassName -}}
-  storageClassName: {{ $storageClassName | quote }}
+  storageClassName: {{ $storageClassName }}
   {{- end }}
 status: {}

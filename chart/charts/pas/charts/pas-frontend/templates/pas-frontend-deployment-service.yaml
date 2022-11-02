@@ -12,6 +12,13 @@
 {{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "pas-frontend" -}}
 {{- $port := default 8081 .Values.port -}}
 {{- $backendServiceName := default ( printf "%v-%v" ( include "library.trimmedName" . ) "pas-api-service" ) .backendServiceName }}
+
+# Sentry variables
+{{- $sentryEnabled := default false (eq ((.Values.sentry).enabled | toString) "<nil>" | ternary (.Values.global.sentry).enabled (.Values.sentry).enabled) -}}
+{{- $sentryDSN := (.Values.sentry).dsn }}
+{{- $sentryEnvironment := default .Release.Namespace (default (.Values.global.sentry).environment (.Values.sentry).environment) }}
+{{- $sentrySampleRate := default 0.1 (default (.Values.global.sentry).sampleRate (.Values.sentry).sampleRate) }}
+{{- $sentryTraceSampleRate := default 0.1 (default (.Values.global.sentry).traceSampleRate (.Values.sentry).traceSampleRate) }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -27,22 +34,28 @@ spec:
     matchLabels:
       name: {{ $deploymentName | quote }}
       {{- include "library.selectorLabels" . | nindent 6 }}
-  strategy: {}
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
         name: {{ $deploymentName | quote }}
         {{- include "library.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
         runAsUser: {{ $uid }}
         runAsGroup: {{ $gid }}
         fsGroup: {{ $fsgid }}
-        {{- if semverCompare ">=1.19" .Capabilities.KubeVersion.GitVersion }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
         fsGroupChangePolicy: "OnRootMismatch"
         {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
         {{- end }}
+      {{- end }}
       {{- if .Values.global.enableNodeSelector }}
       nodeSelector:
         customer_name: {{ printf "%v" .Release.Name | quote }}
@@ -61,6 +74,8 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
         env:
+        - name: SDE_OPENSHIFT_ENABLED
+          value: {{ ternary "false" "true"  (not (.Values.global.openshift).enabled) | quote }}
         - name: PAS_BACKEND_URL
           value: {{ default (printf "http://%v:8000" $backendServiceName) .pasBackendUrl }}
         - name: PAS_MAX_PLUGIN_FILE_SIZE
@@ -71,6 +86,16 @@ spec:
         - name: RESOLVER_TTL
           value: {{ .Values.resolverTTL }}
         {{ end }}
+        {{- if $sentryEnabled }}
+        - name: SDE_PAS_FRONTEND_SENTRY_DSN
+          value: {{ required "SDE_PAS_FRONTEND_SENTRY_DSN must be specified if Sentry configuration is enabled." $sentryDSN | quote }}
+        - name: SDE_SENTRY_ENVIRONMENT
+          value: {{ $sentryEnvironment | quote }}
+        - name: SDE_SENTRY_SAMPLE_RATE
+          value: {{ $sentrySampleRate | quote }}
+        - name: SDE_SENTRY_TRACE_SAMPLE_RATE
+          value: {{ $sentryTraceSampleRate | quote }}
+        {{- end }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always

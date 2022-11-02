@@ -1,0 +1,21 @@
+{{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "mailer" "service" -}}
+{{- $deploymentName := (include "mail.deploymentName" .) -}}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName | quote }}
+  labels:
+    service: {{ $serviceName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: smtp
+    port: {{ default "25" .Values.port }}
+    targetPort: {{ default 8025 ((.Values.config).localPort) }}
+    protocol: TCP
+  selector:
+    name: {{ $deploymentName | quote }}
+status:
+  loadBalancer: {}

@@ -21,11 +21,14 @@ Enables creation of an arbitrary number of configurable/programmable SDE workers
 {{- $jobsUid := default 1000 $root.Values.worker.jobsUid -}}
 {{- $deploymentName := hasKey $dot "queueVarVal" | ternary ( printf "worker-%v-%v" $dot.niceness $dot.queueVarVal ) ( printf "worker-%v" $dot.niceness ) }}
 {{- $releaseName :=  printf "%v-%v" ( include "library.trimmedName" $root ) $deploymentName -}}
+{{- $customerName :=  printf "%v" ( include "library.trimmedName" $root ) -}}
 {{- $appStateChange := ternary true false (or $root.Release.IsUpgrade $root.Release.IsInstall) -}}
-{{- $haystackClaimName := printf "%v-%v" ( include "library.trimmedName" $root ) "haystack-volume-claim" -}}
 {{- $mediaClaimName := printf "%v-%v" ( include "library.trimmedName" $root ) "media-volume-claim" -}}
-{{- $staticClaimName := printf "%v-%v" ( include "library.trimmedName" $root ) "static-volume-claim" }}
-{{- $loaderClaimName := printf "%v-%v" ( include "library.trimmedName" $root ) "loader-volume-claim" }}
+
+# featureFlag
+{{- $enableWorkerDatabaseAffinity := default false $root.Values.global.enableWorkerDatabaseAffinity -}}
+{{- $rwxEnabled := required "For this release, global.rwx.enabled must be set. See https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html for details." ($root.Values.global.rwx).enabled -}}
+{{- $sentryEnabled := default false (eq (($root.Values.worker.sentry).enabled | toString) "<nil>" | ternary ($root.Values.global.sentry).enabled ($root.Values.worker.sentry).enabled) -}}
 
 # ssl variables
 {{- $tlsRoot := default "/tls" $root.Values.worker.tlsRoot }}
@@ -51,6 +54,11 @@ Enables creation of an arbitrary number of configurable/programmable SDE workers
 {{- $tlsDataStoreKeyPath := printf "%v/%v" $tlsRoot "datastore/tls.key" }}
 {{- $tlsContext := dict "tlsDataStoreKeyPath" $tlsDataStoreKeyPath "tlsDataStoreCertPath" $tlsDataStoreCertPath "tlsDataStoreCACertPath" $tlsDataStoreCACertPath }}
 
+# Sentry variables
+{{- $sentryDSN := ($root.Values.worker.sentry).dsn }}
+{{- $sentryEnvironment := default $root.Release.Namespace (default ($root.Values.global.sentry).environment ($root.Values.worker.sentry).environment) }}
+{{- $sentrySampleRate := default 0.1 (default ($root.Values.global.sentry).sampleRate ($root.Values.worker.sentry).sampleRate) }}
+{{- $sentryTraceSampleRate := default 0.1 (default ($root.Values.global.sentry).traceSampleRate ($root.Values.worker.sentry).traceSampleRate) }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -74,6 +82,21 @@ spec:
         name: {{ $releaseName | quote }}
         {{- include "library.selectorLabels" $root | nindent 8 }}
     spec:
+      {{- if eq $enableWorkerDatabaseAffinity true }}
+      {{- if or (eq $deploymentName "worker-10") (eq $deploymentName "worker-17") }}
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: name
+                operator: In
+                values:
+                - {{ $customerName }}-database
+            topologyKey: topology.kubernetes.io/zone
+      {{- end }}
+      {{- end }}
+      {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not $root.Values.global.runAsRoot }}
         runAsUser: {{ $uid }}
@@ -86,27 +109,26 @@ spec:
         runAsUser: 0
         runAsGroup: 0
         {{- end }}
+      {{- end }}
       {{- if $root.Values.global.enableNodeSelector }}
       nodeSelector:
         customer_name: {{ printf "%v" ( include "library.trimmedName" $dot ) | quote }}
       {{- end }}
+      {{- if $rwxEnabled }}
+      {{- if not ((.Values.global.openshift).enabled) }}
       initContainers:
       - name: {{ printf "%v-%v" $releaseName "prep" | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
         imagePullPolicy: {{ $imagePullPolicy }}
-        command: ['/bin/bash', '-c', 'set -x && if [[ "$(stat --print "%u:%g " /static /media)" != "{{ $uid }}:{{ $gid }} {{ $uid }}:{{ $gid }} " ]]; then chown --changes --recursive {{ $uid }}:{{ $gid }} /static /media || echo "Could not modify /static or /media permissions"; fi && if [[ "$(stat --print "%g" /index)" != "{{ $gid }}" ]]; then chown --changes --recursive {{ $jobsUid }}:{{ $gid }} /index || echo "Could not modify /index permissions"; fi' ]
+        command: ['/bin/bash', '-c', 'set -x && if [[ "$(stat --print "%u:%g " /media)" != "{{ $uid }}:{{ $gid }} {{ $uid }}:{{ $gid }} " ]]; then chown --changes --recursive {{ $uid }}:{{ $gid }} /media || echo "Could not modify or /media permissions"; fi' ]
         securityContext:
           runAsUser: 0
           runAsGroup: 0
         volumeMounts:
-        - mountPath: {{ default "/index" $root.Values.worker.indexMountPath | quote }}
-          name: haystack
-        - mountPath: {{ default "/static" $root.Values.worker.staticRoot | quote  }}
-          name: static
         - mountPath: {{ default "/media" $root.Values.worker.mediaRoot | quote  }}
           name: media
-        - mountPath: {{ default "/loader" $root.Values.worker.loaderRoot | quote }}
-          name: loader
+      {{- end }}
+      {{- end }}
       containers:
       - name: {{ $releaseName | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
@@ -144,6 +166,16 @@ spec:
         - name: SDE_BROKER_ROOT_CERT
           value: {{ $tlsBrokerCACertPath }}
         {{- end }}
+        {{- if $sentryEnabled }}
+        - name: SDE_SENTRY_DSN
+          value: {{ required "SDE_SENTRY_DSN must be specified if Sentry configuration is enabled." $sentryDSN | quote }}
+        - name: SDE_SENTRY_ENVIRONMENT
+          value: {{ $sentryEnvironment | quote }}
+        - name: SDE_SENTRY_SAMPLE_RATE
+          value: {{ $sentrySampleRate | quote }}
+        - name: SDE_SENTRY_TRACE_SAMPLE_RATE
+          value: {{ $sentryTraceSampleRate | quote }}
+        {{- end }}
         {{- if $dot.resources }}
         resources:
         {{- range $limitType, $resources := $dot.resources }}
@@ -156,42 +188,29 @@ spec:
         resources: {}
         {{- end }}
         volumeMounts:
-        - mountPath: {{ default "/index" $root.Values.worker.indexMountPath | quote }}
-          name: haystack
-        - mountPath: {{ default "/static" $root.Values.worker.staticRoot | quote  }}
-          name: static
-          readOnly:  {{ not $appStateChange }}
+        {{- if $rwxEnabled }}
         - mountPath: {{ default "/media" $root.Values.worker.mediaRoot | quote  }}
           name: media
+        {{- end }}
         {{- if $enableInternalTls }}
         - mountPath: {{ printf "%v/%v" $tlsRoot "datastore" | quote }}
           name: tls-datastore
           readOnly: true
         {{- end }}
-        - mountPath: {{ default "/loader" $root.Values.worker.loaderRoot | quote  }}
-          name: loader
       imagePullSecrets:
       - name: security-compass-secret
       restartPolicy: Always
       volumes:
-      - name: haystack
-        persistentVolumeClaim:
-          claimName: {{ $haystackClaimName | quote }}
-      - name: static
-        persistentVolumeClaim:
-          claimName: {{ $staticClaimName | quote }}
-          readOnly: {{ not $appStateChange }}
+      {{- if $rwxEnabled }}
       - name: media
         persistentVolumeClaim:
           claimName: {{ $mediaClaimName | quote }}
+      {{- end }}
       {{- if $enableInternalTls }}
       - name: tls-datastore
         secret:
           secretName: {{ $tlsDataStoreSecretName }}
           defaultMode: 0400
       {{- end }}
-      - name: loader
-        persistentVolumeClaim:
-          claimName: {{ $loaderClaimName | quote }}
 status: {}
 {{- end }}

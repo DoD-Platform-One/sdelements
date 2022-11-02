@@ -4,13 +4,15 @@ Helm chart for PAS Async Worker Service
 ## Setup
 Configure a `dev-values.yaml` file with the following values:
 
-```
+```yaml
 global:
   imageRegistryUsername: <SDELEMENTS.COM FREEIPA USERNAME>
   imageRegistryPassword: <SDELEMENTS.COM FREEIPA PASSWORD>
   imageRegistry: docker-dev.sdelements.com
   imageRegistryFormat: "%s/%s_%s/%s:%s"
   imageOrganization: dev
+  rwx:
+    enabled: false
 
 sc-broker:
   clientPassword: password123
@@ -23,4 +25,3 @@ Apply any other customizations to this file. View `values.yaml` for examples of 
 
 ## Usage
 To install the chart, you can use the helper script `run_dev_helm.sh`. It will download/update the subcharts and install or upgrade the chart.
-

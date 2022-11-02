@@ -13,9 +13,8 @@ Expects a dict input with root/dot keys with context
 {{- $appStateChange := ternary true false (or $root.Release.IsUpgrade $root.Release.IsInstall) -}}
 {{- $sdeSiteDomain := hasKey $root.Values.sde "siteDomain" | ternary ( $root.Values.sde.siteDomain ) ( default "" $root.Values.sde.fqdn ) -}}
 {{- $sdeSiteName := hasKey $root.Values.sde "siteName" | ternary ( $root.Values.sde.siteName ) ( default "" $root.Values.sde.fqdn ) -}}
-{{- $mailServiceName := printf "%v-%v-%v" ( include "library.trimmedName" $root ) "mail" "service" -}}
+{{- $mailServiceName := printf "%v-%v-%v" ( include "library.trimmedName" $root ) "mailer" "service" -}}
 {{- $jittEnabled := default false $root.Values.sde.enableJITT -}}
-{{- $indexPath := default "/index" $root.Values.worker.indexPath -}}
 {{- $reportingEnabled := include "reportingEnabled" $root -}}
 {{- $pasEnabled := default false $root.Values.global.pas.enabled -}}
 {{- $pasBrokerUser := default "pas" $root.Values.global.pas.brokerUser -}}
@@ -25,6 +24,8 @@ Expects a dict input with root/dot keys with context
 {{- $pasBrokerVhost := default (default "rabbit" $root.Values.global.broker.adminVhost) $root.Values.global.pas.vhost -}}
 {{- $pasSecretName := printf "%v-%v" $root.Release.Name "pas-secrets" -}}
 {{- $pasUrl := default (printf "http://%v-%v:8000" ( include "library.trimmedName" $root ) "pas-api-service" ) $root.pasUrl -}}
+{{- $gainsightEnabled := default false $root.Values.sde.gainsight.enabled -}}
+{{- $defaultGainsightId := index ( splitList "." $root.Values.sde.fqdn ) 0  -}}
 - name: COLLECT_STATIC
   value: {{ $appStateChange | toString | lower | quote }}
 - name: CONTENT_PATH
@@ -81,6 +82,22 @@ Expects a dict input with root/dot keys with context
   value: {{ default "warn" $root.Values.worker.wsgiLogLevel | quote }}
 - name: WSGI_PROCESSES
   value: {{ default 4 $root.Values.worker.wsgiProcesses | quote }}
+- name: WSGI_THREADS
+  value: {{ default 1 $root.Values.worker.wsgiThreads | quote }}
+- name: WSGI_MAX_CLIENTS
+  value: {{ default 20 $root.Values.worker.wsgiMaxClients | quote }}
+{{ if $root.Values.worker.wsgiDocumentRoot -}}
+- name: WSGI_DOCUMENT_ROOT
+  value: {{ default "/static" $root.Values.worker.wsgiDocumentRoot | quote }}
+{{- end }}
+{{ if $root.Values.worker.wsgiExtraArgs -}}
+- name: WSGI_EXTRA_ARGS
+  value: {{ $root.Values.worker.wsgiExtraArgs | quote }}
+{{- end }}
+{{ if $root.Values.worker.shellVerbosity -}}
+- name: verbosity
+  value: {{ default "-1" $root.Values.worker.shellVerbosity }}
+{{- end }}
 - name: SDE_DATABASES
   value: {{ tpl ($root.Files.Get "conf/databases.json") $root | quote }}
 - name: SDE_DATABASE_USER
@@ -99,13 +116,11 @@ Expects a dict input with root/dot keys with context
 - name: SDE_DEFAULT_ORG
   value: {{ default "default" $root.Values.sde.defaultOrg | quote }}
 - name: SDE_EMAIL_HOST
-  value: {{ default $mailServiceName $root.Values.mail.host | quote }}
+  value: {{ default $mailServiceName ( index $root.Values "sc-mail" "serviceName" ) | quote }}
 - name: SDE_EMAIL_LOG_LEVEL
   value: {{ default "ERROR" $root.Values.worker.emailLogLevel | quote }}
 - name: SDE_FEEDBACK_EMAIL
   value: {{ default "support@sdelements.com" $root.Values.sde.feedbackEmail | quote }}
-- name: SDE_HAYSTACK_INDEX_PATH
-  value: {{ printf "%v/%v" $indexPath "haystack" | quote }}
 - name: SDE_LOGGING
   value: {{ tpl ($root.Files.Get "conf/logging.json") $root | quote }}
 - name: SDE_MEDIA_ROOT
@@ -125,8 +140,6 @@ Expects a dict input with root/dot keys with context
   value: {{ default (printf "sdelements@%v" $root.Values.sde.fqdn) $root.Values.sde.serverEmail | quote }}
 - name: SDE_STATIC_ROOT
   value: {{ default "/static" $root.Values.worker.staticRoot | quote }}
-- name: SDE_LOADER_ROOT
-  value: {{ default "/loader" $root.Values.worker.loaderRoot | quote }}
 - name: SDE_SUPERUSER
   value: {{ default "support@sdelements.com" $root.Values.sde.superuserEmail | quote }}
 - name: SDE_SUPERUSER_PASSWORD
@@ -153,13 +166,9 @@ Expects a dict input with root/dot keys with context
   value: {{ eq $reportingEnabled "false" | ternary "False" "True" | quote }}
 {{- if ( hasKey $root.Values.global "sharedStorage" ) }}
 - name: BACKUP_STORAGE_TYPE
-  value: {{ upper ( default "file"  $root.Values.global.sharedStorage.storageType ) | quote }}
-{{- if eq ( upper ( default "file"  $root.Values.global.sharedStorage.storageType )) "FILE" }}
-- name: BACKUP_DIR_PATH
-  value: {{ default "sdelements" $root.Values.global.sharedStorage.dirPath | quote }}
-{{- else if eq ( upper ( default "file"  $root.Values.global.sharedStorage.storageType )) "S3" }}
+  value: {{ upper ( default "s3" $root.Values.global.sharedStorage.storageType ) | quote }}
 - name: S3_BUCKET_NAME
-  value: {{ required "global.sharedStorage.bucketName is required when s3 storage is being used" $root.Values.global.sharedStorage.bucketName | quote }}
+  value: {{ required "global.sharedStorage.bucketName is required" $root.Values.global.sharedStorage.bucketName | quote }}
 - name: S3_BUCKET_PATH
   value:  {{ quote $root.Values.global.sharedStorage.s3BucketPath }}
 - name: S3_ACCESS_KEY
@@ -174,7 +183,6 @@ Expects a dict input with root/dot keys with context
         key: S3_SECRET_KEY
 - name: S3_URL
   value:  {{ quote $root.Values.global.sharedStorage.s3Url }}
-{{- end }}
 {{- end }}
 - name: SDETOOLS_IGNORE_INTERNAL_NETWORK_RESTRICTION
   value: {{ default "False" $root.Values.sde.sdetoolsIgnoreNetworkRestriction | quote }}
@@ -206,5 +214,13 @@ Expects a dict input with root/dot keys with context
   value: {{ default "true" $root.Values.sde.validateSdeCert | quote }}
 - name: PAS_PLUGIN_VALIDATE_SDE_CERT
   value: {{ default "true" $root.Values.sde.pasPluginValidateSdeCert | quote  }}
+{{- end }}
+{{- if $gainsightEnabled }}
+- name: SDE_GAINSIGHT_ENABLED
+  value: "True"
+- name: SDE_GAINSIGHT_BOX_ID
+  value: {{ default $defaultGainsightId $root.Values.sde.gainsight.id | quote }}
+- name: SDE_GAINSIGHT_TAG_KEY
+  value: {{ required "sde.gainsight.tagKey is required when gainsight is enabled" $root.Values.sde.gainsight.tagKey | quote }}
 {{- end }}
 {{- end }}

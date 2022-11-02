@@ -1,4 +1,6 @@
 {{- $storageClassName := default .Values.global.storageClass .Values.global.backupStorageClass -}}
+{{- $rwxEnabled := required "For this release, global.rwx.enabled must be set. See https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html for details." (.Values.global.rwx).enabled -}}
+{{- if $rwxEnabled }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -16,3 +18,4 @@ spec:
   storageClassName: {{ $storageClassName | quote }}
   {{- end }}
 status: {}
+{{- end }}

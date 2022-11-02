@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: 0.1.1
+appVersion: 1.0.0
 description: A Library Project
 home: https://agra.sdelements.com/deployment/containers/library
 icon: https://avatars0.githubusercontent.com/u/739346
@@ -16,4 +16,4 @@ name: sc-library
 sources:
 - https://agra.sdelements.com/deployment/containers/library
 type: application
-version: 0.1.1
+version: 1.0.0

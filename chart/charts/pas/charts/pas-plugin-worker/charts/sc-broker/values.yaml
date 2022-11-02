@@ -42,6 +42,10 @@ global:
     #adminVhost: admin
   useStandalone: true
 
+  ## Configuration for running on Openshift
+  # openshift:
+  #   enabled: false
+
 ## Message broker (rabbitmq)
 #imageName: rabbitmq
 #imageTag: 3-alpine
@@ -55,8 +59,8 @@ replicas: 1
 ## Connection parameters
 #host: mq
 
-# Default storage class
-#storageClass: glusterfs-storage
+#brokerStorageClass: aws-ebs
+#brokerVolumeSize: 4G
 
 ## User/Group options
 # uid: 100

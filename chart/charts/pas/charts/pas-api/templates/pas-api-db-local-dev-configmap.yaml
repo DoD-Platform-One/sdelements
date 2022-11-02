@@ -1,0 +1,20 @@
+{{- if .Values.useLocalDevDbConfig }}
+# This configmag is used for local development
+# when PAS is running without SDE
+{{- $databaseHost := default ( printf "%v-%v" ( include "library.trimmedName" . ) "database-service") .Values.global.database.host -}}
+{{- $databasePort := default "5432" .Values.global.database.port -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-db-configmap
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+data:
+  DEFAULT_DATABASE: {{ default "postgres" .Values.admin.database.defaultDatabase }}
+  ADMIN_DATABASE_USER: {{ default "postgres" .Values.admin.database.user }}
+  DATABASE_HOST: {{ $databaseHost | quote }}
+  DATABASE_PORT: {{ $databasePort | quote }}
+  DATABASE_REQUIRE_SSL: {{ default "false" .Values.global.database.requireSSL | quote }}
+  DATABASE_SERVER: {{ printf "%v:%v" $databaseHost $databasePort }}
+{{- end }}

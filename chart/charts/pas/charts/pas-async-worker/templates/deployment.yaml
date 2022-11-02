@@ -24,7 +24,8 @@ spec:
     matchLabels:
       name: {{ $deploymentName | quote }}
       {{- include "library.selectorLabels" . | nindent 6 }}
-  strategy: {}
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -35,14 +36,20 @@ spec:
       nodeSelector:
         customer_name: {{ printf "%v" .Release.Name | quote }}
       {{ end }}
+      {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
         runAsUser: {{ default 100 .Values.uid }}
         runAsGroup: {{ default 101 .Values.gid }}
-        {{- if semverCompare ">=1.19" .Capabilities.KubeVersion.GitVersion }}
+        fsGroup: {{ default 101 .Values.fsgid }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
         fsGroupChangePolicy: "OnRootMismatch"
         {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
         {{- end }}
+      {{- end }}
       containers:
       - name: {{ $deploymentName | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
@@ -51,9 +58,13 @@ spec:
           - configMapRef:
               name: {{ .Release.Name }}-{{ .Chart.Name }}-env-configmap
           - configMapRef:
+              name: {{ include "pas-async-worker.dbConfigmap" . | quote }}
+          - configMapRef:
               name: {{ .Release.Name }}-{{ .Chart.Name }}-db-env-configmap
           - configMapRef:
               name: {{ .Release.Name }}-{{ .Chart.Name }}-broker-env-configmap
+          - configMapRef:
+              name: {{ .Release.Name }}-{{ .Chart.Name }}-shared-storage-env-configmap
         env:
           - name: DATABASE_PASSWORD
             valueFrom:
@@ -70,13 +81,16 @@ spec:
               secretKeyRef:
                 name: {{ include "pas-async-worker.broker.secretName" $contextDict }}
                 key: {{ include "pas-async-worker.broker.passwordSecretKey" $contextDict }}
-        volumeMounts:
-          - mountPath: "/custom_plugin_storage"
-            name: custom-plugin
-      volumes:
-        - name: custom-plugin
-          persistentVolumeClaim:
-            claimName: {{ printf "%v-%v" ( include "library.trimmedName" . ) ( default ( default "pas-custom-plugin-volume-claim" .Values.global.pas.pluginVolumeClaimName ) .pluginVolumeClaimName ) | quote }}
+          - name: S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-async-worker.sharedStorage.secretName" $contextDict }}
+                key: {{ include "pas-async-worker.sharedStorage.accessKeyIdSecretKey" $contextDict }}
+          - name: S3_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-async-worker.sharedStorage.secretName" $contextDict }}
+                key: {{ include "pas-async-worker.sharedStorage.secretAccessKeySecretKey" $contextDict }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always

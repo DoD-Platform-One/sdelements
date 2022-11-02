@@ -1,13 +1,9 @@
-{{- $databaseHost := default ( printf "%v-%v" ( include "library.trimmedName" . ) "database-service") .Values.global.database.host -}}
-{{- $databasePort := default "5432" .Values.global.database.port -}}
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-{{ .Chart.Name }}-db-env-configmap
   labels:
-    {{ include "library.labels" . | nindent 4 }}
+    {{- include "library.labels" . | nindent 4 }}
 data:
   PAS_DATABASE_PREFIX: {{ default (default "pas" .Values.global.pas.databasePrefix) .Values.databasePrefix | quote }}
-  DATABASE_SERVER: {{ printf "%v:%v" $databaseHost $databasePort }}
   DATABASE_USER: {{ default (default "pas" .Values.global.pas.database.user) .Values.database.user | quote }}

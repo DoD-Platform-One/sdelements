@@ -1,0 +1,16 @@
+{{- $databaseHost := include "sde.dbHost" . -}}
+{{- $databasePort := include "sde.dbPort" . -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-db-configmap
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+data:
+  DEFAULT_DATABASE: "postgres"
+  ADMIN_DATABASE_USER: {{ include "sde.dbUser" . | quote }}
+  DATABASE_HOST: {{ $databaseHost | quote }}
+  DATABASE_PORT: {{ $databasePort | quote }}
+  DATABASE_SERVER: {{ printf "%v:%v" $databaseHost $databasePort | quote }}
+  DATABASE_REQUIRE_SSL: "false"

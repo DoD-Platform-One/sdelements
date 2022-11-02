@@ -4,9 +4,12 @@ dependencies:
   version: 0.1.1
 - name: sc-broker
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 0.1.6
+  version: 1.2.1
 - name: sc-database
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.0.8
-digest: sha256:b26564a0bbac7f6de6eacfb690261a1ecad0e8e535fc0db9fdea2d26f0ab22cf
-generated: "2021-11-16T17:44:34.665482428Z"
+  version: 1.2.2
+- name: minio
+  repository: https://charts.min.io/
+  version: 3.4.6
+digest: sha256:a35b8a12b7af420f11aa7881ca213a335076c98d60ad6cbe1ac6eabd1710ce93
+generated: "2022-08-04T18:41:01.35146702Z"

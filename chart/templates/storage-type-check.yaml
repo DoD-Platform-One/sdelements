@@ -1,0 +1,8 @@
+{{/*
+Try and catch when someone uses FILE as a storage type, which is unsupported
+*/}}
+{{- if ( hasKey .Values.global.sharedStorage "storageType" ) }}
+  {{- if ( eq (upper .Values.global.sharedStorage.storageType ) "FILE" ) }}
+  {{- fail "It appears you are attempting to use FILE as a storage type, which is unsupported." -}}
+  {{- end }}
+{{- end }}

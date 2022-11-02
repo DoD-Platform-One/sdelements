@@ -1,6 +1,13 @@
 {{- $sdeAPIServiceMethod := default "http" .Values.sdeAPIServiceMethod -}}
 {{- $sdeAPIServiceName := required "SDE API service name is required" .Values.sdeAPIServiceName -}}
 {{- $sdeAPIServicePort := required "SDE API service port is required" .Values.sdeAPIServicePort -}}
+
+# Sentry variables
+{{- $sentryEnabled := default false (eq ((.Values.sentry).enabled | toString) "<nil>" | ternary (.Values.global.sentry).enabled (.Values.sentry).enabled) -}}
+{{- $sentryDSN := (.Values.sentry).dsn }}
+{{- $sentryEnvironment := default .Release.Namespace (default (.Values.global.sentry).environment (.Values.sentry).environment) }}
+{{- $sentrySampleRate := default 0.1 (default (.Values.global.sentry).sampleRate (.Values.sentry).sampleRate) }}
+{{- $sentryTraceSampleRate := default 0.1 (default (.Values.global.sentry).traceSampleRate (.Values.sentry).traceSampleRate) }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -16,4 +23,10 @@ data:
   PAS_CONSOLE_LOG_LEVEL: {{ default "INFO" .Values.logLevel | quote }}
   WEB_CONCURRENCY: {{ default 4 .Values.workerCount | quote }}
   LOG_LEVEL: {{ default "info" .Values.gunicornLogLevel | quote }}
-  PLUGIN_STORAGE_FOLDER: "/custom_plugin_storage"
+  SDE_OPENSHIFT_ENABLED: {{ ternary "false" "true"  (not (.Values.global.openshift).enabled) | quote }}
+  {{ if $sentryEnabled }}
+  SDE_PAS_API_SENTRY_DSN: {{ required "SDE_PAS_API_SENTRY_DSN must be specified if Sentry configuration is enabled." $sentryDSN | quote }}
+  SDE_SENTRY_ENVIRONMENT: {{ $sentryEnvironment | quote }}
+  SDE_SENTRY_SAMPLE_RATE: {{ $sentrySampleRate | quote }}
+  SDE_SENTRY_TRACE_SAMPLE_RATE: {{ $sentryTraceSampleRate | quote }}
+  {{ end }}

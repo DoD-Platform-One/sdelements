@@ -9,5 +9,5 @@ For first time installs of the deployment run the following command from this di
 To configure the SDE secret key at runtime, you can add the following argument to the helm command: `--set secretKey=<theSecretKey>`
 
 ## Updating the image
-Use the `build_and_tag_mock_sde.sh` script to build a new mock-sde image (you will need to bump the version in the script as well). 
+Use the `../../scripts/build_and_tag_mock_sde.sh` script to build a new mock-sde image (you will need to bump the version in the script as well).
 The `appVersion` in the chart.yaml should match the tag for the newly built image.
