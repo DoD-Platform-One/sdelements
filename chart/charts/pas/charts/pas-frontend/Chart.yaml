@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: 1.2.1
+appVersion: 1.5.1
 dependencies:
 - name: sc-library
   repository: https://harbor-dev.sdelements.com/chartrepo/library
@@ -19,4 +19,4 @@ name: pas-frontend
 sources:
 - https://agra.sdelements.com/sd-elements/management_command_system
 type: application
-version: 1.2.1
+version: 1.5.1

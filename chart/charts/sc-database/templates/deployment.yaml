@@ -15,6 +15,7 @@
 {{- $dataDir := default "pgdata" .Values.dataDir -}}
 {{- $dataClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "db-volume-claim" -}}
 {{- $backupClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "backup-volume-claim" -}}
+{{- $rwxEnabled := required "For this release, global.rwx.enabled must be set. See https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html for details." (.Values.global.rwx).enabled -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -39,6 +40,7 @@ spec:
         service: {{ $deploymentName | quote }}
         {{- include "library.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
         runAsUser: {{ $uid }}
@@ -51,12 +53,14 @@ spec:
         runAsUser: 0
         runAsGroup: 0
         {{- end }}
+      {{- end }}
       {{- if and .Values.global.enableNodeSelector .Values.nodeSelector }}
       nodeSelector:
         {{- with .Values.nodeSelector }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       {{- end }}
+      {{- if not ((.Values.global.openshift).enabled) }}
       initContainers:
       - name: {{ printf "%v-%v" $deploymentName "prep" | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
@@ -68,11 +72,18 @@ spec:
         volumeMounts:
         - mountPath: {{ $dataMountPoint | quote }}
           name: db
+      {{- end }}
       containers:
       - name: {{ $deploymentName | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
         imagePullPolicy: {{ $imagePullPolicy }}
-        command: ["/bin/run_postgres.sh", "postgres"]
+        command:
+          - "/bin/run_postgres.sh"
+          - "postgres"
+          {{- range $key, $value := .Values.commands }}
+          - "-c"
+          - "{{ $key }}={{ $value }}"
+          {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
         env:
@@ -87,10 +98,15 @@ spec:
           value: {{ default "postgres" .Values.clientUser }}
         - name: PGDATA
           value: {{ printf "%s/%s" $dataMountPoint $dataDir | quote }}
+        {{- if not ((.Values.global.openshift).enabled) }}
         - name: POSTGRES_UID
           value: {{ $uid | quote }}
         - name: POSTGRES_GID
           value: {{ $gid | quote }}
+        {{- else }}
+        - name: SDE_OPENSHIFT_ENABLED
+          value: "true"
+        {{- end }}
         ports:
         - containerPort: {{ int $port }}
         {{- if .Values.resources }}
@@ -107,8 +123,12 @@ spec:
         volumeMounts:
         - mountPath: {{ $dataMountPoint | quote }}
           name: db
+        - mountPath: /dev/shm
+          name: shm
+        {{- if $rwxEnabled }}
         - mountPath: {{ $backupMountPoint | quote }}
           name: backup
+        {{- end }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always
@@ -116,7 +136,13 @@ spec:
       - name: db
         persistentVolumeClaim:
           claimName: {{ $dataClaimName | quote }}
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: {{ default "256Mi" .Values.shm_size }}
+      {{- if $rwxEnabled }}
       - name: backup
         persistentVolumeClaim:
           claimName: {{ $backupClaimName | quote }}
+      {{- end }}
 status: {}

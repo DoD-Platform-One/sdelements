@@ -1,0 +1,31 @@
+{{/*
+Main tls issuer for self-signed certs, this will issue the main cert/key pair
+used to generate self-signed CA-certs.
+*/}}
+
+{{- define "library.certs.sprig" -}}
+{{- $root := get . "root" -}}
+{{- $serviceName := get . "serviceName" }}
+{{- $primaryFqdn := default $serviceName ( get . "commonName" ) -}}
+{{- $alternateDnsNames := default ( list "" ) ( get . "alternateDnsNames" ) }}
+{{- $san := append $alternateDnsNames $primaryFqdn }}
+{{- $secretName := include "library.tlsSecretName" ( merge . $root ) }}
+{{- $ca := default ( genCA $serviceName 3650 ) ( get . "ca" ) -}}
+{{- $cert := genSignedCert $primaryFqdn nil $san 3650 $ca -}}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $secretName }}
+  labels:
+    {{- include "library.labels" $ | nindent 4 }}
+  {{- if eq ( default false .Values.global.disableHelmHooks ) false }}
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+  {{- end }}
+data:
+  ca.crt: {{ $ca.Cert | b64enc | quote }}
+  tls.crt: {{ $cert.Cert | b64enc | quote }}
+  tls.key: {{ $cert.Key  | b64enc | quote }}
+{{- end }}

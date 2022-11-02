@@ -50,6 +50,7 @@ spec:
         name: {{ $deploymentName | quote }}
         {{- include "library.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
         runAsUser: {{ $uid }}
@@ -62,6 +63,7 @@ spec:
         runAsUser: 0
         runAsGroup: 0
         {{- end }}
+      {{- end }}
       {{- if .Values.global.enableNodeSelector }}
       nodeSelector:
         customer_name: {{ printf "%v" .Release.Name | quote }}
@@ -97,6 +99,10 @@ spec:
           value: {{ default "2" .Values.workerProcesses | quote }}
         - name: NGINX_WORKER_RLIMIT_NOFILE
           value: {{ default 1024 .Values.rlimitNofile | quote }}
+        {{ if (.Values.global.openshift).enabled -}}
+        - name: SDE_OPENSHIFT_ENABLED
+          value: "true"
+        {{ end -}}
         ports:
         - containerPort: {{ int $httpPort }}
         - containerPort: {{ int $httpsPort }}

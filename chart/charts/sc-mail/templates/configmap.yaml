@@ -1,0 +1,44 @@
+{{- $deploymentName := (include "mail.deploymentName" .) -}}
+{{- $smartHostType := (include "mail.smartHostType" .) -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+data:
+  {{- if .Values.config.smartHostType }}
+  SMARTHOST_TYPE: {{ $smartHostType | quote }}
+  {{- end }}
+  {{- if .Values.config.mailHostName }}
+  MAILNAME: {{ .Values.config.mailHostName | quote }}
+  {{- end }}
+  MAILFROM: {{ default "noreply@sdelements.com" .Values.config.mailFrom | quote }}
+  LOCAL_DOMAINS: {{ default "@" .Values.config.localDomains | quote }}
+  PORT: {{ default "8025" .Values.config.localPort | quote }}
+  DISABLE_IPV6: {{ default "true" .Values.config.disableIpv6 | quote }}
+  RELAY_NETWORKS: {{ default "10.0.0.0/8:172.16.0.0/12:192.168.0.0/16:10.1.3.0/24" .Values.config.relayNetworks | quote }}
+  RELAY_DOMAINS: {{ default "localdomain" .Values.config.relayDomains | quote }}
+  {{- if ((.Values.config.tls).enabled) }}
+  MAIN_TLS_ENABLE: {{ .Values.config.tls.enabled | quote }}
+  {{- end }}
+  {{- if .Values.config.useSplitConfiguration }}
+  USE_SPLIT_CONFIGURATION: {{ .Values.config.useSplitConfiguration | quote }}
+  {{- end }}
+  {{- if .Values.config.otherHostnames }}
+  OTHER_HOSTNAMES: {{ .Values.config.otherHostnames | quote }}
+  {{- end }}
+  {{- if ((.Values.global.openshift).enabled) }}
+  SDE_OPENSHIFT_ENABLED: {{ .Values.global.openshift.enabled | toString | lower | quote }}
+  {{- end }}
+  {{- if eq $smartHostType "SES" }}
+  SES_PORT: {{ default "25" .Values.config.smartHostPort | quote }}
+  SES_REGION: {{ required "A smarthost region is required when using SES" .Values.config.smartHostRegion | quote }}
+  {{- else if eq $smartHostType "GMAIL" }}
+  GMAIL_PORT: {{ default "587" .Values.config.smartHostPort | quote }}
+  {{- else if eq $smartHostType "SMARTHOST" }}
+  SMARTHOST_PORT: {{ default "25" .Values.config.smartHostPort | quote }}
+  SMARTHOST_ADDRESS: {{ required "A smarthost address is required when using SMARTHOST" .Values.config.smartHostAddress | quote }}
+  {{- end }}

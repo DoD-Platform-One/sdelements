@@ -1,3 +1,10 @@
+# Sentry variables
+{{- $sentryEnabled := default false (eq ((.Values.sentry).enabled | toString) "<nil>" | ternary (.Values.global.sentry).enabled (.Values.sentry).enabled) -}}
+{{- $sentryDSN := (.Values.sentry).dsn }}
+{{- $sentryEnvironment := default .Release.Namespace (default (.Values.global.sentry).environment (.Values.sentry).environment) }}
+{{- $sentrySampleRate := default 0.1 (default (.Values.global.sentry).sampleRate (.Values.sentry).sampleRate) }}
+{{- $sentryTraceSampleRate := default 0.1 (default (.Values.global.sentry).traceSampleRate (.Values.sentry).traceSampleRate) }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,10 +15,16 @@ data:
   {{ if .Values.celeryLogLevel }}
   PAS_CONSOLE_LOG_LEVEL: {{ .Values.celeryLogLevel }}
   {{ end }}
-  PLUGIN_STORAGE_FOLDER: "/custom_plugin_storage"
   {{ if .Values.celeryMaxTasksPerChild }}
   MAX_TASKS: {{ .Values.celeryMaxTasksPerChild }}
   {{ end }}
   {{ if .Values.celeryWorkerCount }}
   CELERY_WORKER_COUNT: {{ .Values.celeryWorkerCount }}
   {{ end }}
+  {{ if $sentryEnabled }}
+  SDE_PAS_PLUGINS_SENTRY_DSN: {{ required "SDE_PAS_PLUGINS_SENTRY_DSN must be specified if Sentry configuration is enabled." $sentryDSN | quote }}
+  SDE_SENTRY_ENVIRONMENT: {{ $sentryEnvironment | quote }}
+  SDE_SENTRY_SAMPLE_RATE: {{ $sentrySampleRate | quote }}
+  SDE_SENTRY_TRACE_SAMPLE_RATE: {{ $sentryTraceSampleRate | quote }}
+  {{ end }}
+

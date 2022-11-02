@@ -3,13 +3,8 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-{{ .Chart.Name }}-init-env-configmap
   labels:
-    {{ include "library.labels" . | nindent 4 }}
+    {{- include "library.labels" . | nindent 4 }}
 data:
-  DEFAULT_DATABASE: {{ default "postgres" .Values.admin.database.defaultDatabase }}
-  ADMIN_DATABASE_USER: {{ default "postgres" .Values.admin.database.user }}
-  DATABASE_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "database-service") .Values.global.database.host | quote }}
-  DATABASE_PORT: {{ default "5432" .Values.global.database.port | quote }}
-  DATABASE_REQUIRE_SSL: {{ default "false" .Values.global.database.requireSSL | quote }}
   # Broker Variables
   BROKER_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-service" ) .Values.global.broker.host | quote }}
   BROKER_USER: {{ include "pas.brokerUser" (dict "root" . "dot" .Values) | trim | quote }}

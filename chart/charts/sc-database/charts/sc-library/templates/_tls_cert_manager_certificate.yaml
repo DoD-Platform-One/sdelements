@@ -1,0 +1,88 @@
+{{/*
+#### Cert Manager Issuer/Certificate template ####
+
+Expects a dict input with root/dot keys with context
+Creates an Issuer and Certificate
+
+*/}}
+{{- define "library.certs.certManager" -}}
+{{- $root := get . "root" -}}
+{{- $primaryFqdn := default (get . "serviceName") ( get . "commonName" ) -}}
+{{- $alternateDnsNames := default ( list "" ) ( get . "alternateDnsNames" ) }}
+{{- $issuerName := default ( printf "issuer-%v" ( get . "serviceName" )) .issuerName -}}
+{{- $disableHelmHooks := default false $root.Values.global.disableHelmHooks -}}
+{{- $certType := (get . "certType") | toString }}
+{{- $certName := printf "cert-%v" $primaryFqdn | replace "." "-" | trunc 52 | trimSuffix "-" -}}
+{{- $secretName := include "library.tlsSecretName" ( merge . $root ) }}
+{{- if not ( hasKey . "issuerName" ) }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ $issuerName | quote }}
+spec:
+  {{- if eq $certType "acme"  }}
+  acme:
+    # Let's Encrypt will use this to contact you about expiring
+    # certificates, and issues related to your account.
+    email: {{ required "An email address must be be specified when cert-manager uses an acme issuer" .email | quote }}
+    server: {{ .url | quote }}
+    privateKeySecretRef:
+      # Secret resource that will be used to store the account's private key.
+      name: {{ .key | quote }}
+    # Challenge solvers, default to HTTP01 using nginx but offer RFC 2136 via  DNS
+    solvers:
+    {{- if .rfc2136 }}
+    - dns01:
+        rfc2136:
+          nameserver: {{ .rfc2136.nameserver }}
+          tsigKeyName:  {{ .rfc2136.tsigKeyName }}
+          tsigAlgorithm:  {{ .rfc2136.tsigAlgorithm }}
+          tsigSecretSecretRef:
+            name: {{ printf "%v-%v" $secretName "rfc2136" }}
+            key: "tsigSecret"
+    {{- else }}
+    - http01:
+        ingress:
+          class: nginx
+    {{- end }}
+
+  {{- else }}
+  selfSigned: {}
+  {{- end }}
+{{- end }}
+
+{{- if and ( eq $certType "acme" ) .rfc2136 }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ printf "%v-%v" $secretName "rfc2136" }}
+  labels:
+    {{- include "library.labels" $root | nindent 4 }}
+  {{- if eq $disableHelmHooks false }}
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+  {{- end }}
+data:
+    tsigSecret: {{ .rfc2136.tsigKeySecret | quote }}
+{{- end }}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $certName | quote }}
+  namespace: {{ $root.Release.NameSpace }}
+spec:
+  commonName: {{ $primaryFqdn | quote  }}
+  dnsNames:
+  - {{ $primaryFqdn | quote }}
+  {{- range $alternateDnsNames }}
+  - {{ . | quote }}
+  {{- end }}
+  secretName: {{ $secretName }}
+  issuerRef:
+    name: {{ $issuerName }}
+{{- end }}

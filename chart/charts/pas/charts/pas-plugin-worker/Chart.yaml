@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: 1.2.1
+appVersion: 1.5.1
 dependencies:
 - name: sc-library
   repository: https://harbor-dev.sdelements.com/chartrepo/library
@@ -7,7 +7,11 @@ dependencies:
 - condition: useBrokerSubchart
   name: sc-broker
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 0.1.6
+  version: 1.2.1
+- condition: minio.enabled
+  name: minio
+  repository: https://charts.min.io/
+  version: 3.4.6
 description: SD Elements PAS Plugin Worker Service
 home: https://docker.sdelements.com
 icon: https://avatars0.githubusercontent.com/u/739346
@@ -25,4 +29,4 @@ name: pas-plugin-worker
 sources:
 - https://agra.sdelements.com/sd-elements/management_command_system
 type: application
-version: 1.2.1
+version: 1.5.1

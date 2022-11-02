@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: 0.1.6
+appVersion: 1.2.1
 dependencies:
 - condition: global.enableNestedDependencies
   name: sc-library
@@ -20,4 +20,4 @@ name: sc-broker
 sources:
 - https://agra.sdelements.com/deployment/containers/broker
 type: application
-version: 0.1.6
+version: 1.2.1

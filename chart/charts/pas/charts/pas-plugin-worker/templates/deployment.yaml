@@ -22,7 +22,8 @@ spec:
     matchLabels:
       name: {{ $deploymentName | quote }}
       {{- include "library.selectorLabels" . | nindent 6 }}
-  strategy: {}
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -33,14 +34,19 @@ spec:
       nodeSelector:
         customer_name: {{ printf "%v" .Release.Name | quote }}
       {{ end }}
+      {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
         runAsUser: {{ default 100 .Values.uid }}
         runAsGroup: {{ default 101 .Values.gid }}
-        {{- if semverCompare ">=1.19" .Capabilities.KubeVersion.GitVersion }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
         fsGroupChangePolicy: "OnRootMismatch"
         {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
         {{- end }}
+      {{- end }}
       containers:
       - name: {{ $deploymentName | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
@@ -50,21 +56,24 @@ spec:
               name: {{ .Release.Name }}-{{ .Chart.Name }}-env-configmap
           - configMapRef:
               name: {{ .Release.Name }}-{{ .Chart.Name }}-broker-env-configmap
+          - configMapRef:
+              name: {{ .Release.Name }}-{{ .Chart.Name }}-shared-storage-env-configmap
         env:
           - name: PLUGIN_SERVICE_BROKER_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: {{ include "pas-plugin-worker.broker.secretName" (dict "root" . "dot" .Values) }}
                 key: {{ include "pas-plugin-worker.broker.passwordSecretKey" (dict "root" . "dot" .Values) }}
-        volumeMounts:
-          - mountPath: "/custom_plugin_storage"
-            name: custom-plugin
-            readOnly: true
-      volumes:
-        - name: custom-plugin
-          persistentVolumeClaim:
-            claimName: {{ default ( default (printf "%v-%v" ( include "library.trimmedName" . ) "pas-custom-plugin-volume-claim") .Values.global.pas.pluginVolumeClaimName ) .pluginVolumeClaimName | quote }}
-            readOnly: true
+          - name: S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-plugin-worker.sharedStorage.secretName" (dict "root" . "dot" .Values) }}
+                key: {{ include "pas-plugin-worker.sharedStorage.accessKeyIdSecretKey" (dict "root" . "dot" .Values) }}
+          - name: S3_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-plugin-worker.sharedStorage.secretName" (dict "root" . "dot" .Values) }}
+                key: {{ include "pas-plugin-worker.sharedStorage.secretAccessKeySecretKey" (dict "root" . "dot" .Values) }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always

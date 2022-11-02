@@ -1,4 +1,6 @@
+{{- $rwxEnabled := required "For this release, global.rwx.enabled must be set. See https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html for details." (.Values.global.rwx).enabled -}}
 {{- $claimName := printf "%v-%v" ( include "library.trimmedName" . ) "media-volume-claim" -}}
+{{- if $rwxEnabled }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -16,3 +18,4 @@ spec:
   storageClassName: {{ .Values.global.storageClass }}
   {{- end }}
 status: {}
+{{- end }}

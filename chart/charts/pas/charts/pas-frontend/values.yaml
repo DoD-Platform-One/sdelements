@@ -32,6 +32,13 @@ global:
     # Environment variables for PAS image
     #maxPluginFileSize: '10000000'
 
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
+
 #imageName: pas-static
 #port: 80
 # Service name of the PAS API service
@@ -46,3 +53,11 @@ global:
 #uid: 101
 #gid: 101
 #fsgid 33
+
+## Configuration for Sentry
+# sentry:
+#   enabled: false
+#   dsn: https://xxxxxx.ingest.sentry.io/000000
+#   environment: develop
+#   sampleRate: 0.1
+#   traceSampleRate: 0.1

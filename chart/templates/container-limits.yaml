@@ -1,5 +1,5 @@
-{{- if .Values.limitrange }}
-{{- if .Values.limitrange.enabled }}
+{{- if not ((.Values.global.openshift).enabled) }}
+{{- if (.Values.limitrange).enabled }}
 apiVersion: v1
 kind: LimitRange
 metadata:

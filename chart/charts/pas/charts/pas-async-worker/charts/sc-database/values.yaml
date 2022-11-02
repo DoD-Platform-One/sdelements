@@ -39,6 +39,20 @@ global:
   imagePullPolicy: Always
   #storageClass: aws-ebs
 
+  ## Configuration for running on Openshift
+  # openshift:
+  #   enabled: false
+
+  ## Configuration for ReadWriteMany
+  ## For fresh installs, you generally want rwx.enabled to be 'false' here.
+  ## For upgrades, you probably want rwx.enabled to be 'true' instead. For details, see:
+  ## https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html
+  # rwx:
+  #   enabled: false
+
+commands: {}
+# jit: "off"
+
 replicas: 1
 #databaseName: myDbName
 #port: 5432

@@ -1,0 +1,105 @@
+### Default values for the Example (example) Helm Chart.
+### This is a YAML-formatted file.
+### Declare variables to be passed into your templates.
+
+## Example specific options
+global:
+  enabled: true
+  enableNestedDependencies: false
+
+  ## Default image tag.
+  ## The version of container images for SDE to run
+  ## Ref: https://docs.sdelements.com
+  ##
+  # imageTag: latest
+
+  ## Provide a name in place of `sde` for `app:` labels
+  ##
+  #nameOverride: ""
+
+  ## Provide a name to substitute for the full names of resources
+  ##
+  #fullnameOverride: ""
+
+  ## Configuration options and crentials to fetch images from private
+  ## registries/repositories. These are provided by SDElements support staff on
+  ## request upon purchase of the SDElements product.
+  ##
+  imageRegistry: docker.sdelements.com
+  #imageRegistry: docker-dev.sdelements.com
+
+  # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
+  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
+  # docker-dev.sdelements.com / dev _ (sde/3rd) / cert-creator : latest
+  #imageRegistryFormat: "%s/%s_%s/%s:%s"
+  imageRegistryFormat: "%s/%s-%s-%s:%s"
+  #imageRegistryUsername: acmecorp
+  #imageRegistryPassword: SuperSecretPassword
+  imageOrganization: default_organization
+  #imageOrganization: dev
+  imagePullPolicy: IfNotPresent
+  imageSource: sde
+
+  ## Configuration for running on Openshift
+  # openshift:
+  #   enabled: false
+
+replicas: 1
+#port: 25 # this defines the service port
+#imageTag: latest
+#imagePullPolicy: Always
+#imageSource: dccsr
+#imageName: exim
+## Container options
+#resources: {}
+
+# Container specific values
+config:
+  # Optional
+  #smartHostType: SMARTHOST # type is either SES, GMAIL, or SMARTHOST
+  #smartHostUser: ""
+  #smartHostPassword: ""
+  #smartHostPort: 25
+  #smartHostRegion: us-east-1 # required if using SES type
+  #smartHostAddress: relay.mydomain.com # required if using SMARTHOST type
+  #smartHostAliases: "" # - format: "alias1:user:password,alias2:user:password"
+
+  tls: {}
+  #  enabled: false
+  #  tlsKey:
+  #  tlsCertificate:
+  #  tlsKeyPath: /path/to/tls/key
+  #  tlsCertificatePath: /path/to/tls/cert
+  #  mountPath: /etc/exim4
+
+  #useSplitConfiguration: false
+
+  mailFrom: noreply@sdelements.com
+  #localDomains: "@"
+  #localPort: "8025"
+  #disableIpv6: "true"
+  #relayNetworks: "10.0.0.0/8:172.16.0.0/12:192.168.0.0/16:10.1.3.0/24"
+  #relayDomains: "localdomain"
+  #mailHostName: ""
+  #otherHostnames: ""
+
+# These settings are for the exim service
+service:
+  type: ClusterIP
+  port: 25
+
+createServiceAccount: true
+#serviceAccountName:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+securityContext: {}
+  #capabilities:
+  #  drop:
+  #  - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 101
+  # runAsGroup: 101
+
+nodeSelector: {}

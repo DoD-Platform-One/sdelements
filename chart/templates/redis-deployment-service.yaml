@@ -46,6 +46,7 @@ spec:
         name: {{ $deploymentName | quote }}
         {{- include "library.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
         runAsUser: {{ $uid }}
@@ -58,6 +59,7 @@ spec:
         runAsUser: 0
         runAsGroup: 0
         {{- end }}
+      {{- end }}
       {{- if .Values.global.enableNodeSelector }}
       nodeSelector:
         customer_name: {{ printf "%v" .Release.Name | quote }}
@@ -91,6 +93,10 @@ spec:
             secretKeyRef:
               name: {{ $secretName | quote }}
               key: SDE_DATASTORE_PASSWORD
+        {{ if (.Values.global.openshift).enabled -}}
+        - name: SDE_OPENSHIFT_ENABLED
+          value: "true"
+        {{ end -}}
         ports:
         - containerPort: {{ int $port }}
         {{- if .Values.datastore.resources }}

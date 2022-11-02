@@ -1,4 +1,7 @@
-{{ if .Values.istio.enabled }}
+{{- $destinationHost := printf "%v-%v-%v.%v.%v" ( include "library.trimmedName" . ) "web" "service" .Release.Namespace "svc.cluster.local" -}}
+{{- $httpsPort := default 9443 .Values.web.httpsPort -}}
+---
+{{- if ((.Values.istio).enabled) }}
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
@@ -6,7 +9,7 @@ metadata:
   labels:
     {{- include "library.labels" . | nindent 4 }}
 spec:
-  host: sdelements-web-service.sdelements.svc.cluster.local
+  host: {{ $destinationHost | quote }}
   trafficPolicy:
     tls:
       mode: SIMPLE
@@ -33,5 +36,5 @@ spec:
     - destination:
         host: {{ .Release.Name }}-web-service
         port:
-          number: 9443
+          number: {{ $httpsPort }}
 {{- end }}

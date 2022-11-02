@@ -10,7 +10,6 @@
 {{- $fsgid := default 33 .Values.web.fsgid -}}
 {{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "web" -}}
 {{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "web" "service" -}}
-{{- $pcaIngressName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "pca" "ingress" -}}
 {{- $httpPort := default 9080 .Values.web.httpPort -}}
 {{- $httpsPort := default 9443 .Values.web.httpsPort -}}
 {{- $jittHttpsPort := include "jittHttpsPort" . -}}
@@ -28,15 +27,11 @@
 {{- $webTlsSecretName :=  ternary ( printf "%v-tls-web-custom-secret" ( include "library.trimmedName" . )) ( include "tlsSecretName" ( mergeOverwrite . (dict "serviceName" "web-server") )) $hasCustomCerts -}}
 
 {{- $root := . -}}
-{{- $staticClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "static-volume-claim" -}}
+{{- $rwxEnabled := required "For this release, global.rwx.enabled must be set. See https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html for details." (.Values.global.rwx).enabled -}}
 {{- $mediaClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "media-volume-claim" -}}
 {{- $mapName := printf "%v-%v" .Release.Name "nginx-resources" -}}
 {{- $jittEnabled := default false .Values.sde.enableJITT -}}
 {{- $pasEnabled := default false .Values.global.pas.enabled -}}
-{{- $pcaEnabled := default false ( index .Values "sde-pca" "enable" ) -}}
-{{- $pcaServiceName := default ( printf "%v-%v-%v" ( include "library.trimmedName" . ) "pca" "service" ) ( index .Values "sde-pca" "serviceName" ) -}}
-{{- $pcaHttpPort := default 8001 ( index .Values "sde-pca" "httpPort" ) -}}
-{{- $pcaHttpPath := default "pca" ( index .Values "sde-pca" "httpPath" ) -}}
 {{- $reportingEnabled := include "reportingEnabled" . -}}
 {{- $reportingPort := include "reportingPort" . -}}
 {{- $reportingScheme := ternary "https" "http" $enableInternalTls -}}
@@ -64,6 +59,7 @@ spec:
         name: {{ $deploymentName | quote }}
         {{- include "library.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
         runAsUser: {{ $uid }}
@@ -76,6 +72,7 @@ spec:
         runAsUser: 0
         runAsGroup: 0
         {{- end }}
+      {{- end }}
       {{- if .Values.global.enableNodeSelector }}
       nodeSelector:
         customer_name: {{ printf "%v" ( include "library.trimmedName" . ) | quote }}
@@ -85,6 +82,16 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        {{- if ((.Values.web.readinessProbe).enabled) }}
+        readinessProbe:
+          timeoutSeconds: {{ default 3 .Values.web.readinessProbe.timeoutSeconds }}
+          initialDelaySeconds: {{ default 5 .Values.web.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default 5 .Values.web.readinessProbe.periodSeconds }}
+          httpGet:
+            path: {{ default "/404.html" .Values.web.readinessProbe.path | quote }}
+            port: {{ default 9443 $httpsPort }}
+            scheme: {{ default "HTTPS" .Values.web.readinessProbe.scheme | quote }}
+        {{- end }}
         args:
         - /bin/bash
         - -c
@@ -118,11 +125,9 @@ spec:
         - name: NGINX_PAS_PATH
           value: {{ $pasPath | quote }}
         {{- end }}
-        {{- if $pcaEnabled }}
-        - name: NGINX_PCA_PATH
-          value: {{ $pcaHttpPath | quote }}
-        - name: NGINX_PCA_BACKEND_URL
-          value: {{ printf "%v-%v-%v:%v" ( include "library.trimmedName" . ) "pca" "service" $pcaHttpPort | quote }}
+        {{- if (.Values.global.openshift).enabled }}
+        - name: SDE_OPENSHIFT_ENABLED
+          value: "true"
         {{- end }}
         - name: NGINX_REPORTING_INCLUDE_CONF
           value: {{ eq $reportingEnabled "true" | ternary "include reporting/*.conf;" "" | quote }}
@@ -130,10 +135,8 @@ spec:
           value: {{ $reportingBackendUrl | quote }}
         - name: NGINX_REPORTING_PATH
           value: {{ default "cubejs-api" .Values.web.reportingPath | quote }}
-        - name: NGINX_PCA_INCLUDE_CONF
-          value: {{ ternary "include pca/*.conf;" "" $pcaEnabled | quote }}
         - name: NGINX_JITT_TRY_FILES
-          value: {{ ternary "try_files $uri @jitt;" "" $jittEnabled | quote }}
+          value: {{ ternary "error_page 404 =200 @jitt; proxy_intercept_errors on;" "" $jittEnabled | quote }}
         - name: NGINX_JITT_INCLUDE_CONF
           value: {{ ternary "include jitt/*.conf;" "" $jittEnabled | quote }}
         - name: NGINX_PAS_INCLUDE_CONF
@@ -156,8 +159,10 @@ spec:
           value: {{ default "2" .Values.web.workerProcesses | quote }}
         - name: NGINX_WORKER_RLIMIT_NOFILE
           value: {{ default 1024 .Values.web.rlimitNofile | quote }}
-        - name: WEBPACK_BUNDLES_PATH
-          value: {{ default "/static/bundles" .Values.web.staticRoot | quote }}
+        - name: NGINX_CLIENT_MAX_BODY_SIZE
+          value: {{ default "10m" .Values.web.clientMaxBodySize | quote }}
+        - name: NGINX_STATIC_ACCESS_LOG
+          value: {{ default "off" .Values.web.staticAccessLog | quote }}
         ports:
         - containerPort: {{ int $httpPort }}
         - containerPort: {{ int $httpsPort }}
@@ -176,12 +181,11 @@ spec:
         - mountPath: /run/nginx
           name: nginx
           readOnly: true
-        - mountPath: {{ default "/static" .Values.web.staticRoot }}
-          name: static
-          readOnly: true
+        {{- if $rwxEnabled }}
         - mountPath: {{ default "/media" .Values.web.mediaRoot }}
           name: media
           readOnly: true
+        {{- end }}
         - mountPath: {{ $tlsRoot }}
           name: tls
           readOnly: true
@@ -210,9 +214,9 @@ spec:
           - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-static/"  ) | replace "/" "_" }}
             path: {{ toString $path | trimPrefix "files-static/" | quote }}
           {{- end }}
-          # jitt/pca/pas
+          # jitt/pas
           {{- range $path, $bytes := .Files.Glob "files-static/*/*.conf" }}
-          {{- if ( or ( and (contains "jitt" $path) $jittEnabled ) ( and (contains "pca" $path) $pcaEnabled ) (and (contains "pas" $path) $pasEnabled)) }}
+          {{- if ( or ( and (contains "jitt" $path) $jittEnabled ) (and (contains "pas" $path) $pasEnabled)) }}
           - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-static/"  ) | replace "/" "_" }}
             path: {{ toString $path | trimPrefix "files-static/" | quote }}
           {{- end }}
@@ -227,14 +231,12 @@ spec:
         secret:
           secretName: {{ $webTlsSecretName }}
           defaultMode: 0400
-      - name: static
-        persistentVolumeClaim:
-          claimName: {{ $staticClaimName | quote }}
-          readOnly: true
+      {{- if $rwxEnabled }}
       - name: media
         persistentVolumeClaim:
           claimName: {{ $mediaClaimName | quote }}
           readOnly: true
+      {{- end }}
 status: {}
 ---
 apiVersion: v1

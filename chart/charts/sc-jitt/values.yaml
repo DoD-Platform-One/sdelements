@@ -37,6 +37,11 @@ global:
   useStandalone: true
   enableNestedDependencies: false
 
+  ## Configuration for running on Openshift
+  # openshift:
+  #   enabled: false
+
+
 
 # imageTag: jitt
 # imagePullPolicy: Always

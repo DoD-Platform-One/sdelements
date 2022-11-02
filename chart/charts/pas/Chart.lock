@@ -7,15 +7,15 @@ dependencies:
   version: 0.0.1
 - name: pas-api
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.2.1
+  version: 1.5.1
 - name: pas-plugin-worker
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.2.1
+  version: 1.5.1
 - name: pas-async-worker
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.2.1
+  version: 1.5.1
 - name: pas-frontend
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.2.1
-digest: sha256:20463fbce118d3b8a70e8c080777dd45b4ee493b16540c92e3af53d18eace5a4
-generated: "2021-11-16T17:44:39.391150939Z"
+  version: 1.5.1
+digest: sha256:302d37f2582d1f22987fab7d2646ee2636ff0cf59fdfeee900ae23013a06cbd2
+generated: "2022-08-04T18:41:06.988892554Z"

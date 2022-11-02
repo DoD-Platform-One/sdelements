@@ -16,7 +16,6 @@ Expects a dict input with root/dot keys with context
 {{- $imageName := default "web-dynamic" $root.Values.worker.imageName -}}
 {{- $imageTag := default ( default $root.Chart.AppVersion $root.Values.global.imageTag ) ( default $root.Values.worker.imageTag $dot.imageTag ) | toString -}}
 {{- $releaseName := printf "%v-job-%v" ( include "library.trimmedName" $root | trunc 10 ) $jobName | trimSuffix "-" -}}
-{{- $haystackClaimName := printf "%v-%v" $root.Release.Name "haystack-volume-claim" -}}
 {{- $uid := default 33 $root.Values.worker.uid -}}
 {{- $gid := default 33 $root.Values.worker.gid -}}
 {{- $fsgid := default 33 $root.Values.worker.fsgid }}
@@ -60,6 +59,7 @@ spec:
             app: {{ $releaseName }}
             cron: {{ $releaseName }}
         spec:
+          {{- if not ((.Values.global.openshift).enabled) }}
           securityContext:
             {{- if not $root.Values.global.runAsRoot }}
             runAsUser: {{ $uid }}
@@ -72,6 +72,7 @@ spec:
             runAsUser: 0
             runAsGroup: 0
             {{- end }}
+          {{- end }}
           initContainers:
           - name: {{ printf "%v-%v" $releaseName "sleep" | quote }}
             image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
@@ -106,10 +107,6 @@ spec:
               allowPrivilegeEscalation: false
             {{- end }}
             volumeMounts:
-            {{- if regexMatch "-index" $releaseName }}
-            - mountPath: {{ default "/index" $root.Values.worker.indexMountPath | quote }}
-              name: haystack
-            {{- end }}
             {{- if $enableInternalTls }}
             - mountPath: {{ printf "%v/%v" $tlsRoot "datastore" | quote }}
               name: tls-datastore
@@ -140,11 +137,6 @@ spec:
           imagePullSecrets:
           - name: security-compass-secret
           volumes:
-          {{- if regexMatch "-index" $releaseName }}
-          - name: haystack
-            persistentVolumeClaim:
-              claimName: {{ $haystackClaimName | quote }}
-          {{- end }}
           {{- if $enableInternalTls }}
           - name: tls-datastore
             secret:

@@ -84,6 +84,29 @@ global:
       #password:
       #secretName:
       #passwordSecretKey:
+    # PAS S3 config
+    sharedStorage: {}
+      #secretName:
+      # Name of secret key for Access Key Id
+      #accessKeyIdSecretKey: PAS_S3_ACCESS_KEY
+      # Name of secret key for Secret Access Key
+      #secretAccessKeySecretKey: PAS_S3_SECRET_ACCESS_KEY
+      # S3 Bucket name for PAS
+      #bucketName: "pas"
+      # S3 URL for API Endpoint
+      #s3Url:
+      # S3 bucket subpath
+      #s3BucketPath:
+      # AWS region (if applicable)
+      #region: "ca-central-1"
+      # Maximum number of retries for initialization
+      #initMaxRetryAttempts: 5
+      # Number of seconds in between retries for initializaiton
+      #initRetrySleepDuration: 5
+      # Boolean representing whether to use SSL or not
+      #useSsl: "true"
+      # Boolean representing whether to verify SSL certs or not
+      #verifyCerts: "true"
 
   database: {}
     #adminClientUser: sde
@@ -94,11 +117,55 @@ global:
     #adminClientUser: sde
     #adminVhost: sde
 
+  # S3 config from SDE
+  sharedStorage: {}
+    #secretName:
+    # Name of secret key for Access Key Id
+    #accessKeyIdSecretKey: PAS_S3_ACCESS_KEY
+    # Name of secret key for Secret Access Key
+    #secretAccessKeySecretKey: PAS_S3_SECRET_ACCESS_KEY
+    # S3 Bucket name for PAS
+    #bucketName: "pas"
+    # S3 URL for API Endpoint
+    #s3Url: "https://my-bucket.s3.us-west-2.amazonaws.com/"
+    # S3 bucket subpath
+    #s3BucketPath: "/path/to/storage/in/bucket/
+    #s3AccessKey: "accesskey"
+    #s3SecretKey: "secretKey"
+
+  ## Configuration for Sentry
+  # sentry:
+  #   enabled: false
+  #   environment: develop
+  #   sampleRate: 0.1
+  #   traceSampleRate: 0.1
+
+  ## Configuration for running on Openshift
+  # openshift:
+  #   enabled: false
+
 sc-database: {}
   #secretName:
 
 sc-broker: {}
   #secretName:
+
+minio:
+  enabled: false
+  mode: standalone
+  persistence:
+    size: 8Gi
+  resources:
+    requests:
+      memory: 256Mi
+  # The bucket name should match what you've defined in global.sharedStorage.bucketName
+  buckets:
+    - name: plugin
+      policy: none
+      purge: false
+  serviceAccount:
+    create: true
+    name: "minio-sa"
 
 ## Chart Configuration
 # Include database subchart in deployment
@@ -107,6 +174,8 @@ useDatabaseSubchart: true
 useBrokerSubchart: true
 # Include SDE secret definition
 includeSDESecret: true
+
+useLocalDevDbConfig: true
 
 ## PAS API container configuration
 #imageName: pas-api
@@ -125,11 +194,15 @@ sdeAPIServiceMethod: http
 #workerCount: 4
 # Gunicorn log level
 #gunicornLogLevel: info
-#customPluginVolumeSize: 2Gi
 
 ## PAS init container configuration
 #initImageName: pas-app-init
 #initImageTag: <App Version>
+
+## User/Group options
+# uid: 999
+# gid: 999
+# fsgid: 999
 
 # PAS Init container config
 admin:
@@ -165,3 +238,32 @@ sde:
   broker: {}
     #secretName:
     #passwordSecretKey:
+
+# PAS API service S3 config
+sharedStorage: {}
+  # Name of secret key for Access Key Id
+  #accessKeyIdSecretKey: PAS_S3_ACCESS_KEY
+  # Name of secret key for Secret Access Key
+  #secretAccessKeySecretKey: PAS_S3_SECRET_ACCESS_KEY
+  # S3 Bucket name for PAS
+  #bucketName:
+  # S3 bucket subpath
+  #s3BucketPath:
+  # AWS region (if applicable)
+  #region:
+  # Maximum number of retries for initialization
+  #initMaxRetryAttempts: 5
+  # Number of seconds in between retries for initializaiton
+  #initRetrySleepDuration: 5
+  # Boolean representing whether to use SSL or not
+  #useSsl:
+  # Boolean representing whether to verify SSL certs or not
+  #verifyCerts:
+
+## Configuration for Sentry
+# sentry:
+#   enabled: false
+#   dsn: https://xxxxxx.ingest.sentry.io/000000
+#   environment: develop
+#   sampleRate: 0.1
+#   traceSampleRate: 0.1

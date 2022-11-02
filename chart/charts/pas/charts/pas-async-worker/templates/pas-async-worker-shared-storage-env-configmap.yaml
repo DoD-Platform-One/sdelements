@@ -1,0 +1,45 @@
+{{- $tlsEnabled := default ( default "true" .Values.global.pas.sharedStorage.useSsl ) .Values.sharedStorage.useSsl -}}
+{{- $storageHost := printf "%v-%v" ( include "library.trimmedName" . ) "minio" -}}
+{{- $storagePort := 9000 -}}
+{{- $storageUrl := printf "%v://%v:%v" (ternary "https" "http" ( eq $tlsEnabled "true" )) $storageHost $storagePort -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-shared-storage-env-configmap
+  labels:
+    {{ include "library.labels" . | nindent 4 }}
+data:
+  S3_REGION: {{ default ( default "us-east-1" .Values.global.pas.sharedStorage.region ) .Values.sharedStorage.region | quote }}
+  S3_INIT_MAX_RETRY_ATTEMPTS: {{ default ( default 5 .Values.global.pas.sharedStorage.initMaxRetryAttempts ) .Values.sharedStorage.initMaxRetryAttempts | quote }}
+  S3_INIT_RETRY_SLEEP_DURATION: {{ default ( default 5 .Values.global.pas.sharedStorage.initRetrySleepDuration ) .Values.sharedStorage.initRetrySleepDuration | quote }}
+  S3_USE_SSL: {{ default ( default "true" .Values.global.pas.sharedStorage.useSsl ) .Values.sharedStorage.useSsl | quote }}
+  S3_VERIFY_CERTS: {{ default ( default "true" .Values.global.pas.sharedStorage.verifyCerts ) .Values.sharedStorage.verifyCerts | quote }}
+
+  {{- if .Values.sharedStorage.bucketName }}
+  S3_BUCKET_NAME: {{ .Values.sharedStorage.bucketName | quote }}  # individual service override
+  {{- else if .Values.global.pas.sharedStorage.bucketName }}
+  S3_BUCKET_NAME: {{ .Values.global.pas.sharedStorage.bucketName | quote }}  # PAS override
+  {{- else if .Values.global.sharedStorage.bucketName }}
+  S3_BUCKET_NAME: {{ .Values.global.sharedStorage.bucketName | quote }}  # Solution override
+  {{- else }}
+  S3_BUCKET_NAME: ""
+  {{- end }}
+
+  {{- if .Values.sharedStorage.s3Url }}
+  S3_BUCKET_URL: {{ .Values.sharedStorage.s3Url | quote }}  # individual service override
+  {{- else if .Values.global.pas.sharedStorage.s3Url }}
+  S3_BUCKET_URL: {{ .Values.global.pas.sharedStorage.s3Url | quote }}  # PAS override
+  {{- else if .Values.global.sharedStorage.s3Url }}
+  S3_BUCKET_URL: {{ .Values.global.sharedStorage.s3Url | quote }}  # Solution override
+  {{- else }}
+  S3_BUCKET_URL: {{ $storageUrl }}
+  {{- end }}
+
+  {{- if .Values.sharedStorage.s3BucketPath }}
+  S3_BUCKET_SUBPATH: {{ .Values.sharedStorage.s3BucketPath | quote }}  # individual service override
+  {{- else if .Values.global.pas.sharedStorage.s3BucketPath }}
+  S3_BUCKET_SUBPATH: {{ .Values.global.pas.sharedStorage.s3BucketPath | quote }}  # PAS override
+  {{- else }}
+  S3_BUCKET_SUBPATH: "pas"
+  {{- end }}

@@ -1,0 +1,8 @@
+{{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "minio" "service" -}}
+{{- $minioEnabled := default false .Values.minio.enabled -}}
+{{- $tlsAutogenEnabled := default true .Values.minio.tlsCreateSelfSigned -}}
+---
+{{- if and $minioEnabled $tlsAutogenEnabled }}
+{{ $ca := genCA "minio-ca" 3650 }}
+{{ dict "root" . "serviceName" "minio-server" "ca" $ca | include "sde.certs" }}
+{{- end }}
