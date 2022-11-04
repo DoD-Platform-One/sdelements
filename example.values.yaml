@@ -6,7 +6,7 @@ global:
   imagePullPolicy: Always
   imageOrganization: ironbank/security-compass
   imageSource: sd-elements
-  imageTag: 2022.2.68
+  imageTag: 2022.2.71
   storageClass: gp2 # Should be any RWO storageclass with dynamic provisioning, if possible
   sharedStorage:
     bucketName: <NAME-OF-THE-BUCKET>
@@ -34,7 +34,7 @@ sc-jitt:
   replicas: 1
   imageSource: jitt
   imageName: nginx
-  imageTag: 2022.2.7
+  imageTag: 2022.2.8
   uid: 998
   gid: 996
   fsgid: 49
@@ -50,7 +50,7 @@ sc-broker:
   fsgid: 1000
 sc-database:
   replicas: 1
-  imageTag: "12.9"
+  imageTag: "12.12"
   clientPassword: <YOUR-DATABASE-PASSWORD>
   uid: 26
   gid: 26
@@ -67,7 +67,7 @@ worker:
 reporting:
   enabled: true
   imageName: reporting
-  imageTag: 2022.2.68
+  imageTag: 2022.2.71
   imagePullPolicy: Always
   enableTls: true
   uid: 1001
