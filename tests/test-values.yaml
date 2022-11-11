@@ -1,0 +1,125 @@
+global:
+  registrySecretName: private-registry
+  imageRegistryUsername: username
+  imageRegistryPassword: password
+  imageRegistry: registry1.dso.mil
+  imageRegistryFormat: "%s/%s/%s/%s:%s"
+  imagePullPolicy: Always
+  imageOrganization: ironbank/security-compass
+  imageSource: sd-elements
+  imageTag: 2022.2.71
+  sharedStorage:
+    bucketName: sde-bucket        # If using MinIO, ensure value matches a bucket in `minio` section
+    s3Url: http://sdelements-minio:9000/
+    s3AccessKey: accesskey    # If using MinIO, ensure value matches `accessKey` in `minio` section
+    s3SecretKey: secretkey    # If using MinIO, ensure value matches `secretKey` in `minio` section
+  rwx:
+    enabled: false
+  nginxIngress:
+    enabled: false # This will stop the creation of an Ingress resource, which isn't required when using Istio.
+sde:
+  fqdn: sdelements.bigbang.dev
+  jwtSecret: jwtsecret
+  secretKey: secretkey
+  superuserPassword: password
+  enableJITT: false
+web:
+  replicas: 1
+  imageName: nginx
+  imageTag: 12.5
+  uid: 998
+  gid: 996
+  fsgid: 49
+sc-jitt:
+  replicas: 1
+  imageSource: jitt
+  imageName: nginx
+  imageTag: 2022.2.8
+  uid: 998
+  gid: 996
+  fsgid: 49
+sc-broker:
+  replicas: 1
+  imageName: rabbitmq38
+  imageOrganization: ironbank/pivotal
+  imageTag: v3.8.35
+  imageSource: rabbitmq
+  clientPassword: password
+  uid: 1000
+  gid: 100
+  fsgid: 1000
+sc-database:
+  replicas: 1
+  imageTag: "12.12"
+  clientPassword: password
+  uid: 26
+  gid: 26
+  fsgid: 26
+sc-mail:
+  imageName: exim
+  imageTag: "1.0"
+worker:
+  imageName: mod_wsgi
+  imageTag: 2022.2.68
+  uid: 48
+  gid: 48
+  fsgid: 49
+reporting:
+  enabled: true
+  imageName: reporting
+  imageTag: 2022.2.71
+  imagePullPolicy: Always
+  enableTls: true
+  uid: 1001
+  gid: 1001
+  nginxuid: 998
+  nginxgid: 996
+  replicas: 1
+datastore:
+  clientPassword: password
+  initImageSource: sd-elements
+  initImageName: openssl
+  initImageTag: 1.1
+  imageOrganization: ironbank/opensource
+  initImageOrganization: ironbank/security-compass
+  imageSource: redis
+  imageName: redis6
+  imageTag: 6.2.7
+  uid: 1001
+  gid: 1001
+  fsgid: 1001
+  replicas: 1
+# The settings below are for adjusting the big bang customizations
+istio:
+  enabled: false
+  gateways:
+    - istio-system/public
+  host: sdelements.bigbang.dev
+efsVolumes:
+  enabled: false
+networkPolicies:
+  enabled: false
+minio:
+  image:
+    repository: registry1.dso.mil/ironbank/opensource/minio/minio
+    tag: RELEASE.2022-11-08T05-27-07Z
+  mcImage:
+    repository: registry1.dso.mil/ironbank/opensource/minio/mc
+    tag: RELEASE.2022-11-07T23-47-39Z
+  configPathmc: "/tmp/minio/mc/"
+  extraEnvVars:
+    - name: MINIO_CLIENT_CONFIG_DIR
+      value: "/.mc"
+  enabled: true
+  rootUser: admin
+  rootPassword: password
+  tls:
+    enabled: false
+  buckets:
+    - name: sde-bucket            # should match global.sharedStorage.bucketName
+      policy: none
+      purge: false
+  users:
+    - accessKey: accesskey    # should match global.sharedStorage.s3AccessKey
+      secretKey: secretkey    # should match global.sharedStorage.s3SecretKey
+      policy: readwrite
