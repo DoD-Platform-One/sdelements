@@ -107,6 +107,17 @@ global:
       #useSsl: "true"
       # Boolean representing whether to verify SSL certs or not
       #verifyCerts: "true"
+    # PAS Datastore settings
+    datastore: { }
+      # Datastore service name
+      #serviceName: datastore-service
+      # Datastore port
+      #port: 6379
+      #useSsl: false
+      # Datastore client username
+      #clientUsername:
+      # Datastore client password
+      #clientPassword:
 
   database: {}
     #adminClientUser: sde
@@ -132,6 +143,18 @@ global:
     #s3BucketPath: "/path/to/storage/in/bucket/
     #s3AccessKey: "accesskey"
     #s3SecretKey: "secretKey"
+
+  # Global datastore config
+  datastore: {}
+    # Datastore service name
+    #serviceName: datastore-service
+    # Datastore port
+    #port: 6379
+    #useSsl: false
+    # Datastore client username
+    #clientUsername:
+    # Datastore client password
+    #clientPassword:
 
   ## Configuration for Sentry
   # sentry:
@@ -172,6 +195,8 @@ minio:
 useDatabaseSubchart: true
 # Include broker subchart in deployment
 useBrokerSubchart: true
+# Include the datastore subchart in deployment
+useDatastoreSubchart: true
 # Include SDE secret definition
 includeSDESecret: true
 
@@ -185,6 +210,9 @@ useLocalDevDbConfig: true
 sdeAPIServiceMethod: http
 #sdeAPIServiceName: mock-sde
 #sdeAPIServicePort: 8000
+
+# URL for a supported result backend to override the default backend
+#resultBackend:
 
 # Name of queue to enqueue SDE jobs
 #sdeQueueName: celery
@@ -267,3 +295,40 @@ sharedStorage: {}
 #   environment: develop
 #   sampleRate: 0.1
 #   traceSampleRate: 0.1
+
+networkPolicies:
+  pas-api:
+    podSelector:
+      matchLabels:
+        name: "{{ include \"library.trimmedName\" . }}-pas-api"
+    ingress:
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-frontend"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-10"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-17"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-18-sde-low"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"
+        ports:
+          - port: '{{ index .Values "port" | default 8000 }}'

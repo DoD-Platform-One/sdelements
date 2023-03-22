@@ -87,6 +87,14 @@ global:
       #useSsl: "true"
       # Boolean representing whether to verify SSL certs or not
       #verifyCerts: "true"
+    # PAS Datastore settings
+    datastore:
+      # Service name if deployed in cluster
+      #serviceName: redis-master
+      # Hostname for external instance
+      #host:
+      #port: 6379
+      #useSsl: "false"
 
   broker: {}
     #adminClientUser: sde
@@ -123,6 +131,9 @@ useBrokerSubchart: true
 # Include shared storage subchart in deployment
 minio:
     enabled: false
+# Include datastore subchart in deployment
+datastore:
+    enabled: false
 
 ### PAS Plugin Service container configuration
 #imageName: pas-plugin-service
@@ -132,7 +143,7 @@ minio:
 ## Name of the celery queue to listen on
 #queueName: plugin_service_worker
 ## Celery result backend
-#resultBackend: rpc://
+resultBackend: rpc://
 ## Celery log level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL
 #celeryLogLevel: INFO
 ## Number of celery worker processes to launch
@@ -140,6 +151,8 @@ minio:
 ## Max number of celery tasks before recreating the worker.
 ## Lowering the amount can help keep memory usage lower over time.
 #celeryMaxTasksPerChild: 10
+## Number of seconds for a sync task to perform
+#syncTaskTimeoutSeconds: "1800"
 
 ## Username for broker user
 #brokerUser: pas
@@ -173,6 +186,11 @@ sharedStorage: {}
   #useSsl:
   # Boolean representing whether to verify SSL certs or not
   #verifyCerts:
+
+## User/Group options
+# uid: 999
+# gid: 101
+# fsgid: 101
 
 ## Configuration for Sentry
 # sentry:

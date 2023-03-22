@@ -8,7 +8,7 @@ Creates an Issuer and Certificate
 {{- define "library.certs.certManager" -}}
 {{- $root := get . "root" -}}
 {{- $primaryFqdn := default (get . "serviceName") ( get . "commonName" ) -}}
-{{- $alternateDnsNames := default ( list "" ) ( get . "alternateDnsNames" ) }}
+{{- $alternateDnsNames := default ( without ( list "" ) ( get . "alternateDnsNames" ) "" ) }}
 {{- $issuerName := default ( printf "issuer-%v" ( get . "serviceName" )) .issuerName -}}
 {{- $disableHelmHooks := default false $root.Values.global.disableHelmHooks -}}
 {{- $certType := (get . "certType") | toString }}

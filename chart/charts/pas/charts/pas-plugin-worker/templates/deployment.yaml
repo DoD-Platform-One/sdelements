@@ -5,6 +5,7 @@
 {{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" .Values.global.imageOrganization -}}
 {{- $imageSource := default ( default "sde" .Values.global.imageSource ) .Values.imageSource -}}
 {{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $contextDict := dict "root" . "dot" .Values -}}
 
 {{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "pas-plugin-worker" -}}
 ---
@@ -37,7 +38,7 @@ spec:
       {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
-        runAsUser: {{ default 100 .Values.uid }}
+        runAsUser: {{ default 999 .Values.uid }}
         runAsGroup: {{ default 101 .Values.gid }}
         {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
         fsGroupChangePolicy: "OnRootMismatch"
@@ -62,18 +63,23 @@ spec:
           - name: PLUGIN_SERVICE_BROKER_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ include "pas-plugin-worker.broker.secretName" (dict "root" . "dot" .Values) }}
-                key: {{ include "pas-plugin-worker.broker.passwordSecretKey" (dict "root" . "dot" .Values) }}
+                name: {{ include "pas-plugin-worker.broker.secretName" $contextDict }}
+                key: {{ include "pas-plugin-worker.broker.passwordSecretKey" $contextDict }}
+          - name: PLUGIN_SERVICE_RESULT_BACKEND
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-plugin-worker.broker.secretName" $contextDict }}
+                key: {{ include "pas-plugin-worker.broker.resultBackendKey" $contextDict }}
           - name: S3_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
-                name: {{ include "pas-plugin-worker.sharedStorage.secretName" (dict "root" . "dot" .Values) }}
-                key: {{ include "pas-plugin-worker.sharedStorage.accessKeyIdSecretKey" (dict "root" . "dot" .Values) }}
+                name: {{ include "pas-plugin-worker.sharedStorage.secretName" $contextDict }}
+                key: {{ include "pas-plugin-worker.sharedStorage.accessKeyIdSecretKey" $contextDict }}
           - name: S3_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ include "pas-plugin-worker.sharedStorage.secretName" (dict "root" . "dot" .Values) }}
-                key: {{ include "pas-plugin-worker.sharedStorage.secretAccessKeySecretKey" (dict "root" . "dot" .Values) }}
+                name: {{ include "pas-plugin-worker.sharedStorage.secretName" $contextDict }}
+                key: {{ include "pas-plugin-worker.sharedStorage.secretAccessKeySecretKey" $contextDict }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always

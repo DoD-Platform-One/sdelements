@@ -1,31 +1,24 @@
 # SD Elements
 
-![Version: 2022.2.71-bb.1](https://img.shields.io/badge/Version-2022.2.71--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2022.2.71](https://img.shields.io/badge/AppVersion-2022.2.71-informational?style=flat-square)
+![Version: 2022.4.33-bb.1](https://img.shields.io/badge/Version-2022.4.33--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2022.4.33](https://img.shields.io/badge/AppVersion-2022.4.33-informational?style=flat-square)
 
 SDElements by Security Compass Ltd.
 
 ## Learn More
-* [User Guide](https://docs.sdelements.com/release/2022.2/guide/)
-* [Container Sysadmin Documentation](https://docs.sdelements.com/release/2022.2/sysadmin/docs/container/)
+* [User Guide](https://docs.sdelements.com/release/2022.4/guide/)
+* [Container Sysadmin Documentation](https://docs.sdelements.com/release/2022.4/sysadmin/docs/container/)
 
 ## Pre-Requisites
 
+* _NEW in 2022.4_: A pre-existing S3 API compatible bucket (AWS S3, minio, etc) with Access Key and Secret Key credentials populated under `global.SharedStorage`
 * _NEW in 2022.2_: A pre-existing S3 API compatible bucket (AWS S3, minio, etc) with Access Key and Secret Key credentials populated under `global.SharedStorage`
-* Kubernetes v1.18 or newer deployed
+* Kubernetes v1.19 or newer deployed
 * Kubernetes config installed in `~/.kube/config`
 * Helm 3.2, or an alternative method of parsing and deploying a helm v3 chart
 * An ingress controller or load balancer that allows external clients to reach the SD Elements web deployment
 * Name resolution both within the Kubernetes cluster and for endpoints outside of it
 * Access to IronBank for pulling our images
-
-## BigBang Modifications
-
-- Bigbang Additions
-  - Istio resources
-    - `virtualservice`
-    - `destinationRule`
-  - NetworkPolicies
-  - EFS volumes (no longer required as of 2022.2 release, if `global.rwx.enabled=false`)
+* A storage class must be configured for dynamic Persistent Volume allocation
 
 ## Installation
 
@@ -54,7 +47,7 @@ helm list -n "${namespace}"
 
 ## Upgrading
 
-Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2022.2/sysadmin/docs/container/upgrade.html)
+Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2022.4/sysadmin/docs/container/upgrade.html)
 
 ## Values
 

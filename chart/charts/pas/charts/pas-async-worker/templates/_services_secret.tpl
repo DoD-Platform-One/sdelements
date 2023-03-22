@@ -11,6 +11,12 @@
 {{- (default ( default "ADMIN_BROKER_PASSWORD" $root.Values.global.pas.broker.passwordSecretKey ) $dot.broker.passwordSecretKey) -}}
 {{- end -}}
 
+{{- define "pas-async-worker.broker.resultBackendKey" -}}
+{{- $root := (get . "root") -}}
+{{- $dot := (get . "dot") -}}
+{{- (default ( default "PAS_BROKER_RESULT_BACKEND" $root.Values.global.pas.broker.resultBackendKey ) $dot.broker.resultBackendKey) -}}
+{{- end -}}
+
 {{- define "pas-async-worker.database.secretName" -}}
 {{- $root := (get . "root") -}}
 {{- $dot := (get . "dot") -}}

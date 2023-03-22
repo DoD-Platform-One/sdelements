@@ -61,3 +61,16 @@ global:
 #   environment: develop
 #   sampleRate: 0.1
 #   traceSampleRate: 0.1
+
+networkPolicies:
+  pas-frontend:
+    podSelector:
+      matchLabels:
+        name: "{{ include \"library.trimmedName\" . }}-pas-frontend"
+    ingress:
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-web"
+        ports:
+          - port: '{{ index .Values "port" | int | default 8081 }}'

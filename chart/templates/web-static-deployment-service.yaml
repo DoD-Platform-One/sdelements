@@ -27,8 +27,6 @@
 {{- $webTlsSecretName :=  ternary ( printf "%v-tls-web-custom-secret" ( include "library.trimmedName" . )) ( include "tlsSecretName" ( mergeOverwrite . (dict "serviceName" "web-server") )) $hasCustomCerts -}}
 
 {{- $root := . -}}
-{{- $rwxEnabled := required "For this release, global.rwx.enabled must be set. See https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html for details." (.Values.global.rwx).enabled -}}
-{{- $mediaClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "media-volume-claim" -}}
 {{- $mapName := printf "%v-%v" .Release.Name "nginx-resources" -}}
 {{- $jittEnabled := default false .Values.sde.enableJITT -}}
 {{- $pasEnabled := default false .Values.global.pas.enabled -}}
@@ -181,11 +179,6 @@ spec:
         - mountPath: /run/nginx
           name: nginx
           readOnly: true
-        {{- if $rwxEnabled }}
-        - mountPath: {{ default "/media" .Values.web.mediaRoot }}
-          name: media
-          readOnly: true
-        {{- end }}
         - mountPath: {{ $tlsRoot }}
           name: tls
           readOnly: true
@@ -231,12 +224,6 @@ spec:
         secret:
           secretName: {{ $webTlsSecretName }}
           defaultMode: 0400
-      {{- if $rwxEnabled }}
-      - name: media
-        persistentVolumeClaim:
-          claimName: {{ $mediaClaimName | quote }}
-          readOnly: true
-      {{- end }}
 status: {}
 ---
 apiVersion: v1

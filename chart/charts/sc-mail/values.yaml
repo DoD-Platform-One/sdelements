@@ -103,3 +103,22 @@ securityContext: {}
   # runAsGroup: 101
 
 nodeSelector: {}
+
+networkPolicies:
+  mailer:
+    podSelector:
+      matchLabels:
+        name: "{{ include \"library.trimmedName\" . }}-mailer"
+    ingress:
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-18-sde-low"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"
+        ports:
+          - port: '{{ index .Values "localPort" | int | default 8025 }}'

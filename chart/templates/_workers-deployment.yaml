@@ -23,11 +23,9 @@ Enables creation of an arbitrary number of configurable/programmable SDE workers
 {{- $releaseName :=  printf "%v-%v" ( include "library.trimmedName" $root ) $deploymentName -}}
 {{- $customerName :=  printf "%v" ( include "library.trimmedName" $root ) -}}
 {{- $appStateChange := ternary true false (or $root.Release.IsUpgrade $root.Release.IsInstall) -}}
-{{- $mediaClaimName := printf "%v-%v" ( include "library.trimmedName" $root ) "media-volume-claim" -}}
 
 # featureFlag
 {{- $enableWorkerDatabaseAffinity := default false $root.Values.global.enableWorkerDatabaseAffinity -}}
-{{- $rwxEnabled := required "For this release, global.rwx.enabled must be set. See https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html for details." ($root.Values.global.rwx).enabled -}}
 {{- $sentryEnabled := default false (eq (($root.Values.worker.sentry).enabled | toString) "<nil>" | ternary ($root.Values.global.sentry).enabled ($root.Values.worker.sentry).enabled) -}}
 
 # ssl variables
@@ -114,21 +112,6 @@ spec:
       nodeSelector:
         customer_name: {{ printf "%v" ( include "library.trimmedName" $dot ) | quote }}
       {{- end }}
-      {{- if $rwxEnabled }}
-      {{- if not ((.Values.global.openshift).enabled) }}
-      initContainers:
-      - name: {{ printf "%v-%v" $releaseName "prep" | quote }}
-        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
-        imagePullPolicy: {{ $imagePullPolicy }}
-        command: ['/bin/bash', '-c', 'set -x && if [[ "$(stat --print "%u:%g " /media)" != "{{ $uid }}:{{ $gid }} {{ $uid }}:{{ $gid }} " ]]; then chown --changes --recursive {{ $uid }}:{{ $gid }} /media || echo "Could not modify or /media permissions"; fi' ]
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
-        volumeMounts:
-        - mountPath: {{ default "/media" $root.Values.worker.mediaRoot | quote  }}
-          name: media
-      {{- end }}
-      {{- end }}
       containers:
       - name: {{ $releaseName | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
@@ -188,10 +171,6 @@ spec:
         resources: {}
         {{- end }}
         volumeMounts:
-        {{- if $rwxEnabled }}
-        - mountPath: {{ default "/media" $root.Values.worker.mediaRoot | quote  }}
-          name: media
-        {{- end }}
         {{- if $enableInternalTls }}
         - mountPath: {{ printf "%v/%v" $tlsRoot "datastore" | quote }}
           name: tls-datastore
@@ -201,11 +180,6 @@ spec:
       - name: security-compass-secret
       restartPolicy: Always
       volumes:
-      {{- if $rwxEnabled }}
-      - name: media
-        persistentVolumeClaim:
-          claimName: {{ $mediaClaimName | quote }}
-      {{- end }}
       {{- if $enableInternalTls }}
       - name: tls-datastore
         secret:

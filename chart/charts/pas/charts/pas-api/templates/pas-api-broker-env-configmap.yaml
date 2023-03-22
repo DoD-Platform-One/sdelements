@@ -15,9 +15,6 @@ data:
   PLUGIN_SERVICE_BROKER_SERVER: {{ $brokerServer }}
   PLUGIN_SERVICE_BROKER_VHOST: {{ $brokerVhost }}
   PLUGIN_SERVICE_BROKER_USER: {{ $brokerUser }}
-  {{ if .Values.pluginServiceResultBackend}}
-  PLUGIN_SERVICE_RESULT_BACKEND: {{ .Values.pluginServiceResultBackend }}
-  {{ end }}
   {{ if .Values.pluginServiceQueueName}}
   PLUGIN_SERVICE_QUEUE_NAME: {{ .Values.pluginServiceQueueName }}
   {{ end }}
@@ -25,9 +22,6 @@ data:
   PAS_ASYNC_WORKER_BROKER_SERVER: {{ $brokerServer }}
   PAS_ASYNC_WORKER_BROKER_VHOST: {{ $brokerVhost }}
   PAS_ASYNC_WORKER_BROKER_USER: {{ $brokerUser }}
-  {{ if .Values.asyncWorkerResultBackend}}
-  PAS_ASYNC_WORKER_RESULT_BACKEND: {{ .Values.asyncWorkerResultBackend }}
-  {{ end }}
   {{ if .Values.asyncWorkerQueueName}}
   PAS_ASYNC_WORKER_QUEUE_NAME: {{ .Values.asyncWorkerQueueName }}
   {{ end }}

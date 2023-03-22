@@ -27,22 +27,25 @@
 {{- $certManagerEnabled := eq ( include "certManagerEnabled" . ) "true" -}}
 {{- $enableInternalTls := eq ( include "enableInternalTls" . ) "true" -}}
 
-# featureFlag
+{{/* featureFlag */}}
 {{- $sentryEnabled := default false (eq (($root.Values.reporting.sentry).enabled | toString) "<nil>" | ternary ($root.Values.global.sentry).enabled ($root.Values.reporting.sentry).enabled) -}}
 
-# Env vars
+{{/* Env vars */}}
 {{- $secretName := printf "%v-%v" .Release.Name "sde-secrets" -}}
 {{- $dbServiceName := printf "%v-database-service" ( include "library.trimmedName" $root ) -}}
 {{- $redisUrl := default (printf "redis://%v-datastore-service:%v" ( include "library.trimmedName" . ) ( include "datastore.port" . ) ) .Values.reporting.redisUrl -}}
 {{- $cacheQueueServiceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "cache-queue" "service" -}}
 
-# Sentry variables
+{{- $version := semver $root.Chart.AppVersion -}}
+{{- $sdeReleaseName := default ( printf "sde@%v.%v" $version.Major $version.Minor ) (default ($root.Values.global.sentry).releaseName ($root.Values.worker.sentry).releaseName) -}}
+
+{{/* Sentry variables */}}
 {{- $sentryDSN := ($root.Values.reporting.sentry).dsn }}
 {{- $sentryEnvironment := default $root.Release.Namespace (default ($root.Values.global.sentry).environment ($root.Values.reporting.sentry).environment) }}
 {{- $sentrySampleRate := default 0.1 (default ($root.Values.global.sentry).sampleRate ($root.Values.reporting.sentry).sampleRate) }}
 {{- $sentryTraceSampleRate := default 0.1 (default ($root.Values.global.sentry).traceSampleRate ($root.Values.reporting.sentry).traceSampleRate) }}
 
-# Sanity Check
+{{/* Sanity Check */}}
 {{- if eq (int $reportingPort) (int $cubejsPort) -}}
 {{- fail "Reporting port and CubeJS port cannot be the same due to port conflicts." }}
 {{- end -}}
@@ -165,6 +168,8 @@ spec:
         - name: {{ .name | quote }}
           value: {{ .value | quote }}
         {{- end }}
+        - name: SDE_RELEASE
+          value: {{ $sdeReleaseName | quote }}
         # https://cube.dev/docs/@cubejs-backend-server#api-reference-this-listen-options
         - name: PORT
           value: {{ $cubejsPort | quote }}

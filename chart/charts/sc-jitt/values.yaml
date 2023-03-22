@@ -69,3 +69,17 @@ replicas: 1
 resources:
   requests:
     memory: 128Mi
+
+networkPolicies:
+  jitt:
+    podSelector:
+      matchLabels:
+        name: "{{ include \"library.trimmedName\" . }}-jitt"
+    ingress:
+    - selectors:
+        - podSelector:
+            matchLabels:
+              name: "{{ include \"library.trimmedName\" . }}-web"
+      ports:
+        - port: '{{ index .Values "httpsPort" | int | default 7443 }}'
+        - port: '{{ index .Values "httpPort" | int | default 9080 }}'

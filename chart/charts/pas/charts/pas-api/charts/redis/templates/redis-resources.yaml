@@ -1,0 +1,13 @@
+{{- $mapName := printf "%v-%v" .Release.Name "redis-resources" -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ quote $mapName }}
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+data:
+  {{- range $path, $bytes := .Files.Glob "files-datastore/*.conf" -}}
+    {{ printf "conf/%s: |" ( toString $path | trimPrefix "files-datastore/"  ) |  replace "/" "_" | nindent 2 }}
+    {{ $.Files.Get $path | nindent 4 }}
+  {{- end -}}

@@ -71,3 +71,38 @@ replicas: 1
 resources:
   requests:
     memory: 128Mi
+
+networkPolicies:
+  broker:
+    podSelector:
+      matchLabels:
+        name: "{{ include \"library.trimmedName\" . }}-broker"
+    ingress:
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-10"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-17"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-18-sde-low"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-async-worker"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-plugin-worker"
+        ports:
+          - port: '{{ index .Values "port" | int | default 5672 }}'
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-api"
+        ports:
+          - port: '{{ index .Values "port" | int | default 5672 }}'
+          - port: '{{ index .Values "managementPort" | int | default 15672 }}'

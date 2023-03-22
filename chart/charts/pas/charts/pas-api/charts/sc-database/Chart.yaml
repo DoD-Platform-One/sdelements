@@ -1,10 +1,10 @@
 apiVersion: v2
-appVersion: 1.2.2
+appVersion: 1.3.0
 dependencies:
 - condition: global.enableNestedDependencies
   name: sc-library
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.0.0
+  version: 1.1.0
 description: The Security Compass Database chart
 icon: https://avatars0.githubusercontent.com/u/739346
 keywords:
@@ -18,4 +18,4 @@ maintainers:
   url: https://www.securitycompass.com/
 name: sc-database
 type: application
-version: 1.2.2
+version: 1.3.0

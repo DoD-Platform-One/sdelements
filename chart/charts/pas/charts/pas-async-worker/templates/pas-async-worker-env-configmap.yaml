@@ -20,6 +20,9 @@ data:
   {{ if .Values.celeryMaxTasksPerChild }}
   MAX_TASKS: {{ .Values.celeryMaxTasksPerChild }}
   {{ end }}
+  {{ if ((.Values.global).runAsRoot) }}
+  C_FORCE_ROOT: "true"
+  {{ end }}
   {{ if .Values.celeryWorkerCount }}
   CELERY_WORKER_COUNT: {{ .Values.celeryWorkerCount }}
   {{ end }}
