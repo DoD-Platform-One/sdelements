@@ -100,6 +100,14 @@ global:
       #useSsl: "true"
       # Boolean representing whether to verify SSL certs or not
       #verifyCerts: "true"
+    # PAS Datastore settings
+    datastore: {}
+      # Service name if deployed in cluster
+      #serviceName: redis-master
+      # Hostname for external instance
+      #host:
+      #port: 6379
+      #useSsl: false
 
   database:
     adminClientUser: sde
@@ -124,6 +132,9 @@ global:
     #s3AccessKey: "accesskey"
     #s3SecretKey: "secretKey"
 
+  # Global datastore config
+  datastore: {}
+
   ## Configuration for Sentry
   # sentry:
   #   enabled: false
@@ -146,6 +157,9 @@ useDatabaseSubchart: true
 # Include shared storage subchart in deployment
 minio:
     enabled: false
+# Include datastore subchart in deployment
+datastore:
+    enabled: false
 
 useLocalDevDbConfig: true
 
@@ -154,7 +168,7 @@ useLocalDevDbConfig: true
 ##  Default image tag.
 #imageTag: <App Version>
 ## Celery result backend
-#resultBackend: rpc://
+resultBackend: rpc://
 ## Celery queue names
 #asyncWorkerQueueName: pas_async_worker
 #pluginServiceQueueName: plugin_service_worker
@@ -167,7 +181,7 @@ useLocalDevDbConfig: true
 #celeryMaxTasksPerChild: 10
 
 ## User/Group options
-# uid: 100
+# uid: 999
 # gid: 101
 # fsgid: 101
 

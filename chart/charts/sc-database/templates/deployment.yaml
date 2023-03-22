@@ -14,8 +14,7 @@
 {{- $backupMountPoint := default "/backup" .Values.global.backupMountPoint -}}
 {{- $dataDir := default "pgdata" .Values.dataDir -}}
 {{- $dataClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "db-volume-claim" -}}
-{{- $backupClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "backup-volume-claim" -}}
-{{- $rwxEnabled := required "For this release, global.rwx.enabled must be set. See https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html for details." (.Values.global.rwx).enabled -}}
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -38,8 +37,18 @@ spec:
       labels:
         name: {{ $deploymentName | quote }}
         service: {{ $deploymentName | quote }}
+        constraint-name: "sc-database"
         {{- include "library.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if ((.Values.databaseTopologySpread).enabled) }}
+      topologySpreadConstraints:
+        - maxSkew: {{ default 1 .Values.databaseTopologySpread.maxSkew }}
+          topologyKey: {{ default "topology.kubernetes.io/zone" .Values.databaseTopologySpread.topologyKey }}
+          whenUnsatisfiable: {{ default "ScheduleAnyway" .Values.databaseTopologySpread.whenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+              constraint-name: "sc-database"
+      {{- end }}
       {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
@@ -125,10 +134,6 @@ spec:
           name: db
         - mountPath: /dev/shm
           name: shm
-        {{- if $rwxEnabled }}
-        - mountPath: {{ $backupMountPoint | quote }}
-          name: backup
-        {{- end }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always
@@ -140,9 +145,4 @@ spec:
         emptyDir:
           medium: Memory
           sizeLimit: {{ default "256Mi" .Values.shm_size }}
-      {{- if $rwxEnabled }}
-      - name: backup
-        persistentVolumeClaim:
-          claimName: {{ $backupClaimName | quote }}
-      {{- end }}
 status: {}

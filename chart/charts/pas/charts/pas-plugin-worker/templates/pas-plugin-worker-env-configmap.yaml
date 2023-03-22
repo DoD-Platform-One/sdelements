@@ -18,6 +18,9 @@ data:
   {{ if .Values.celeryMaxTasksPerChild }}
   MAX_TASKS: {{ .Values.celeryMaxTasksPerChild }}
   {{ end }}
+  {{ if ((.Values.global).runAsRoot) }}
+  C_FORCE_ROOT: "true"
+  {{ end }}
   {{ if .Values.celeryWorkerCount }}
   CELERY_WORKER_COUNT: {{ .Values.celeryWorkerCount }}
   {{ end }}
@@ -27,4 +30,6 @@ data:
   SDE_SENTRY_SAMPLE_RATE: {{ $sentrySampleRate | quote }}
   SDE_SENTRY_TRACE_SAMPLE_RATE: {{ $sentryTraceSampleRate | quote }}
   {{ end }}
-
+  {{ if .Values.syncTaskTimeoutSeconds }}
+  PLUGIN_SERVICE_SYNC_TASK_TIMEOUT_SECONDS: {{ .Values.syncTaskTimeoutSeconds | quote }}
+  {{ end }}

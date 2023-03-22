@@ -163,6 +163,16 @@ spec:
               secretKeyRef:
                 name: {{ include "pas-api.sharedStorage.secretName" $contextDict }}
                 key: {{ include "pas-api.sharedStorage.secretAccessKeySecretKey" $contextDict }}
+          - name: PAS_ASYNC_WORKER_RESULT_BACKEND
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-api.broker.secretName" $contextDict }}
+                key: {{ include "pas-api.broker.resultBackendKey" $contextDict }}
+          - name: PLUGIN_SERVICE_RESULT_BACKEND
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-api.broker.secretName" $contextDict }}
+                key: {{ include "pas-api.broker.resultBackendKey" $contextDict }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always

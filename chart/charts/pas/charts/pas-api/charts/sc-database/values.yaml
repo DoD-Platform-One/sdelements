@@ -43,13 +43,6 @@ global:
   # openshift:
   #   enabled: false
 
-  ## Configuration for ReadWriteMany
-  ## For fresh installs, you generally want rwx.enabled to be 'false' here.
-  ## For upgrades, you probably want rwx.enabled to be 'true' instead. For details, see:
-  ## https://docs.sdelements.com/release/latest/sysadmin/docs/container/upgrade.html
-  # rwx:
-  #   enabled: false
-
 commands: {}
 # jit: "off"
 
@@ -72,32 +65,76 @@ replicas: 1
 #serverKeyPath: myDBServerKey.pem
 #clientPassword: myPassword
 #clientUser: sde
-#backupAdminEmail: admin@example.com
-#backupFromEmail: noreply@example.com
-## backupPath should be a subfolder within your global.backupMountPath
-#backupPath: /backup/db
-#keepBackupDays: 14
-#cleanBackups: true
+#shm_size: 256Mi
 
 ## User/Group options
 # uid: 33
 # gid: 33
 # fsgid: 33
-backup:
-  # mountPoint: /backup
-  # failedJobsHistoryLimit:
-  # successfulJobsHistoryLimit:
-  # schedule: "*/20 * * * *"
-  # concurrencyPolicy: Forbid
-  # mailRelayHost: ""
-  # mailRelayPort: 25
-  resources:
-    requests:
-      cpu: 500m
-      memory: 512Mi
 
 ## Container options
 resources:
   requests:
     memory: 512Mi
 
+networkPolicies:
+  database:
+    podSelector:
+      matchLabels:
+        name: "{{ include \"library.trimmedName\" . }}-database"
+    ingress:
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-10"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-17"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-18-sde-low"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-async-worker"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-api"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"
+
+        ports:
+          - port: '{{ include "database.port" . }}'

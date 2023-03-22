@@ -8,7 +8,7 @@ used to generate self-signed CA-certs.
 {{- $serviceName := get . "serviceName" }}
 {{- $primaryFqdn := default $serviceName ( get . "commonName" ) -}}
 {{- $alternateDnsNames := default ( list "" ) ( get . "alternateDnsNames" ) }}
-{{- $san := append $alternateDnsNames $primaryFqdn }}
+{{- $san := append ( without $alternateDnsNames "" ) $primaryFqdn }}
 {{- $secretName := include "library.tlsSecretName" ( merge . $root ) }}
 {{- $ca := default ( genCA $serviceName 3650 ) ( get . "ca" ) -}}
 {{- $cert := genSignedCert $primaryFqdn nil $san 3650 $ca -}}

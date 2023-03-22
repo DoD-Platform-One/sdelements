@@ -39,7 +39,7 @@ spec:
       {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}
-        runAsUser: {{ default 100 .Values.uid }}
+        runAsUser: {{ default 999 .Values.uid }}
         runAsGroup: {{ default 101 .Values.gid }}
         fsGroup: {{ default 101 .Values.fsgid }}
         {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
@@ -91,6 +91,16 @@ spec:
               secretKeyRef:
                 name: {{ include "pas-async-worker.sharedStorage.secretName" $contextDict }}
                 key: {{ include "pas-async-worker.sharedStorage.secretAccessKeySecretKey" $contextDict }}
+          - name: PAS_ASYNC_WORKER_RESULT_BACKEND
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-async-worker.broker.secretName" $contextDict }}
+                key: {{ include "pas-async-worker.broker.resultBackendKey" $contextDict }}
+          - name: PLUGIN_SERVICE_RESULT_BACKEND
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "pas-async-worker.broker.secretName" $contextDict }}
+                key: {{ include "pas-async-worker.broker.resultBackendKey" $contextDict }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always

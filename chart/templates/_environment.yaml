@@ -26,6 +26,10 @@ Expects a dict input with root/dot keys with context
 {{- $pasUrl := default (printf "http://%v-%v:8000" ( include "library.trimmedName" $root ) "pas-api-service" ) $root.pasUrl -}}
 {{- $gainsightEnabled := default false $root.Values.sde.gainsight.enabled -}}
 {{- $defaultGainsightId := index ( splitList "." $root.Values.sde.fqdn ) 0  -}}
+{{- $version := semver $root.Chart.AppVersion -}}
+{{- $sdeReleaseName := default ( printf "sde@%v.%v" $version.Major $version.Minor ) (default ($root.Values.global.sentry).releaseName ($root.Values.worker.sentry).releaseName) -}}
+- name: SDE_RELEASE
+  value: {{ $sdeReleaseName | quote }}
 - name: COLLECT_STATIC
   value: {{ $appStateChange | toString | lower | quote }}
 - name: CONTENT_PATH
@@ -38,7 +42,7 @@ Expects a dict input with root/dot keys with context
 {{- end }}
 - name: LOG_DRIVER
   value: "json-file"
-- name: SAML_DB_PIPE_MODE
+- name: SSO_DB_PIPE_MODE
   value: "True"
 - name: SDE_SITE_FQDN
   value: {{ $sdeSiteDomain | quote }}
@@ -151,12 +155,24 @@ Expects a dict input with root/dot keys with context
   value: {{ default "support@sdelements.com" $root.Values.sde.supportEmail | quote }}
 - name: SDE_DEBUG
   value: {{ default "False" $root.Values.sde.sdeDebugMode | quote }}
+- name: ENABLE_ORG_DELETE_API
+  value: {{ default "False" $root.Values.sde.enableOrgDeleteApi | quote }}
 - name: LOGIN_REDIRECT_URL
   value: {{ default "/" $root.Values.sde.loginRedirectUrl | quote }}
 - name: LOGOUT_REDIRECT_URL
   value: {{ default "/" $root.Values.sde.logoutRedirectUrl | quote }}
 - name: SESSION_INACTIVITY_TIMEOUT
   value: {{ default "7200" $root.Values.sde.sessionInactivityTimeout | quote }}
+- name: SDE_CELERY_TASK_TIME_LIMIT
+  value: {{ default "3600" $root.Values.sde.celeryTaskTimeLimit | quote }}
+- name: SDE_CELERY_TASK_SOFT_TIME_LIMIT
+  value: {{ default "3540" $root.Values.sde.celeryTaskSoftTimeLimit | quote }}
+- name: SDE_CELERY_JOB_TASK_SOFT_TIME_LIMIT
+  value: {{ default "3540" $root.Values.sde.celeryJobTaskSoftTimeLimit | quote }}
+- name: SDE_LDAP_SYNC_TIME_LIMIT
+  value: {{ default "7200" $root.Values.sde.ldapSyncTimeLimit | quote }}
+- name: SDE_LDAP_SYNC_SOFT_TIME_LIMIT
+  value: {{ default "7080" $root.Values.sde.ldapSyncSoftTimeLimit | quote }}
 - name: JWT_SECRET
   valueFrom:
     secretKeyRef:

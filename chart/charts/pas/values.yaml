@@ -52,6 +52,18 @@ global:
       #secretName: pas-secrets
       # Secret key to use for all PAS services
       passwordSecretKey: PAS_BROKER_PASSWORD
+    # PAS Datastore settings
+    datastore: { }
+      # Datastore service name
+      #serviceName: datastore-service
+      # Datastore port
+      #port: 6379
+      #useSsl: false
+      # Datastore client username
+      #clientUsername:
+      # Datastore client password
+      #clientPassword:
+
     baseUrl: /pas
     # Enable or disable custom plugin functionality
     enableCustomPlugins: true
@@ -100,6 +112,18 @@ global:
     #s3AccessKey: "accesskey"
     #s3SecretKey: "secretKey"
 
+  # Global datastore config
+  datastore: {}
+    # Datastore service name
+    #serviceName: datastore-service
+    # Datastore port
+    #port: 6379
+    #useSsl: false
+    # Datastore client username
+    #clientUsername:
+    # Datastore client password
+    #clientPassword:
+
   ## Configuration for Sentry
   # sentry:
   #   enabled: false
@@ -124,6 +148,7 @@ pas-api:
   # Enable service subcharts and claims for standalone deployment
   useBrokerSubchart: false
   useDatabaseSubchart: false
+  useDatastoreSubchart: false
   minio:
     enabled: false
   includeSDESecret: false
@@ -184,7 +209,10 @@ pas-plugin-worker:
     #passwordSecretKey:
   sharedStorage: {}
     # secretName: pas-secrets
-  
+  ## Number of seconds for a sync task to perform
+  #syncTaskTimeoutSeconds: "1800"
+
+
   ## Configuration for Sentry
   # sentry:
   #   enabled: false
@@ -215,8 +243,9 @@ pas-async-worker:
   database:
     secretName: pas-secrets
   sharedStorage: {}
-    # secretName: pas-secrets
-  
+  # secretName: pas-secrets
+  resultBackend: rpc://
+
   ## Configuration for Sentry
   # sentry:
   #   enabled: false

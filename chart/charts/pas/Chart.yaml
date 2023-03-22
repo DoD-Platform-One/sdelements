@@ -1,26 +1,26 @@
 apiVersion: v2
-appVersion: 1.5.2
+appVersion: 1.7.6
 dependencies:
 - condition: global.enableNestedDependencies
   name: sc-library
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 0.1.1
+  version: 1.1.0
 - condition: useMockSDE,global.enableNestedDependencies
   name: mock-sde
   repository: file://../mock_sde
   version: 0.0.1
 - name: pas-api
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.5.2
+  version: 1.7.6
 - name: pas-plugin-worker
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.5.2
+  version: 1.7.6
 - name: pas-async-worker
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.5.2
+  version: 1.7.6
 - name: pas-frontend
   repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.5.2
+  version: 1.7.6
 description: SD Elements Pluggable Framework
 home: https://docker.sdelements.com
 icon: https://avatars0.githubusercontent.com/u/739346
@@ -36,4 +36,4 @@ name: pas
 sources:
 - https://agra.sdelements.com/sd-elements/management_command_system
 type: application
-version: 1.5.2
+version: 1.7.6

@@ -4,6 +4,7 @@
 {{- $brokerServer := printf "%v:%v" $brokerHost $brokerPort -}}
 {{- $brokerVhost := default (default "rabbit" .Values.global.broker.adminVhost) .Values.global.pas.broker.vhost -}}
 {{- $brokerUser := default ( default ( default "rabbit" .Values.global.broker.adminClientUser ) .Values.global.pas.broker.user ) .Values.broker.user -}}
+{{- $contextDict := dict "root" . "dot" .Values -}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -15,9 +16,7 @@ data:
   PLUGIN_SERVICE_BROKER_SERVER: {{ $brokerServer }}
   PLUGIN_SERVICE_BROKER_VHOST: {{ $brokerVhost }}
   PLUGIN_SERVICE_BROKER_USER: {{ $brokerUser }}
-  {{ if .Values.resultBackend}}
-  PLUGIN_SERVICE_RESULT_BACKEND: {{ .Values.resultBackend }}
-  {{ end }}
+
   {{ if .Values.pluginServiceQueueName}}
   PLUGIN_SERVICE_QUEUE_NAME: {{ .Values.pluginServiceQueueName }}
   {{ end }}

@@ -1,0 +1,40 @@
+{{- $destinationHost := printf "%v-%v-%v.%v.%v" ( include "library.trimmedName" . ) "web" "service" .Release.Namespace "svc.cluster.local" -}}
+{{- $httpsPort := default 9443 .Values.web.httpsPort -}}
+---
+{{- if ((.Values.istio).enabled) }}
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {{ .Release.Name }}-ssl-destinationrule
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  host: {{ $destinationHost | quote }}
+  trafficPolicy:
+    tls:
+      mode: SIMPLE
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  gateways:
+  {{- range .Values.istio.gateways }}
+    - {{ . }}
+  {{- end }}
+  hosts:
+    - {{ .Values.istio.host }}
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: {{ .Release.Name }}-web-service
+        port:
+            number: {{ $httpsPort }}
+{{- end }}

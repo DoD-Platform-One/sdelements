@@ -21,6 +21,8 @@ Expects a dict input with root/dot keys with context
 {{- $fsgid := default 33 $root.Values.worker.fsgid }}
 {{- $failedJobsHistoryLimit := default (default 1 $root.Values.job.failedJobsHistoryLimit) $dot.failedJobsHistoryLimit -}}
 {{- $successfulJobsHistoryLimit := default (default 0 $root.Values.job.successfulJobsHistoryLimit) $dot.successfulJobsHistoryLimit -}}
+{{- $enableRandomStartDelay := default (default false $root.Values.job.enableRandomStartDelay) $dot.enableRandomStartDelay -}}
+{{- $randomStartDelayRange := default (default "1-600" $root.Values.job.randomStartDelayRange) $dot.randomStartDelayRange -}}
 
 {{/*
      TLS Configurations
@@ -34,7 +36,11 @@ Expects a dict input with root/dot keys with context
 
 {{- $resourceLimits :=  default $root.Values.job.resources $dot.resources }}
 ---
+{{- if semverCompare "<1.21-0" .Capabilities.KubeVersion.Version -}}
 apiVersion: batch/v1beta1
+{{- else }}
+apiVersion: batch/v1
+{{- end }}
 kind: CronJob
 metadata:
   name: {{ $releaseName | quote }}
@@ -73,11 +79,13 @@ spec:
             runAsGroup: 0
             {{- end }}
           {{- end }}
+          {{- if $enableRandomStartDelay }}
           initContainers:
           - name: {{ printf "%v-%v" $releaseName "sleep" | quote }}
             image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
             imagePullPolicy: {{ $dot.imagePullPolicy }}
-            command: ['/bin/bash', '-c', 'wait=$(shuf --input-range=1-600 --head-count=1); echo "$(date): Waiting for ${wait} seconds..."; sleep "${wait}"; echo "$(date): Done waiting!"' ]
+            command: ['/bin/bash', '-c', 'wait=$(shuf --input-range={{ $randomStartDelayRange }} --head-count=1); echo "$(date): Waiting for ${wait} seconds..."; sleep "${wait}"; echo "$(date): Done waiting!"' ]
+          {{- end }}
           containers:
           - name: {{ $releaseName | quote }}
             image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}

@@ -29,6 +29,8 @@ global:
       password: password123
     database:
       password: password123
+    datastore:
+      clientPassword: password123
     sharedStorage:
       s3AccessKey: accessKey123
       s3SecretKey: secretKey123
@@ -41,12 +43,16 @@ pas-api:
   # Enable service subcharts and claims
   useBrokerSubchart: true
   useDatabaseSubchart: true
+  useDatastoreSubchart: true
   includeSDESecret: true
 
   sc-database:
     clientPassword: password123
 
   sc-broker:
+    clientPassword: password123
+
+  redis:
     clientPassword: password123
 
   minio:
