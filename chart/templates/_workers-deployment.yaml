@@ -177,7 +177,7 @@ spec:
           readOnly: true
         {{- end }}
       imagePullSecrets:
-      - name: security-compass-secret
+      - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always
       volumes:
       {{- if $enableInternalTls }}

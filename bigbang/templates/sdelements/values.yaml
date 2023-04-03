@@ -1,0 +1,114 @@
+{{- $pkg := "sdelements" }}
+{{- define "bigbang.defaults.sdelements" -}}
+global:
+  imageRegistry: registry1.dso.mil
+  imageRegistryFormat: "%s/%s/%s/%s:%s"
+  imagePullPolicy: Always
+  imageOrganization: ironbank/security-compass
+  imageSource: sd-elements
+  imageRegistryUsername: username
+  imageRegistryPassword: password
+  sharedStorage:
+    bucketName: sde-bucket        # If using MinIO, ensure value matches a bucket in `minio` section
+    s3Url: http://sdelements-minio:9000/
+    s3AccessKey: accesskey    # If using MinIO, ensure value matches `accessKey` in `minio` section
+    s3SecretKey: secretkey    # If using MinIO, ensure value matches `secretKey` in `minio` section
+  rwx:
+    enabled: false
+  nginxIngress:
+    enabled: false # This will stop the creation of an Ingress resource, which isn't required when using Istio.
+sde:
+  fqdn: sdelements.bigbang.dev # remove
+  jwtSecret: jwtsecret # remove
+  secretKey: secretkey # remove
+  superuserPassword: password # remove
+  enableJITT: false
+web:
+  replicas: 1
+  imageName: nginx
+  uid: 998
+  gid: 996
+  fsgid: 49
+sc-jitt:
+  replicas: 1
+  imageSource: jitt
+  imageName: nginx
+  uid: 998
+  gid: 996
+  fsgid: 49
+sc-broker:
+  replicas: 1
+  imageName: rabbitmq38
+  imageOrganization: ironbank/pivotal
+  imageSource: rabbitmq
+  clientPassword: password # remove
+  uid: 1000
+  gid: 100
+  fsgid: 1000
+sc-database:
+  replicas: 1
+  clientPassword: password # remove
+  uid: 26
+  gid: 26
+  fsgid: 26
+sc-mail:
+  imageName: exim
+worker:
+  imageName: mod_wsgi
+  uid: 48
+  gid: 48
+  fsgid: 49
+reporting:
+  enabled: true
+  imageName: reporting
+  imagePullPolicy: Always
+  enableTls: true
+  uid: 1001
+  gid: 1001
+  nginxuid: 998
+  nginxgid: 996
+  replicas: 1
+datastore:
+  clientPassword: password # remove
+  initImageSource: sd-elements
+  initImageName: openssl
+  imageOrganization: ironbank/opensource
+  initImageOrganization: ironbank/security-compass
+  imageSource: redis
+  imageName: redis6
+  uid: 1001
+  gid: 1001
+  fsgid: 1001
+  replicas: 1
+# The settings below are for adjusting the big bang customizations
+istio:
+  enabled: false
+  gateways:
+    - istio-system/public
+  host: sdelements.bigbang.dev # remove
+ingress-nginx:
+  enabled: false
+efsVolumes:
+  enabled: false
+networkPolicies:
+  enabled: false
+minio:
+  enabled: false
+  rootUser: admin
+  rootPassword: password
+  tls:
+    enabled: false
+  buckets:
+    - name: sde-bucket            # should match global.sharedStorage.bucketName
+      policy: none
+      purge: false
+  users:
+    - accessKey: accesskey    # should match global.sharedStorage.s3AccessKey
+      secretKey: secretkey    # should match global.sharedStorage.s3SecretKey
+      policy: readwrite
+{{- end }}
+
+{{- /* Create secret */ -}}
+{{- if (get .Values $pkg).enabled }}
+{{- include "values-secret" (dict "root" $ "package" (get .Values $pkg) "name" $pkg "defaults" (include (printf "bigbang.defaults.%s" $pkg) .)) }}
+{{- end }}

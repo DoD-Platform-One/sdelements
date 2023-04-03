@@ -32,7 +32,7 @@ dependencies:
 - condition: minio.enabled
   name: minio
   repository: https://charts.min.io/
-  version: 4.0.14
+  version: 5.0.7
 description: SDElements by Security Compass Ltd.
 icon: https://avatars0.githubusercontent.com/u/739346
 keywords:
