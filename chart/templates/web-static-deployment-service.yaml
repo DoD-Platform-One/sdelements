@@ -183,7 +183,7 @@ spec:
           name: tls
           readOnly: true
       imagePullSecrets:
-      - name: security-compass-secret
+      - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always
       volumes:
       - name: nginx

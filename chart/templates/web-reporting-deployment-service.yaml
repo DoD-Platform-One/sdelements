@@ -244,7 +244,7 @@ spec:
         resources: {}
         {{- end }}
       imagePullSecrets:
-      - name: security-compass-secret
+      - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always
       volumes:
       - name: reporting-nginx
