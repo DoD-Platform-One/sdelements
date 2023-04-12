@@ -12,34 +12,44 @@ sdelements:
       storageClass: local-path
       registrySecretName: private-registry
     datastore:
+      clientPassword: default
       initImageTag: 1.1
       imageTag: 6.2.10
-    reporting:
-      imageTag: 2022.4.33
-    worker:
-      imageTag: 2022.4.33
     sc-mail:
-      imageTag: 1.1
+      imageTag: "1.1"
     sc-database:
-      imageTag: 12.13
+      imageTag: "12.13"
+      clientPassword: default
     sc-broker:
       imageTag: v3.8.35
-    sc-jitt:
-      imageTag: 2022.4.33
+      clientPassword: default
     web:
       imageTag: 12.6
     sde:
+      fqdn: sdelements.bigbang.dev
+      jwtSecret: default
+      secretKey: default
+      superuserPassword: default 
       enableJITT: false
-    
+    istio:
+      enabled: true
+      host: sdelements.bigbang.dev
+# Uncomment the following lines to deploy imagePullSecret
+# registryCredentials:
+#   registry: registry1.dso.mil
+#   username: <username>
+#   password: <password>
+#   email: ""
+
 # Network Policies
 networkPolicies:
   enabled: false
 
 # Istio
 istiooperator:
-  enabled: false
+  enabled: true
 istio:
-  enabled: false
+  enabled: true
 
 # Gatekeeper
 gatekeeper:

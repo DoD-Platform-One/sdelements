@@ -18,10 +18,6 @@ global:
   nginxIngress:
     enabled: false # This will stop the creation of an Ingress resource, which isn't required when using Istio.
 sde:
-  fqdn: sdelements.bigbang.dev # remove
-  jwtSecret: jwtsecret # remove
-  secretKey: secretkey # remove
-  superuserPassword: password # remove
   enableJITT: false
 web:
   replicas: 1
@@ -41,13 +37,11 @@ sc-broker:
   imageName: rabbitmq38
   imageOrganization: ironbank/pivotal
   imageSource: rabbitmq
-  clientPassword: password # remove
   uid: 1000
   gid: 100
   fsgid: 1000
 sc-database:
   replicas: 1
-  clientPassword: password # remove
   uid: 26
   gid: 26
   fsgid: 26
@@ -69,7 +63,6 @@ reporting:
   nginxgid: 996
   replicas: 1
 datastore:
-  clientPassword: password # remove
   initImageSource: sd-elements
   initImageName: openssl
   imageOrganization: ironbank/opensource
@@ -85,7 +78,6 @@ istio:
   enabled: false
   gateways:
     - istio-system/public
-  host: sdelements.bigbang.dev # remove
 ingress-nginx:
   enabled: false
 efsVolumes:
