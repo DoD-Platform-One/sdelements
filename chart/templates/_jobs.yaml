@@ -31,8 +31,6 @@ Expects a dict input with root/dot keys with context
 */}}
 {{- $enableInternalTls := eq ( include "enableInternalTls" ( merge . $root ) ) "true" -}}
 {{- $tlsRoot := default "/tls" $root.Values.web.tlsRoot }}
-{{- $tlsDatastoreCACertPath := printf "%v/%v" $tlsRoot "datastore/ca.crt" }}
-{{- $tlsDatastoreSecretName := include "tlsSecretName" ( mergeOverwrite $ ( dict "serviceName" "datastore-client" )) }}
 
 {{- $resourceLimits :=  default $root.Values.job.resources $dot.resources }}
 ---
@@ -115,11 +113,6 @@ spec:
               allowPrivilegeEscalation: false
             {{- end }}
             volumeMounts:
-            {{- if $enableInternalTls }}
-            - mountPath: {{ printf "%v/%v" $tlsRoot "datastore" | quote }}
-              name: tls-datastore
-              readOnly: true
-            {{- end }}
             {{- with $dot.volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -143,17 +136,8 @@ spec:
           {{- end }}
           restartPolicy: {{ default "OnFailure" $dot.restartPolicy }}
           imagePullSecrets:
-          - name: security-compass-secret
+          - name: {{ include "library.registrySecretName" . }}
           volumes:
-          {{- if $enableInternalTls }}
-          - name: tls-datastore
-            secret:
-              secretName: {{ $tlsDatastoreSecretName }}
-              defaultMode: 0444
-              {{/* kubernetes 1.18 does not support fsGroup
-                   need to set this as world readable until we
-                   upgrade to kubernetes 1.19 */}}
-          {{- end }}
           {{ with $dot.volumes }}
             {{- toYaml . | nindent 10 }}
           {{- end }}

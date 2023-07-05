@@ -4,12 +4,15 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ template "minio.fullname" . }}
-  namespace: {{ .Release.Namespace | quote }}
   labels:
     app: {{ template "minio.name" . }}
     chart: {{ template "minio.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
+{{- if .Values.persistence.annotations }}
+  annotations:
+{{ toYaml .Values.persistence.annotations | trimSuffix "\n" | indent 4 }}
+{{- end }}
 spec:
   accessModes:
     - {{ .Values.persistence.accessMode | quote }}

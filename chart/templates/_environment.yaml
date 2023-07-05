@@ -26,7 +26,7 @@ Expects a dict input with root/dot keys with context
 {{- $pasUrl := default (printf "http://%v-%v:8000" ( include "library.trimmedName" $root ) "pas-api-service" ) $root.pasUrl -}}
 {{- $gainsightEnabled := default false $root.Values.sde.gainsight.enabled -}}
 {{- $defaultGainsightId := index ( splitList "." $root.Values.sde.fqdn ) 0  -}}
-{{- $version := semver $root.Chart.AppVersion -}}
+{{- $version := semver $root.Chart.Version -}}
 {{- $sdeReleaseName := default ( printf "sde@%v.%v" $version.Major $version.Minor ) (default ($root.Values.global.sentry).releaseName ($root.Values.worker.sentry).releaseName) -}}
 - name: SDE_RELEASE
   value: {{ $sdeReleaseName | quote }}
@@ -115,6 +115,8 @@ Expects a dict input with root/dot keys with context
   value: {{ default "sde_" $root.Values.sde.databasePrefix | quote }}
 - name: SDE_DATABASE_HOST
   value: {{ include "sde.dbHost" $root | quote }}
+- name: SDE_DATABASE_KEEP_AMOUNT
+  value: {{ default "100" $root.Values.sde.databaseKeepAmount | quote }}
 - name: SDE_DEFAULT_FROM_EMAIL
   value: {{ default "SDElements <noreply@sdelements.com>" $root.Values.sde.defaultFromEmail | quote }}
 - name: SDE_DEFAULT_ORG
@@ -199,6 +201,8 @@ Expects a dict input with root/dot keys with context
         key: S3_SECRET_KEY
 - name: S3_URL
   value:  {{ quote $root.Values.global.sharedStorage.s3Url }}
+- name: S3_REGION
+  value: {{ default "us-east-1" $root.Values.global.sharedStorage.region | quote }}
 {{- end }}
 - name: SDETOOLS_IGNORE_INTERNAL_NETWORK_RESTRICTION
   value: {{ default "False" $root.Values.sde.sdetoolsIgnoreNetworkRestriction | quote }}

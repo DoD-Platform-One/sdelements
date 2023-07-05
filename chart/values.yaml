@@ -42,6 +42,9 @@ sde:
   #logoutRedirectUrl: "/"
   #sessionInactivityTimeout: "7200"
 
+  # Number of latest SDE release databases to keep and the rest will be pruned. Value cannot be less than 2
+  databaseKeepAmount: 100
+
   # Enable deletion of Organizations via API (requires superuser account, default: False)
   # enableOrgDeleteApi: False
 
@@ -132,6 +135,8 @@ ingress-nginx:
       enable-ssl-passthrough: true
       # ssl-redirect: true
     image:
+      registry: repository.securitycompass.com/sde-docker-prod
+      digest: ""
       allowPrivilegeEscalation: false
     resources:
       requests:
@@ -141,6 +146,8 @@ ingress-nginx:
         cpu: 2
         memory: 1024Mi
   revisionHistoryLimit: 0
+  imagePullSecrets:
+    - name: security-compass-secret
 
 ## These options are global and shared by all charts and namespaces in a cluster
 global:
@@ -160,8 +167,7 @@ global:
   ## registries/repositories. These are provided by SDElements support staff on
   ## request upon purchase of the SDElements product.
   ##
-  imageRegistry: docker.sdelements.com
-  #imageRegistry: docker-dev.sdelements.com
+  imageRegistry: repository.securitycompass.com
 
   # Name of a kubernetes.io/dockerconfigjson secret to use for pulling containers that is defined
   # external to the one created by the helm chart.
@@ -169,16 +175,13 @@ global:
   registrySecretName: security-compass-secret
 
   # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
-  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
-  # docker-dev.sdelements.com / dev _ (sde/3rd) / cert-creator : latest
-  #imageRegistryFormat: "%s/%s_%s/%s:%s"
-  imageRegistryFormat: "%s/%s-%s-%s:%s"
+  # repository.securitycompass.com/sde-docker-prod/sde/postgres-bespoke:latest
+  imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
   #imageRegistryUsername: acmecorp
-  #imageRegistryPassword: SuperSecretPassword
-  imageOrganization: default_organization
-  #imageOrganization: dev
+  #imageRegistryPassword: myPassword
+  imageOrganization: prod  # dev/staging/prod
+  imageSource: sde
   imagePullPolicy: IfNotPresent
-  #imageSource: sde
 
   # Settings for openssl cert generation
   #initImageOrganization: dev
@@ -189,7 +192,7 @@ global:
   ## IMPORTANT: If you are upgrading from a legacy helm chart or SDE version (<5.15) you will need to set the nameOverride below
   #nameOverride: sde
 
-  # The following defines the presence of network isolation and its security level valid valuse are:
+  # The following defines the presence of network isolation and its security level valid values are:
   # "none": no isolation is implemented
   # "namespace": pods from other namespaces won't be able to reach pods in this namespace
   # "ingress": blocks traffic coming from non-authorized pods or on non-authorized ports
@@ -273,6 +276,16 @@ global:
   #   environment: develop
   #   sampleRate: 0.1
   #   traceSampleRate: 0.1
+  #   excludeUA: "kube-probe|nagios-plugins"
+  #   UASampleRate: 0
+  #   celeryOPSampleRate: 0
+  #   httpOPSampleRate: 0
+  #   RIASampleRate: 0
+
+  ## Workaround for argocd issue: https://github.com/argoproj/argo-cd/issues/7875
+  # createNamespace:
+  #   enabled: false
+  #   name: sde
 
   ## Configuration for aws s3 bucket storage 
   sharedStorage: {}
@@ -281,6 +294,7 @@ global:
     #s3BucketPath: "/path/to/storage/in/bucket/
     #s3AccessKey: "accesskey"
     #s3SecretKey: "secretKey"
+    #region: "us-east-1"
 
   ## Global datastore configurations
   datastore: {}
@@ -305,9 +319,9 @@ global:
       # Name of secret where S3 credentials are configured
       secretName: sde-secrets
       # Name of secret key for Access Key Id
-      #accessKeyIdSecretKey: S3_ACCESS_KEY
+      accessKeyIdSecretKey: S3_ACCESS_KEY
       # Name of secret key for Secret Access Key
-      #secretAccessKeySecretKey: S3_SECRET_KEY
+      secretAccessKeySecretKey: S3_SECRET_KEY
       # S3 Bucket name for PAS
       #bucketName: "pas"
       # S3 URL for API Endpoint
@@ -315,7 +329,7 @@ global:
       # S3 bucket subpath
       #s3BucketPath: /pas
       # AWS region (if applicable)
-      #region: "ca-central-1"
+      #region: "us-east-1"
       # Maximum number of retries for initialization
       #initMaxRetryAttempts: 5
       # Number of seconds in between retries for initialization
@@ -655,6 +669,11 @@ worker:
   #   environment: develop
   #   sampleRate: 0.1
   #   traceSampleRate: 0.1
+  #   excludeUA: "kube-probe|nagios-plugins"
+  #   UASampleRate: 0
+  #   celeryOPSampleRate: 0
+  #   httpOPSampleRate: 0
+  #   RIASampleRate: 0
 
   ## User/Group options
   # uid: 33
@@ -783,8 +802,13 @@ reporting:
   #   environment: develop
   #   sampleRate: 0.1
   #   traceSampleRate: 0.1
+  #   excludeUA: "kube-probe|nagios-plugins"
+  #   UASampleRate: 0
+  #   celeryOPSampleRate: 0
+  #   httpOPSampleRate: 0
+  #   RIASampleRate: 0
 
-datastore:
+sc-datastore:
   # imageTag: latest
   # imageSource: dccsr
   # imagePullPolicy: Always
@@ -983,9 +1007,9 @@ pas:
 # environment, or an existing MinIO deployment in your infrastructure.
 minio:
   image:
-    repository: docker.sdelements.com/default_organization-sde-minio
+    repository: repository.securitycompass.com/sde-docker-prod/minio/minio
   mcImage:
-    repository: docker.sdelements.com/default_organization-sde-mc
+    repository: repository.securitycompass.com/sde-docker-prod/minio/mc
   imagePullSecrets:
     - name: "security-compass-secret"
   enabled: false
@@ -1085,6 +1109,9 @@ networkPolicies:
         - namespaceSelector:
             matchLabels:
               network.openshift.io/policy-group: ingress
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
         ports:
           - port: '{{ index .Values "web" "httpPort" | int | default 9080 }}'
           - port: '{{ index .Values "web" "httpsPort" | int | default 9443 }}'
@@ -1100,6 +1127,9 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 name: "{{ include \"library.trimmedName\" . }}-pas-plugin-worker"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-reporting"
         ports:
           - port: '{{ index .Values "worker" "synchronous" "highPriority" "port" | int | default 8080 }}'
   worker-17:
@@ -1119,75 +1149,6 @@ networkPolicies:
                 name: "{{ include \"library.trimmedName\" . }}-pas-plugin-worker"
         ports:
           - port: '{{ index .Values "worker" "synchronous" "lowPriority" "port" | int | default 8080 }}'
-  datastore:
-    podSelector:
-      matchLabels:
-        name: "{{ include \"library.trimmedName\" . }}-datastore"
-    ingress:
-      - selectors:
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-pas-api"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-pas-async-worker"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-pas-plugin-worker"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-worker-10"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-worker-17"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-worker-18-sde-low"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-reporting"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"
-          - podSelector:
-              matchLabels:
-                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"
-            namespaceSelector:
-              matchLabels:
-                kubernetes.io/metadata.name: "{{ .Release.Namespace }}"
-        ports:
-          - port: '{{ index .Values "datastore" "tlsPort" | int | default 6379 }}'
-
   reporting:
     podSelector:
       matchLabels:

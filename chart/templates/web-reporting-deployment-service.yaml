@@ -26,18 +26,21 @@
 {{- $cubejsPort := default 2823 .Values.reporting.cubejsPort -}}
 {{- $certManagerEnabled := eq ( include "certManagerEnabled" . ) "true" -}}
 {{- $enableInternalTls := eq ( include "enableInternalTls" . ) "true" -}}
-
+{{- $ipFamilies := default (list "IPv4") .Values.global.ipFamilies -}}
 {{/* featureFlag */}}
 {{- $sentryEnabled := default false (eq (($root.Values.reporting.sentry).enabled | toString) "<nil>" | ternary ($root.Values.global.sentry).enabled ($root.Values.reporting.sentry).enabled) -}}
 
 {{/* Env vars */}}
 {{- $secretName := printf "%v-%v" .Release.Name "sde-secrets" -}}
 {{- $dbServiceName := printf "%v-database-service" ( include "library.trimmedName" $root ) -}}
-{{- $redisUrl := default (printf "redis://%v-datastore-service:%v" ( include "library.trimmedName" . ) ( include "datastore.port" . ) ) .Values.reporting.redisUrl -}}
+{{- $redisUrl := printf "redis://%v-datastore-service:%v" ( include "library.trimmedName" . ) ( include "sde.datastorePort" . ) -}}
 {{- $cacheQueueServiceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "cache-queue" "service" -}}
-
-{{- $version := semver $root.Chart.AppVersion -}}
+{{- $version := semver $root.Chart.Version -}}
 {{- $sdeReleaseName := default ( printf "sde@%v.%v" $version.Major $version.Minor ) (default ($root.Values.global.sentry).releaseName ($root.Values.worker.sentry).releaseName) -}}
+{{- $sdeWorkerScheme := ternary "https" "http" $enableInternalTls -}}
+{{- $sdeWorkerPort := default 8080 .Values.worker.synchronous.highPriority.port -}}
+{{- $sdeWorker := printf "worker-%v" .Values.worker.synchronous.highPriority.niceness }}
+{{- $sdeUrl := printf "%v://%v-%v-%v:%v" $sdeWorkerScheme ( include "library.trimmedName" . ) $sdeWorker "service" $sdeWorkerPort -}}
 
 {{/* Sentry variables */}}
 {{- $sentryDSN := ($root.Values.reporting.sentry).dsn }}
@@ -147,13 +150,13 @@ spec:
         {{- end }}
         {{- if not ((.Values.global.openshift).enabled) }}
         securityContext:
-          {{- if not .Values.global.runAsRoot }} 
+          {{- if not .Values.global.runAsRoot }}
           runAsUser: {{ $nginxuid }}
           runAsGroup: {{ $nginxgid }}
           {{- else }}
           runAsUser: 0
           runAsGroup: 0
-          {{- end }} 
+          {{- end }}
         {{- end }}
       - name: {{ $deploymentName | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
@@ -168,6 +171,8 @@ spec:
         - name: {{ .name | quote }}
           value: {{ .value | quote }}
         {{- end }}
+        - name: SDE_URL
+          value: {{ $sdeUrl | quote }}
         - name: SDE_RELEASE
           value: {{ $sdeReleaseName | quote }}
         # https://cube.dev/docs/@cubejs-backend-server#api-reference-this-listen-options
@@ -187,6 +192,8 @@ spec:
           value: {{ include "sde.dbName" . | quote }}
         - name: CUBEJS_DB_USER
           value: {{ include "sde.dbUser" . | quote }}
+        - name: CUBEJS_SCHEDULED_REFRESH_TIMER
+          value: "true"
         - name: CUBEJS_DB_PASS
           valueFrom:
             secretKeyRef:
@@ -201,7 +208,7 @@ spec:
         - name: NODE_ENV
           value: production
         - name: REDIS_TLS
-          value: {{ $enableInternalTls | quote }}
+          value: "false"
         - name: REDIS_URL
           value: {{ $redisUrl | quote }}
         - name: REDIS_PASSWORD
@@ -232,6 +239,8 @@ spec:
         - name: ENABLE_PREAGGREGATIONS
           value: "false"
         {{- end }}
+        - name: IP_FAMILY
+          value: {{ ternary "IPv6" "IPv4" (has "IPv6" $ipFamilies) | quote }}
         {{- if .Values.reporting.resources }}
         resources:
         {{- range $limitType, $resources := $.Values.reporting.resources }}
@@ -271,6 +280,9 @@ metadata:
     service: {{ $serviceName | quote }}
     {{- include "library.labels" . | nindent 4 }}
 spec:
+  ipFamilies:
+  {{- $ipFamilies | toYaml | trim | nindent 2 }}
+  ipFamilyPolicy: {{ ternary "PreferDualStack" "SingleStack" (gt (len $ipFamilies) 1) }}
   ports:
   - name: "port"
     port: {{ int $reportingPort }}

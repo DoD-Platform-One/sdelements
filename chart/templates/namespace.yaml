@@ -1,0 +1,7 @@
+# Workaround for argocd issue: https://github.com/argoproj/argo-cd/issues/7875 
+{{- if (.Values.global.createNamespace).enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{.Values.global.createNamespace.name}}
+{{- end }}

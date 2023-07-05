@@ -62,11 +62,8 @@ reporting:
   nginxuid: 998
   nginxgid: 996
   replicas: 1
-datastore:
-  initImageSource: sd-elements
-  initImageName: openssl
+sc-datastore:
   imageOrganization: ironbank/opensource
-  initImageOrganization: ironbank/security-compass
   imageSource: redis
   imageName: redis6
   uid: 1001
@@ -75,7 +72,7 @@ datastore:
   replicas: 1
 # The settings below are for adjusting the big bang customizations
 istio:
-  enabled: false
+  enabled: {{ .Values.istio.enabled }}
   gateways:
     - istio-system/public
 ingress-nginx:

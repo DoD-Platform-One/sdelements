@@ -14,6 +14,7 @@
 {{- $backupMountPoint := default "/backup" .Values.global.backupMountPoint -}}
 {{- $dataDir := default "pgdata" .Values.dataDir -}}
 {{- $dataClaimName := printf "%v-%v" ( include "library.trimmedName" . ) "db-volume-claim" -}}
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -36,8 +37,18 @@ spec:
       labels:
         name: {{ $deploymentName | quote }}
         service: {{ $deploymentName | quote }}
+        constraint-name: "sc-database"
         {{- include "library.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if ((.Values.databaseTopologySpread).enabled) }}
+      topologySpreadConstraints:
+        - maxSkew: {{ default 1 .Values.databaseTopologySpread.maxSkew }}
+          topologyKey: {{ default "topology.kubernetes.io/zone" .Values.databaseTopologySpread.topologyKey }}
+          whenUnsatisfiable: {{ default "ScheduleAnyway" .Values.databaseTopologySpread.whenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+              constraint-name: "sc-database"
+      {{- end }}
       {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
         {{- if not .Values.global.runAsRoot }}

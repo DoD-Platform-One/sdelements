@@ -9,20 +9,15 @@ global:
   ## registries/repositories. These are provided by SDElements support staff on
   ## request upon purchase of the SDElements product.
   ##
-  # imageRegistry: docker.sdelements.com
-  imageRegistry: docker-dev.sdelements.com
+  imageRegistry: sdelements.jfrog.io
 
   # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
-  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
-  # docker-dev.sdelements.com / dev _ (sde/3rd) / cert-creator : latest
-  imageRegistryFormat: "%s/%s_%s/%s:%s"
-  # imageRegistryFormat: "%s/%s-%s-%s:%s"
+  imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
   imageRegistryUsername: acmecorp
   imageRegistryPassword: SuperSecretPassword
-  # imageOrganization: default_organization
-  imageOrganization: dev
+  imageOrganization: prod #dev/staging/prod
   imagePullPolicy: IfNotPresent
-  imageSource: sde
+  imageSource: sde/pas
   # imageTag: 1.0.3
 
   # Run containers as the root user rather than default unprivileged user

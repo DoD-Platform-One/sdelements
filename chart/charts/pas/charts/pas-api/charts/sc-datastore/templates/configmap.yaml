@@ -1,0 +1,14 @@
+{{- $configMapName := include "datastore.configMapName" . -}}
+{{- $deploymentName := include "datastore.deploymentName" . -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ quote $configMapName }}
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+data:
+  {{- range $path, $bytes := .Files.Glob "conf/redis*.conf" -}}
+    {{ printf "conf/%s: |" ( toString $path | trimPrefix "conf/"  ) |  replace "/" "_" | nindent 2 }}
+    {{ tpl ($.Files.Get $path) $ | nindent 4 }}
+  {{- end -}}

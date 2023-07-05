@@ -7,32 +7,32 @@ sdelements:
     branch: main
     path: chart
   flux: {}
-  values: 
+  values:
     global:
       storageClass: local-path
       registrySecretName: private-registry
-    datastore:
+    sc-datastore:
       clientPassword: default
       initImageTag: 1.1
-      imageTag: 6.2.10
+      imageTag: 6.2.12
     sc-mail:
       imageTag: "1.1"
     sc-database:
       imageTag: "12.13"
       clientPassword: default
     sc-broker:
-      imageTag: v3.8.35
+      imageTag: "v3.8.35"
       clientPassword: default
     web:
-      imageTag: 12.6
+      imageTag: "12.6"
     sde:
       fqdn: sdelements.bigbang.dev
       jwtSecret: default
       secretKey: default
-      superuserPassword: default 
+      superuserPassword: default
       enableJITT: false
+      systemAdminEmail: default@example.com
     istio:
-      enabled: true
       host: sdelements.bigbang.dev
 # Uncomment the following lines to deploy imagePullSecret
 # registryCredentials:
@@ -46,7 +46,7 @@ networkPolicies:
   enabled: false
 
 # Istio
-istiooperator:
+istioOperator:
   enabled: true
 istio:
   enabled: true
@@ -58,11 +58,15 @@ clusterAuditor:
   enabled: false
 
 # Logging
-eckoperator:
+eckOperator:
   enabled: false
-logging:
+elasticsearchKibana:
   enabled: false
 fluentbit:
+  enabled: false
+promtail:
+  enabled: false
+loki:
   enabled: false
 
 # Monitoring
@@ -76,7 +80,6 @@ kiali:
   enabled: false
 twistlock:
   enabled: false
-
 addons:
   minioOperator:
     enabled: false

@@ -45,11 +45,6 @@ Create a broker URL based on input variables
 TODO: Abstract out variable headers from all the templates into _helpers to reduce duplication
 */}}
 
-{{/* Absolute madness to allow boolean as template to be used in "include" */}}
-{{- define "datastoreEnableTls" -}}
-{{- ternary "true" "false" ( or ( .Values.datastore.enableTls ) ( eq ( .Values.datastore.enableTls | toString ) "<nil>" ) ) -}}
-{{- end }}
-
 {{- define "certManagerEnabled" -}}
 {{- ternary "true" "false" ( or ( .Values.global.certManager.enabled ) ( eq ( .Values.global.certManager.enabled | toString ) "<nil>" ) ) -}}
 {{- end -}}
@@ -75,8 +70,8 @@ TODO: Abstract out variable headers from all the templates into _helpers to redu
 {{- default ( ternary 4000 4433 $enableInternalTls ) .Values.reporting.port -}}
 {{- end -}}
 
-{{- define "datastore.port" -}}
-{{- default 6379 .Values.datastore.port -}}
+{{- define "sde.datastorePort" -}}
+{{- default 6379 ( index .Values "sc-datastore" "port" ) -}}
 {{- end -}}
 
 {{- define "sde.dbName" -}}

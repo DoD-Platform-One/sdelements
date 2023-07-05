@@ -1,6 +1,6 @@
 {{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "mailer" "service" -}}
 {{- $deploymentName := (include "mail.deploymentName" .) -}}
-
+{{- $ipFamilies := default (list "IPv4") .Values.global.ipFamilies -}}
 ---
 apiVersion: v1
 kind: Service
@@ -10,6 +10,9 @@ metadata:
     service: {{ $serviceName | quote }}
     {{- include "library.labels" . | nindent 4 }}
 spec:
+  ipFamilies:
+  {{- $ipFamilies | toYaml | trim | nindent 2 }}
+  ipFamilyPolicy: {{ ternary "PreferDualStack" "SingleStack" (gt (len $ipFamilies) 1) }}
   ports:
   - name: smtp
     port: {{ default "25" .Values.port }}

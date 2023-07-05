@@ -1,21 +1,21 @@
 dependencies:
 - name: sc-library
-  repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.1.0
+  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  version: 1.1.4
 - name: mock-sde
   repository: file://../mock_sde
   version: 0.0.1
 - name: pas-api
-  repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.7.6
+  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  version: 1.7.9
 - name: pas-plugin-worker
-  repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.7.6
+  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  version: 1.7.9
 - name: pas-async-worker
-  repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.7.6
+  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  version: 1.7.9
 - name: pas-frontend
-  repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 1.7.6
-digest: sha256:deda7473651e9605c7e2b6e1b8c8038294f1312311a2f2a05baf3b23d4e4ef39
-generated: "2022-12-19T22:33:35.875512138Z"
+  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  version: 1.7.9
+digest: sha256:42b790b4e938e695799bf3d3c1efa7a8065abaf357d02205a32d5bc0a13d0fdc
+generated: "2023-04-21T19:05:34.808632478Z"

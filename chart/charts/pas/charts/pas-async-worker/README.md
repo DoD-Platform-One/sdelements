@@ -8,8 +8,8 @@ Configure a `dev-values.yaml` file with the following values:
 global:
   imageRegistryUsername: <SDELEMENTS.COM FREEIPA USERNAME>
   imageRegistryPassword: <SDELEMENTS.COM FREEIPA PASSWORD>
-  imageRegistry: docker-dev.sdelements.com
-  imageRegistryFormat: "%s/%s_%s/%s:%s"
+  imageRegistry: sdelements.jfrog.io
+  imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
   imageOrganization: dev
   rwx:
     enabled: false

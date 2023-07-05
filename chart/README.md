@@ -1,46 +1,80 @@
-# This chart will install SDElements and required dependencies.
+ SDE
 
-## Installing SDElements from a Chart repo (requires Kubernetes and Helm v3)
+SD Elements (SDE) is a developer-centric threat modelling and security compliance platform
 
-**To add the repository make sure you replace the username (acme) with your account name and
-password with the 32 character secret.**
+## Prerequisites
+* SDE Service Account (see [Systems Admin Guide](https://docs.sdelements.com/release/latest/sysadmin/docs/container/account.html) for more details)
+* Desired SDE Version
+* Kubernetes 1.18+
+* Latest Helm v3
+* Object storage with S3 compatible API (e.g. AWS S3, MinIO)
+* Storage class is configured (e.g. `gp3 (default)`)
 
-```bash
-$ helm repo add sdelements "https://helm.sdelements.com/prod" --renegotiate FreelyAsClient --username sc_acme --password 1951aaf2420611ea893817e7c2c2288c
-```
-
-By default the account sde-superuser@sdelements.com will be created with a
-random password, this means that password recovery requests will be
-sent to the Security Compass support team which will assist with recovering
-lost superuser credentials.
-
-If you wish to handle this password recovery yourself you will need to
-configure and provide a valid superuser email address for an administrator user/group
-and enter the superuser password, we recommend using at least 16 characters for
-the password, a mix of upper/lower case with symbols.
-
-
-**To install run the following command, make sure you replace the username (acme) with your account name and the
-password with the 32 character secret.**
+## Get Repo Info
 
 ```bash
-$ helm install sdelements/sde --set global.imageRegistryUsername=sc_acme --set global.imageRegistryPassword=1951aaf2420611ea893817e7c2c2288c --generate-name
+$ helm repo add sdelements "https://repository.securitycompass.com/artifactory/sde-helm-prod" \
+    --username sc_username \
+    --password sc_password
+$ helm repo update
 ```
 
-**To deploy from the development lifecycle env from the development server
-please use the following
+## Install Chart
+
+Create a custom values file (e.g. `values.custom.yaml`), replacing values `mysecret` with a secure secret. We recommend using at least 16 characters for the secret, with a mix of upper/lower case with symbols. Replace the `sharedStorage` details with the prerequisite object storage details.
+```yaml
+global:
+  imageRegistryUsername: sc_acme
+  imageRegistryPassword: 1951aaf2420611ea893817e7c2c2288c
+  storageClass: mystorageclass  # Required if default storage class is not configured
+  sharedStorage:
+    bucketName: bucket_name
+    s3Url: https://s3_url
+    s3AccessKey: access_key
+    s3SecretKey: secret_key
+sde:
+  jwtSecret: mysecret
+  secretKey: mysecret
+  superuserPassword: mysecret
+sc-database:
+  clientPassword: mysecret
+sc-datastore:
+  clientPassword: mysecret
+sc-broker:
+  clientPassword: mysecret
+```
+
+> **IMPORTANT** Manage these secrets like any software that requires version control
+
+The command below installs SDE in the default configuration.
+```bash
+$ helm install [RELEASE_NAME] sdelements/sde -f values.custom.yaml
+```
+
+See [Common Customizations](#common-customizations) below
+
+See [Advanced Helm Configuration](https://docs.sdelements.com/release/latest/sysadmin/docs/container/configuration.html) for additional configuration.
+
+## Uninstall the Chart
 
 ```bash
-container_repo_password=MySuperSecret
-source shtdlib.sh
-get_git_ref
-cd helm/sde
-helm install ./ --set global.imageRegistryUsername=$USER \
-                --set global.imageRegistryPassword=$container_repo_password \
-                --generate-name --set global.imageTag=$git_ref \
-                --set global.imageRegistry=docker-dev.sdelements.com \
-                --set global.imageOrganization=dev \
-                --set global.imagePullPolicy=Always \
-                --set global.imageRegistryFormat="%s/%s_%s/%s:%s"
+$ helm uninstall [RELEASE_NAME]
 ```
 
+This removes all Kubernetes components associated with the chart and deletes the release.
+
+## Upgrading the chart
+
+```bash
+$ helm upgrade [RELEASE_NAME] sdelements/sde --install -f values.custom.yaml
+```
+
+## Common Customizations
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sde.superuserEmail | string | "sde-superuser@sdelements.com" | The SDE Superuser Login Email |
+| sde.defaultFromEmail | string | "SDElements \<noreply@sdelements.com\>" | |
+| sde.fqdn | string | "example.com" | SDE Server FQDN |
+| sde.enableJITT | bool | `false` | Set to `true` to enable Just In Time Training |
+| global.imagePullPolicy | string | "IfNotPresent" | |
+| global.networkIsolation | string | "none" | Isolate network access to SDE pods. Valid values "none", "namespace", "ingress", "full" |
