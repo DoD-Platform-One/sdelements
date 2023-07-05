@@ -21,20 +21,16 @@ global:
   ## registries/repositories. These are provided by SDElements support staff on
   ## request upon purchase of the SDElements product.
   ##
-  imageRegistry: docker.sdelements.com
-  #imageRegistry: docker-dev.sdelements.com
+  imageRegistry: sdelements.jfrog.io
 
   # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
-  # docker.sdelements.com / default_organization - (sde/3rd) - cert-creator : latest
-  # docker-dev.sdelements.com / dev _ (sde/3rd) / cert-creator : latest
-  #imageRegistryFormat: "%s/%s_%s/%s:%s"
-  imageRegistryFormat: "%s/%s-%s-%s:%s"
+  # sdelements.jfrog.io/sde-docker-prod/sde/postgres-bespoke:latest
+  imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
   #imageRegistryUsername: acmecorp
-  #imageRegistryPassword: SuperSecretPassword
-  imageOrganization: default_organization
-  #imageOrganization: dev
+  #imageRegistryPassword: myPassword
+  imageOrganization: prod  # dev/staging/prod
+  imageSource: sde
   imagePullPolicy: IfNotPresent
-  #imageSource: sde
   broker:
     enabled: true
     #adminClientUser: admin
@@ -71,3 +67,71 @@ replicas: 1
 resources:
   requests:
     memory: 128Mi
+
+networkPolicies:
+  broker:
+    podSelector:
+      matchLabels:
+        name: "{{ include \"library.trimmedName\" . }}-broker"
+    ingress:
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-10"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-17"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-18-sde-low"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-async-worker"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-plugin-worker"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"
+        ports:
+          - port: '{{ index .Values "port" | int | default 5672 }}'
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-api"
+        ports:
+          - port: '{{ index .Values "port" | int | default 5672 }}'
+          - port: '{{ index .Values "managementPort" | int | default 15672 }}'

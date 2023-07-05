@@ -18,8 +18,8 @@ Configure a `dev-values.yaml` file with the following values:
 global:
   imageRegistryUsername: <SDELEMENTS.COM FREEIPA USERNAME>
   imageRegistryPassword: <SDELEMENTS.COM FREEIPA PASSWORD>
-  imageRegistry: docker-dev.sdelements.com
-  imageRegistryFormat: "%s/%s_%s/%s:%s"
+  imageRegistry: sdelements.jfrog.io
+  imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
   imageOrganization: dev
   rwx:
     enabled: false
@@ -52,7 +52,7 @@ pas-api:
   sc-broker:
     clientPassword: password123
 
-  redis:
+  sc-datastore:
     clientPassword: password123
 
   minio:
@@ -79,6 +79,13 @@ includeIngress: true
 ```
 
 Apply any other customizations to this file. View `values.yaml` for examples of possible values this service could use.
+
+### Authenticating with helm repository
+
+```
+helm repo add sde-helm-dev https://sdelements.jfrog.io/artifactory/sde-helm-dev --username ${SDELEMENTS_FREEIPA_USER} --password ${SDELEMENTS_FREEIPA_PASSWORD}
+helm repo update
+```
 
 ### Testing local chart changes
 To test against local chart changes, in this particular `Chart.yaml`, modify the repository value for that particular chart to a file path value to the local chart directory:

@@ -1,0 +1,112 @@
+{{- $imageTag := default .Chart.AppVersion .Values.imageTag -}}
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.imagePullPolicy -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" .Values.global.imageRegistry -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" .Values.global.imageOrganization -}}
+{{- $imageName := default "redis" .Values.imageName -}}
+{{- $imageSource := hasKey .Values "imageSource" | ternary ( printf "%s" .Values.imageSource ) ( default "3rd" .Values.global.imageSource ) -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $uid := default 999 .Values.uid -}}
+{{- $gid := default 1000 .Values.gid -}}
+{{- $fsgid := default 1000 .Values.fsgid -}}
+{{- $deploymentName := include "datastore.deploymentName" . -}}
+{{- $port := include "datastore.port" . -}}
+{{- $dataMountPoint := default "/data" .Values.dataMountPoint -}}
+{{- $pvcName := include "datastore.pvcName" . -}}
+{{- $configMapName := include "datastore.configMapName" . -}}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "library.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        {{- include "library.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if not ((.Values.global.openshift).enabled) }}
+      securityContext:
+        {{- if not .Values.global.runAsRoot }}
+        runAsUser: {{ $uid }}
+        runAsGroup: {{ $gid }}
+        fsGroup: {{ $fsgid }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
+        {{- end }}
+      {{- end }}
+      {{- if .Values.global.enableNodeSelector }}
+      nodeSelector:
+        customer_name: {{ printf "%v" ( include "library.trimmedName" . ) | quote }}
+      {{- end }}
+      containers:
+      - name: {{ $deploymentName | quote }}
+        image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+        imagePullPolicy: {{ $imagePullPolicy }}
+        args:  # Override in command line
+        - "/usr/local/etc/redis/redis.conf"
+        - "--requirepass"
+        - "$(REDIS_PASSWORD)"
+        securityContext:
+          allowPrivilegeEscalation: false
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "datastore.secretName" . }}
+              key: ADMIN_DATASTORE_PASSWORD
+        {{ if (.Values.global.openshift).enabled -}}
+        - name: SDE_OPENSHIFT_ENABLED
+          value: "true"
+        {{ end -}}
+        ports:
+        - containerPort: {{ int $port }}
+        {{- if .Values.resources }}
+        resources:
+        {{- range $limitType, $resources := $.Values.resources }}
+            {{ $limitType }}:
+            {{- range $resourceKey, $resourceValue := $resources }}
+                {{ $resourceKey }}: {{ $resourceValue }}
+            {{- end }}
+        {{- end }}
+        {{- else }}
+        resources: {}
+        {{- end }}
+        volumeMounts:
+        - mountPath: {{ $dataMountPoint | quote }}
+          name: datastore
+        - mountPath: /usr/local/etc/redis/  # redis.conf
+          name: redis-config
+          readOnly: true
+      imagePullSecrets:
+      - name: {{ include "library.registrySecretName" . }}
+      restartPolicy: Always
+      volumes:
+      - name: datastore
+        persistentVolumeClaim:
+          claimName: {{ $pvcName | quote }}
+      - name: redis-config
+        configMap:
+          name: {{ $configMapName | quote }}
+          items:
+          {{- range $path, $bytes := .Files.Glob "conf/redis*.conf" }}
+          - key: {{ printf "conf/%s" ( toString $path | trimPrefix "conf/"  ) | replace "/" "_" }}
+            path: {{ toString $path | trimPrefix "conf/" | quote }}
+          {{- end }}
+status: {}

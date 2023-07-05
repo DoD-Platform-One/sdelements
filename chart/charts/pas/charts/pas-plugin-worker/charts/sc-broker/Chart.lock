@@ -1,6 +1,6 @@
 dependencies:
 - name: sc-library
-  repository: https://harbor-dev.sdelements.com/chartrepo/library
-  version: 0.1.1
-digest: sha256:9673960e6c7c4fb2ef0d74bb151ef3ca1a2f143affb01102aed05b769035fdf6
-generated: "2022-06-08T15:17:23.31373788Z"
+  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  version: 1.1.4
+digest: sha256:5b3e93299b4ce6e7a63296d74068e13c71cad2e7cac853154687221f2c4a77fa
+generated: "2023-03-15T14:57:12.661471748Z"

@@ -1,0 +1,19 @@
+{{- $pvcName := include "datastore.pvcName" . -}}
+{{- $storageClassName:= default .Values.global.storageClass .Values.dataStorageClass -}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $pvcName | quote }}
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ default "10Gi" .Values.dataVolumeSize }}
+  {{ if $storageClassName -}}
+  storageClassName: {{ $storageClassName | quote }}
+  {{- end }}
+status: {}

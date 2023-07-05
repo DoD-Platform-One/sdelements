@@ -36,4 +36,11 @@ spec:
     - name: {{ .Release.Name }}-{{ $pkg }}-values
       kind: Secret
       valuesKey: "overlays"
+  {{- if .Values.istio.enabled }}
+  dependsOn:
+    {{- if .Values.istio.enabled }}
+    - name: istio
+      namespace: bigbang
+    {{- end }}
+  {{- end }}
 {{- end }}

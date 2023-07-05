@@ -34,6 +34,7 @@
 {{- $reportingPort := include "reportingPort" . -}}
 {{- $reportingScheme := ternary "https" "http" $enableInternalTls -}}
 {{- $reportingBackendUrl := printf "%v://%v-%v-%v:%v" $reportingScheme ( include "library.trimmedName" . ) "reporting" "service" $reportingPort -}}
+{{- $ipFamilies := default (list "IPv4") .Values.global.ipFamilies -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -234,6 +235,9 @@ metadata:
     service: {{ $serviceName | quote }}
     {{- include "library.labels" . | nindent 4 }}
 spec:
+  ipFamilies:
+  {{- $ipFamilies | toYaml | trim | nindent 2 }}
+  ipFamilyPolicy: {{ ternary "PreferDualStack" "SingleStack" (gt (len $ipFamilies) 1) }}
   ports:
   - name: "https"
     port: {{ int $httpsPort }}

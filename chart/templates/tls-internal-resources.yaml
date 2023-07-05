@@ -1,6 +1,5 @@
 {{- $certManagerEnabled := eq ( include "certManagerEnabled" . ) "true" -}}
 {{- $enableInternalTls := eq ( include "enableInternalTls" . ) "true" -}}
-{{- $tlsRoot := default "/tls" .Values.datastore.tlsRoot -}}
 {{- $internalCAName := printf "internal-ca" }}
 {{- $internalCACert := printf "%v-tls-%v-cert" .Release.Name $internalCAName }}
 {{- $internalCASecret := printf "%v-tls-%v-secret" .Release.Name $internalCAName }}

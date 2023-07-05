@@ -32,6 +32,9 @@ spec:
       labels:
         name: {{ $deploymentName | quote }}
         {{- include "library.selectorLabels" . | nindent 8 }}
+      annotations:
+        k8sVersion: {{ .Capabilities.KubeVersion.Version }}
+        semverCompareResult: {{ (semverCompare ">=1.23.0" .Capabilities.KubeVersion.Version) | quote }}
     spec:
       {{- if not ((.Values.global.openshift).enabled) }}
       securityContext:
@@ -39,7 +42,7 @@ spec:
         runAsUser: {{ $uid }}
         runAsGroup: {{ $gid }}
         fsGroup: {{ $fsgid }}
-        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
+        {{- if (semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.Version) }}
         fsGroupChangePolicy: "OnRootMismatch"
         {{- end }}
         {{- else }}

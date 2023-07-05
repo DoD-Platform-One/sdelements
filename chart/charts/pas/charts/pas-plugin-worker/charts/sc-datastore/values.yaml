@@ -1,0 +1,130 @@
+### Default values for the Example (example) Helm Chart.
+### This is a YAML-formatted file.
+### Declare variables to be passed into your templates.
+
+global:
+  enabled: true
+  enableNestedDependencies: false
+
+  ## Default image tag.
+  ## The version of container images for SDE to run
+  ## Ref: https://docs.sdelements.com
+  ##
+  # imageTag: latest
+
+  ## Provide a name in place of `sde` for `app:` labels
+  ##
+  #nameOverride: ""
+
+  ## Provide a name to substitute for the full names of resources
+  ##
+  #fullnameOverride: ""
+
+  ## Configuration options and crentials to fetch images from private
+  ## registries/repositories. These are provided by SDElements support staff on
+  ## request upon purchase of the SDElements product.
+  ##
+  imageRegistry: sdelements.jfrog.io
+
+  # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
+  # sdelements.jfrog.io/sde-docker-prod/sde/postgres-bespoke:latest
+  imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
+  #imageRegistryUsername: acmecorp
+  #imageRegistryPassword: myPassword
+  imageOrganization: prod  # dev/staging/prod
+  imageSource: sde
+  imagePullPolicy: IfNotPresent
+  #storageClass: aws-ebs
+
+  ## Configuration for running on Openshift
+  # openshift:
+  #   enabled: false
+
+replicas: 1
+#port: 6379
+#dataStorageClass: aws-ebs
+#dataVolumeSize: 10Gi
+#dataMountPoint: /data
+#imageTag: latest
+#imagePullPolicy: IfNotPresent
+#imageSource: dccsr
+#imageName: redis
+#clientPassword: myPassword
+
+## User/Group options
+# uid: 999
+# gid: 1000
+# fsgid: 1000
+
+## Container options
+resources: {}
+
+networkPolicies:
+  datastore:
+    podSelector:
+      matchLabels:
+        name: '{{ include "datastore.deploymentName" . }}'
+    ingress:
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-api"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-async-worker"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-plugin-worker"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-10"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-17"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-18-sde-low"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-reporting"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"
+            namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: "{{ .Release.Namespace }}"
+        ports:
+          - port: '{{ include "datastore.port" . }}'

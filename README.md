@@ -1,17 +1,16 @@
 # SD Elements
 
-![Version: 2022.4.33-bb.1](https://img.shields.io/badge/Version-2022.4.33--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2022.4.33](https://img.shields.io/badge/AppVersion-2022.4.33-informational?style=flat-square)
+![Version: 2023.1.46-bb.1](https://img.shields.io/badge/Version-2023.1.33--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2023.1.46](https://img.shields.io/badge/AppVersion-2023.1.46-informational?style=flat-square)
 
 SDElements by Security Compass Ltd.
 
 ## Learn More
-* [User Guide](https://docs.sdelements.com/release/2022.4/guide/)
-* [Container Sysadmin Documentation](https://docs.sdelements.com/release/2022.4/sysadmin/docs/container/)
+* [User Guide](https://docs.sdelements.com/release/2023.1/guide/)
+* [Container Sysadmin Documentation](https://docs.sdelements.com/release/2023.1/sysadmin/docs/container/)
 
 ## Pre-Requisites
 
-* _NEW in 2022.4_: A pre-existing S3 API compatible bucket (AWS S3, minio, etc) with Access Key and Secret Key credentials populated under `global.SharedStorage`
-* _NEW in 2022.2_: A pre-existing S3 API compatible bucket (AWS S3, minio, etc) with Access Key and Secret Key credentials populated under `global.SharedStorage`
+* A pre-existing S3 API compatible bucket (AWS S3, minio, etc) with Access Key and Secret Key credentials populated under `global.SharedStorage`
 * Kubernetes v1.19 or newer deployed
 * Kubernetes config installed in `~/.kube/config`
 * Helm 3.2, or an alternative method of parsing and deploying a helm v3 chart
@@ -47,7 +46,7 @@ helm list -n "${namespace}"
 
 ## Upgrading
 
-Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2022.4/sysadmin/docs/container/upgrade.html)
+Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2023.1/sysadmin/docs/container/upgrade.html)
 
 ## Values
 

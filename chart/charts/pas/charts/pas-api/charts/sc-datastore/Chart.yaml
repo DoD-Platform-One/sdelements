@@ -1,0 +1,24 @@
+apiVersion: v2
+appVersion: 1.0.3
+dependencies:
+- condition: global.enableNestedDependencies
+  name: sc-library
+  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  version: 1.1.4
+description: The Security Compass datastore (Redis)
+icon: https://avatars0.githubusercontent.com/u/739346
+keywords:
+- datastore
+- redis
+- cache
+- broker
+- queue
+maintainers:
+- email: devops-support@securitycompass.com
+  name: Security Compass Technologies Ltd.
+  url: https://www.securitycompass.com/
+name: sc-datastore
+sources:
+- https://agra.sdelements.com/deployment/containers/datastore
+type: application
+version: 1.0.3

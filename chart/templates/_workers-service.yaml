@@ -8,6 +8,7 @@ Expects a dict input with root/dot keys with context
 {{- $port := default 8080 $dot.port -}}
 {{- $releaseName := printf "%v-worker-%v" ( include "library.trimmedName" $root ) $dot.niceness -}}
 {{- $serviceName := printf "%v-%v" $releaseName "service" }}
+{{- $ipFamilies := default (list "IPv4") $root.Values.global.ipFamilies }}
 ---
 apiVersion: v1
 kind: Service
@@ -17,6 +18,9 @@ metadata:
     service: {{ $serviceName | quote }}
     {{- include "library.labels" $root | nindent 4 }}
 spec:
+  ipFamilies:
+  {{- $ipFamilies | toYaml | trim | nindent 2 }}
+  ipFamilyPolicy: {{ ternary "PreferDualStack" "SingleStack" (gt (len $ipFamilies) 1) }}
   ports:
   - name: {{ $port | quote }}
     port: {{ $port }}

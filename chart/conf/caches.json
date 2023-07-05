@@ -8,19 +8,12 @@
     {{- else -}}
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": {{ default (printf "%v://%v-datastore-service:%v" (ternary "rediss" "redis" (eq ( include "enableInternalTls" . ) "true")) ( include "library.trimmedName" . ) ( include "datastore.port" . ) ) .Values.reporting.redisUrl | quote }},
+        "LOCATION": {{ printf "%v://%v-datastore-service:%v" "redis" ( include "library.trimmedName" . ) ( include "sde.datastorePort" . ) | quote }},
         "TIMEOUT": None,
         "OPTIONS": {
             "IGNORE_EXCEPTIONS": "true",
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": {{ .Values.datastore.clientPassword | quote }},
-            {{- if eq ( include "enableInternalTls" . ) "true" -}}
-            "CONNECTION_POOL_KWARGS": {
-                "ssl_ca_certs": {{ .tlsDataStoreCACertPath | quote}},
-                "ssl_certfile": {{ .tlsDataStoreCertPath | quote}},
-                "ssl_keyfile": {{ .tlsDataStoreKeyPath | quote}}
-            },
-            {{- end -}}
+            "PASSWORD": {{ index .Values "sc-datastore" "clientPassword" | quote }}
         }
     }
     {{- end -}}
