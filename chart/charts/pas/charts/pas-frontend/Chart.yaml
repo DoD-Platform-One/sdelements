@@ -1,8 +1,8 @@
 apiVersion: v2
-appVersion: 1.7.9
+appVersion: 1.8.0
 dependencies:
 - name: sc-library
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.1.4
 description: PAS frontend nginx container
 home: https://docker.sdelements.com
@@ -19,4 +19,4 @@ name: pas-frontend
 sources:
 - https://agra.sdelements.com/sd-elements/management_command_system
 type: application
-version: 1.7.9
+version: 1.8.0

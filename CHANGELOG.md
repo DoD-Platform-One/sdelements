@@ -3,6 +3,15 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [2023.2.49-bb.1] - 2023-10-19
+### Added
+- Upgraded upstream chart to '2023.2.49'
+- Updating README
+- Replaced sc-broker and sc-database with bitnami charts
+  - Renamed sc-broker to rabbitmq
+  - Renamed sc-database to postgresql
+- Introduced trend-reporting job
+
 ## [2023.1.54-bb.1] - 2023-05-09
 ### Added
 - Upgraded upstream chart to '2023.1.54'

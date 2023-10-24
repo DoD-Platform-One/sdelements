@@ -1,12 +1,12 @@
 # SD Elements
 
-![Version: 2023.1.46-bb.1](https://img.shields.io/badge/Version-2023.1.33--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2023.1.46](https://img.shields.io/badge/AppVersion-2023.1.46-informational?style=flat-square)
+![Version: 2023.2.49-bb.1](https://img.shields.io/badge/Version-2023.2.49--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2023.2.49](https://img.shields.io/badge/AppVersion-2023.2.49-informational?style=flat-square)
 
 SDElements by Security Compass Ltd.
 
 ## Learn More
-* [User Guide](https://docs.sdelements.com/release/2023.1/guide/)
-* [Container Sysadmin Documentation](https://docs.sdelements.com/release/2023.1/sysadmin/docs/container/)
+* [User Guide](https://docs.sdelements.com/release/2023.2/guide/)
+* [Container Sysadmin Documentation](https://docs.sdelements.com/release/2023.2/sysadmin/docs/container/)
 
 ## Pre-Requisites
 
@@ -54,6 +54,7 @@ Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2023.
 |-----|------|---------|-------------|
 | valuesVersion | float | `2` |  |
 | sde.superuserEmail | string | `"sde-superuser@sdelements.com"` |  |
+| sde.systemAdminEmail | string | `"sde-superuser@sdelements.com"` |  |
 | sde.defaultFromEmail | string | `"SDElements <noreply@sdelements.com>"` |  |
 | sde.defaultOrg | string | `"default"` |  |
 | sde.feedbackEmail | string | `"support@sdelements.com"` |  |
@@ -97,13 +98,11 @@ Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2023.
 | web.replicas | int | `1` |  |
 | web.readinessProbe.enabled | bool | `true` |  |
 | sc-jitt.replicas | int | `1` |  |
-| sc-broker.replicas | int | `1` |  |
-| sc-broker.resources.requests.memory | string | `"128Mi"` |  |
-| sc-database.replicas | int | `1` |  |
-| sc-database.commands | object | `{}` |  |
-| sc-database.resources.requests.cpu | string | `"500m"` |  |
-| sc-database.resources.requests.memory | string | `"512Mi"` |  |
-| sc-database.resources.limits.cpu | int | `6` |  |
+| rabbitmq.replicaCount | int | `1` |  |
+| rabbitmq.resources.requests.memory | string | `"128Mi"` |  |
+| postgresql.resources.requests.cpu | string | `"500m"` |  |
+| postgresql.resources.requests.memory | string | `"512Mi"` |  |
+| postgresql.resources.limits.cpu | int | `6` |  |
 | sc-mail.replicas | int | `1` |  |
 | sc-mail.config.mailFrom | string | `"noreply@sdelements.com"` |  |
 | worker.synchronous.lowPriority.map | string | `"  ~Token"` |  |

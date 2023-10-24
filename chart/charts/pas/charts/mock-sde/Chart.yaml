@@ -2,7 +2,7 @@ apiVersion: v2
 appVersion: 0.0.1
 dependencies:
 - name: sc-library
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 0.1.1
 description: SD Elements Mock SDE Service
 home: https://docker.sdelements.com

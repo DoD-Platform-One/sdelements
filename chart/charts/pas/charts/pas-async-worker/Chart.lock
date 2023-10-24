@@ -1,18 +1,18 @@
 dependencies:
 - name: sc-library
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.1.4
-- name: sc-broker
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
-  version: 1.3.6
+- name: rabbitmq
+  repository: https://charts.bitnami.com/bitnami
+  version: 11.14.4
 - name: sc-database
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.3.5
 - name: minio
   repository: https://charts.min.io/
   version: 5.0.7
 - name: sc-datastore
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.0.2
-digest: sha256:17bd520d4b428995d1a52af345f039e936bcc9ec47c4ac2b559858f478d1f942
-generated: "2023-04-21T19:05:26.178835653Z"
+digest: sha256:57bd9a84b09a949c2a81b3773ad673e300775d926972284082a551744c8ff4e5
+generated: "2023-06-22T18:23:51.005971386Z"

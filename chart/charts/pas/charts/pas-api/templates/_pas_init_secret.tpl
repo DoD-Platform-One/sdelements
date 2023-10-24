@@ -14,12 +14,12 @@
 {{- define "pas-api.admin.broker.secretName" -}}
 {{- $root := (get . "root") -}}
 {{- $dot := (get . "dot") -}}
-{{- $secretName := default (default (default "broker-secrets" (index $root.Values "sc-broker" "secretName")) $root.Values.global.secretName) $dot.admin.broker.secretName -}}
+{{- $secretName := default (default (default "broker" ( index $root.Values "rabbitmq" "auth" "existingPasswordSecret" )) $root.Values.global.secretName) $dot.admin.broker.secretName -}}
 {{- printf "%v-%v" $root.Release.Name $secretName -}}
 {{- end -}}
 
 {{- define "pas-api.admin.broker.passwordSecretKey" -}}
 {{- $root := (get . "root") -}}
 {{- $dot := (get . "dot") -}}
-{{- default "ADMIN_BROKER_PASSWORD" $dot.admin.broker.passwordSecretKey -}}
+{{- default "rabbitmq-password" $dot.admin.broker.passwordSecretKey -}}
 {{- end -}}

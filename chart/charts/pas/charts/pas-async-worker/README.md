@@ -8,14 +8,15 @@ Configure a `dev-values.yaml` file with the following values:
 global:
   imageRegistryUsername: <SDELEMENTS.COM FREEIPA USERNAME>
   imageRegistryPassword: <SDELEMENTS.COM FREEIPA PASSWORD>
-  imageRegistry: sdelements.jfrog.io
+  imageRegistry: repository.securitycompass.com
   imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
   imageOrganization: dev
   rwx:
     enabled: false
 
-sc-broker:
-  clientPassword: password123
+rabbitmq:
+  auth:
+    password: password123
 
 sc-database:
   clientPassword: password123

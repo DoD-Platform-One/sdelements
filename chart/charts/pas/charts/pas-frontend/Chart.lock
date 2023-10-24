@@ -1,6 +1,6 @@
 dependencies:
 - name: sc-library
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.1.4
-digest: sha256:adfa1943a143fe7a1b600f6dc5c5622f6652cd1067afb230d5c865dacce42e92
-generated: "2023-04-21T19:05:24.166720172Z"
+digest: sha256:869f1029f55df6487fd8519f62b19f74363c4788ae40066a9dd943c4adf4df64
+generated: "2023-06-22T18:23:47.497115672Z"

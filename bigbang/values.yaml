@@ -11,20 +11,33 @@ sdelements:
     global:
       storageClass: local-path
       registrySecretName: private-registry
+      # bitnami charts set this differently
+      imagePullSecrets:
+        - private-registry
     sc-datastore:
       clientPassword: default
       initImageTag: 1.1
       imageTag: 6.2.12
     sc-mail:
-      imageTag: "1.1"
-    sc-database:
-      imageTag: "12.13"
-      clientPassword: default
-    sc-broker:
-      imageTag: "v3.8.35"
-      clientPassword: default
+      imageTag: "1.1-8.8"
+    postgresql:
+      image:
+        tag: 12.15
+      auth:
+        password: default
+        postgressPassword: default
+    rabbitmq:
+      image:
+        tag: 3.12.6
+      auth:
+        password: default
+        erlangCookie: default
     web:
-      imageTag: "12.6"
+      imageTag: "2023.2.49-1.25.2"
+    job:
+      specification:
+        trend-reporting:
+          imageTag: "0.0.3-8.8"
     sde:
       fqdn: sdelements.bigbang.dev
       jwtSecret: default
@@ -47,9 +60,9 @@ networkPolicies:
 
 # Istio
 istioOperator:
-  enabled: true
+  enabled: false
 istio:
-  enabled: true
+  enabled: false
 
 # Gatekeeper
 gatekeeper:
@@ -71,6 +84,8 @@ loki:
 
 # Monitoring
 monitoring:
+  enabled: false
+grafana:
   enabled: false
 
 # Other Tools

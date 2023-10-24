@@ -1,0 +1,44 @@
+{{- $configMapName := include "cam.configMapName" . -}}
+{{- $initConfigMapName := include "cam.initConfigMapName" . -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ quote $initConfigMapName }}
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+data:
+  DATABASE_REQUIRE_SSL: {{ default "false" .Values.databaseUseSsl | quote }}
+  BROKER_REQUIRE_SSL: {{ default "false" .Values.brokerUseSsl | quote }}
+  SDE_OPENSHIFT_ENABLED: {{ ternary "false" "true"  (not (.Values.global.openshift).enabled) | quote }}
+  ADMIN_BROKER_USER: {{ default (default "rabbit" (.Values.global.broker).adminClientUser) .Values.brokerAdminUser | quote }}
+  BROKER_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-headless") .Values.brokerHost | quote }}
+  SERVICE_DATABASE_USER: {{ default "cam" .Values.databaseUser | quote }}
+  SERVICE_DATABASE_NAME: {{ default "cam" .Values.databaseName | quote }}
+  SERVICE_BROKER_USER: {{ default "cam" .Values.brokerUser | quote }}
+  SERVICE_CREATE_POSTGRES_DATABASE: "true"
+  SERVICE_CREATE_POSTGRES_USER: "true"
+  SERVICE_CREATE_BROKER_USER: "true"
+  SDE_DATABASE_NAME: {{ printf "%v" ( include "cam.sde.dbName" . ) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ quote $configMapName }}
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+data:
+  CAM_PORT: {{ default "3000" .Values.port | quote }}
+  CAM_DATABASE_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "database-service") .Values.databaseHost | quote }}
+  CAM_DATABASE_PORT: {{ default "5432" .Values.databasePort | quote }}
+  CAM_DATABASE_NAME: {{ default "cam" .Values.databaseName | quote }}
+  CAM_DATABASE_USER: {{ default "cam" .Values.databaseUser | quote }}
+  CAM_DATABASE_SCHEMA: {{ default "public" .Values.databaseSchema | quote }}
+  CAM_BROKER_USER: {{ default "cam" .Values.brokerUser | quote }}
+  CAM_BROKER_VHOSTS: {{ default "cam" .Values.brokerVhost | quote }}
+  API_PREFIX: {{ default "api/asset" .Values.apiPrefix | quote }}
+  DATABASE_REQUIRE_SSL: {{ default "false" .Values.databaseUseSsl | quote }}
+  BROKER_REQUIRE_SSL: {{ default "false" .Values.brokerUseSsl | quote }}
+  SDE_OPENSHIFT_ENABLED: {{ ternary "false" "true"  (not (.Values.global.openshift).enabled) | quote }}
+  ADMIN_BROKER_USER: {{ default (default "rabbit" (.Values.global.broker).adminClientUser) .Values.brokerAdminUser | quote }}
+  BROKER_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-headless") .Values.brokerHost | quote }}

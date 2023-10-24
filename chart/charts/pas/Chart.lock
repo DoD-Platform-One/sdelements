@@ -1,21 +1,21 @@
 dependencies:
 - name: sc-library
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.1.4
 - name: mock-sde
   repository: file://../mock_sde
   version: 0.0.1
 - name: pas-api
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
-  version: 1.7.9
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
+  version: 1.8.0
 - name: pas-plugin-worker
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
-  version: 1.7.9
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
+  version: 1.8.0
 - name: pas-async-worker
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
-  version: 1.7.9
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
+  version: 1.8.0
 - name: pas-frontend
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
-  version: 1.7.9
-digest: sha256:42b790b4e938e695799bf3d3c1efa7a8065abaf357d02205a32d5bc0a13d0fdc
-generated: "2023-04-21T19:05:34.808632478Z"
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
+  version: 1.8.0
+digest: sha256:562d828c95ae0c0f0f20f450ed97aca8c4804503455c35b31a5fef6ed405bb6d
+generated: "2023-06-22T18:24:07.029621227Z"

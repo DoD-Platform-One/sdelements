@@ -40,7 +40,7 @@ Enables creation of an arbitrary number of configurable/programmable SDE workers
 {{- $tlsDatabaseKeyPath := printf "%v/%v" $tlsRoot "database/tls.key" }}
 
 # Celery worker ssl variables
-{{- $tlsBrokerSecretName := include "tlsSecretName" ( mergeOverwrite $root ( dict "serviceName" "sc-broker-client" )) }}
+{{- $tlsBrokerSecretName := include "tlsSecretName" ( mergeOverwrite $root ( dict "serviceName" "rabbitmq-client" )) }}
 {{- $tlsBrokerCACertPath := printf "%v/%v" $tlsRoot "broker/ca.crt" }}
 {{- $tlsBrokerCertPath := printf "%v/%v" $tlsRoot "broker/tls.crt" }}
 {{- $tlsBrokerKeyPath := printf "%v/%v" $tlsRoot "broker/tls.key" }}
@@ -128,7 +128,16 @@ spec:
             path: {{ default "/accounts/login/" $dot.readinessPath | quote }}
             port: {{ default 8080 $dot.port }}
             scheme: HTTP
-          timeoutSeconds: 5
+          timeoutSeconds: 90
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        {{ else }}
+        readinessProbe:
+          exec:
+            command:
+              - cat
+              - /var/run/sde/celery.pid
+          timeoutSeconds: 90
           initialDelaySeconds: 5
           periodSeconds: 5
         {{- end }}
@@ -184,5 +193,8 @@ spec:
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always
+      {{ if hasKey $dot "queueVarVal" }}
+      terminationGracePeriodSeconds: {{ default 3600 $root.Values.sde.celeryTaskTimeLimit }}
+      {{- end }}
 status: {}
 {{- end }}

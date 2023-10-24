@@ -1,0 +1,138 @@
+{{- $imageTag := default .Chart.AppVersion .Values.imageTag -}}
+{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.imagePullPolicy -}}
+{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" .Values.global.imageRegistry -}}
+{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" .Values.global.imageOrganization -}}
+{{- $imageName := default "cam" .Values.imageName -}}
+{{- $initImageName := default "shared-init" .Values.initImageName -}}
+{{- $initImageTag := default .Chart.AppVersion .Values.initImageTag -}}
+{{- $imageSource := hasKey .Values "imageSource" | ternary ( printf "%s" .Values.imageSource ) ( default "sde" .Values.global.imageSource ) -}}
+{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $uid := default 999 .Values.uid -}}
+{{- $gid := default 1000 .Values.gid -}}
+{{- $fsgid := default 1000 .Values.fsgid -}}
+{{- $deploymentName := include "cam.deploymentName" . -}}
+{{- $configMapName := include "cam.configMapName" . -}}
+{{- $contextDict := dict "root" . "dot" .Values -}}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $deploymentName | quote }}
+  labels:
+    name: {{ $deploymentName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: {{ $deploymentName | quote }}
+      {{- include "library.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: {{ $deploymentName | quote }}
+        {{- include "library.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if not ((.Values.global.openshift).enabled) }}
+      securityContext:
+        {{- if not .Values.global.runAsRoot }}
+        runAsUser: {{ $uid }}
+        runAsGroup: {{ $gid }}
+        fsGroup: {{ $fsgid }}
+        {{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.GitVersion }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        {{- end }}
+        {{- else }}
+        runAsUser: 0
+        runAsGroup: 0
+        {{- end }}
+      {{- end }}
+      {{- if .Values.global.enableNodeSelector }}
+      nodeSelector:
+        customer_name: {{ printf "%v" ( include "library.trimmedName" . ) | quote }}
+      {{- end }}
+      initContainers:
+        - name: {{ printf "%v-init" $deploymentName | quote }}
+          image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $initImageName $initImageTag | quote }}
+          imagePullPolicy: {{ $imagePullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+          envFrom:
+          - configMapRef:
+              name: {{ include "cam.initConfigMapName" . }}
+          - configMapRef:
+              name: {{ printf "%v-%v" .Release.Name "db-configmap" }}
+          - secretRef:
+              name: {{ include "cam.secretName" . }}
+          env:
+          - name: ADMIN_DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "cam.database.secretName" $contextDict }}
+                key: {{ include "cam.database.passwordSecretKey" $contextDict }}
+          - name: ADMIN_BROKER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "cam.broker.secretName" $contextDict }}
+                key: {{ include "cam.broker.passwordSecretKey" $contextDict }}
+          {{- if .Values.extraEnvVars }}
+          {{- range $envKey, $envValue := $.Values.extraEnvVars }}
+          - name: {{ $envKey }}
+            value: {{ $envValue }}
+          {{- end }}
+          {{- end }}
+      containers:
+        - name: {{ $deploymentName | quote }}
+          image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
+          imagePullPolicy: {{ $imagePullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+          envFrom:
+          - configMapRef:
+              name: {{ include "cam.configMapName" . }}
+          - configMapRef:
+              name: {{ printf "%v-%v" .Release.Name "db-configmap" }}
+          - secretRef:
+              name: {{ include "cam.secretName" . }}  
+          env:
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "cam.sde.secretName" $contextDict }}
+                key: {{ include "cam.sde.jwtSecretKey" $contextDict }}
+          {{- if .Values.extraEnvVars }}
+          {{- range $envKey, $envValue := $.Values.extraEnvVars }}
+          - name: {{ $envKey }}
+            value: {{ $envValue }}
+          {{- end }}
+          {{- end }}
+          ports:
+          - containerPort: {{ default 3000 .Values.port }}
+          {{- if .Values.readinessEnabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ default default "/api/" .Values.readinessPath | quote }}
+              port: {{ default 3000 .Values.port }}
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          {{- end }}
+          {{- if .Values.resources }}
+          resources:
+          {{- range $limitType, $resources := $.Values.resources }}
+              {{ $limitType }}:
+              {{- range $resourceKey, $resourceValue := $resources }}
+                  {{ $resourceKey }}: {{ $resourceValue }}
+              {{- end }}
+          {{- end }}
+          {{- else }}
+          resources: {}
+          {{- end }}
+      imagePullSecrets:
+      - name: {{ include "library.registrySecretName" . }}
+      restartPolicy: Always
+status: {}

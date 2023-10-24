@@ -8,7 +8,7 @@
 {{- define "pas-api.broker.passwordSecretKey" -}}
 {{- $root := (get . "root") -}}
 {{- $dot := (get . "dot") -}}
-{{- (default ( default "PAS_BROKER_PASSWORD" $root.Values.global.pas.broker.passwordSecretKey ) $dot.broker.passwordSecretKey) -}}
+{{- (default ( default "rabbitmq-password" $root.Values.global.pas.broker.passwordSecretKey ) $dot.broker.passwordSecretKey) -}}
 {{- end -}}
 
 {{- define "pas-api.broker.resultBackendKey" -}}

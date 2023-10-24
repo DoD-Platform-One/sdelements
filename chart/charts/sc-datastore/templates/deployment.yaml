@@ -1,10 +1,10 @@
 {{- $imageTag := default .Chart.AppVersion .Values.imageTag -}}
-{{- $imagePullPolicy := default .Values.global.imagePullPolicy .Values.imagePullPolicy -}}
-{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" .Values.global.imageRegistry -}}
-{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" ( default .Values.global.imageOrganization .Values.imageOrganization ) -}}
-{{- $imageName := default "redis" .Values.imageName -}}
-{{- $imageSource := hasKey .Values "imageSource" | ternary ( printf "%s" .Values.imageSource ) ( default "3rd" .Values.global.imageSource ) -}}
-{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
+{{- $imagePullPolicy :=  .Values.imagePullPolicy | default .Values.global.imagePullPolicy -}}
+{{- $imageRegistry := .Values.imageRegistry | default ( include "datastore.imageRegistry" . ) -}}
+{{- $imageOrganization := .Values.imageOrganization | default ( include "datastore.imageOrganization" . ) -}}
+{{- $imageName := .Values.imageName | default "redis" -}}
+{{- $imageSource := .Values.imageSource | default ( include "datastore.imageSource" . ) -}}
+{{- $imageRegistryFormat := .Values.imageRegistryFormat | default ( include "datastore.imageRegistryFormat" . ) -}}
 {{- $uid := default 999 .Values.uid -}}
 {{- $gid := default 1000 .Values.gid -}}
 {{- $fsgid := default 1000 .Values.fsgid -}}

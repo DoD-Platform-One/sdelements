@@ -1,5 +1,5 @@
 {{- $tlsEnabled := default "false" .Values.tlsEnabled -}}
-{{- $brokerHost := default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-service" ) .Values.global.broker.host -}}
+{{- $brokerHost := default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-headless" ) .Values.global.broker.host -}}
 {{- $brokerPort := default (ternary 5671 5672 ( eq $tlsEnabled "true" )) .Values.global.broker.port -}}
 {{- $contextDict := dict "root" . "dot" .Values -}}
 ---

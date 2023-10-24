@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: 0.1.9
+appVersion: 0.1.11
 dependencies:
 - condition: global.enableNestedDependencies
   name: sc-library
@@ -22,4 +22,4 @@ name: sc-mail
 sources:
 - https://agra.sdelements.com/deployment/containers/mail
 type: application
-version: 0.1.9
+version: 0.1.11

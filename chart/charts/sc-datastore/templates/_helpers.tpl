@@ -30,3 +30,19 @@ Define the deployment name
 {{- define "datastore.port" -}}
 {{- default 6379 .Values.port -}}
 {{- end -}}
+
+{{- define "datastore.imageRegistry" -}}
+{{- ( index .Values .Chart.Name ).imageRegistry | default .Values.global.imageRegistry | default "repository.securitycompass.com" -}}
+{{- end -}}
+
+{{- define "datastore.imageRegistryFormat" -}}
+{{- ( index .Values .Chart.Name ).imageRegistryFormat | default .Values.global.imageRegistryFormat | default "%s/sde-docker-%s/%s/%s:%s" -}}
+{{- end -}}
+
+{{- define "datastore.imageOrganization" -}}
+{{- ( index .Values .Chart.Name ).imageOrganization | default .Values.global.imageOrganization | default "prod" -}}
+{{- end -}}
+
+{{- define "datastore.imageSource" -}}
+{{- ( index .Values .Chart.Name ).imageSource | default .Values.global.imageSource | default "sde" -}}
+{{- end -}}

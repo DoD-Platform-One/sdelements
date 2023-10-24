@@ -8,17 +8,20 @@ Expects a dict input with root/dot keys with context
 {{- $root := get . "root" -}}
 {{- $dot := get . "dot" -}}
 {{- $jobName := get . "jobName" -}}
-{{- $imagePullPolicy := default $root.Values.global.imagePullPolicy $dot.imagePullPolicy -}}
-{{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" $root.Values.global.imageRegistryFormat -}}
-{{- $imageRegistry := required "An image registry needs to be specified in your configuration values!" $root.Values.global.imageRegistry -}}
-{{- $imageOrganization := required "An image organization needs to be specified in your configuration values!" ( default $root.Values.global.imageOrganization $root.Values.worker.imageOrganization ) -}}
-{{- $imageSource := default ( default "sde" $root.Values.global.imageSource ) $root.Values.worker.imageSource -}}
-{{- $imageName := default "web-dynamic" $root.Values.worker.imageName -}}
-{{- $imageTag := default ( default $root.Chart.AppVersion $root.Values.global.imageTag ) ( default $root.Values.worker.imageTag $dot.imageTag ) | toString -}}
+{{- $worker := $root.Values.worker -}}
+{{- $global := $root.Values.global -}}
+{{- $imagePullPolicy := $dot.imagePullPolicy | default $global.imagePullPolicy | default "IfNotPresent" -}}
+{{- $imageRegistryFormat := $dot.imageRegistryFormat | default $global.imageRegistryFormat | default "%s/%s-%s-%s:%s"  -}}
+{{- $imageRegistry := $dot.imageRegistry  | default $global.imageRegistry | required "An image registry needs to be specified in your configuration values!" -}}
+{{- $imageOrganization := $dot.imageOrganization  | default $worker.imageOrganization | default $global.imageOrganization  | required "An image organization needs to be specified in your configuration values!" -}}
+{{- $imageSource := $dot.imageSource  | default $worker.imageSource | default $global.imageSource | default "sde"  -}}
+{{- $imageName := $dot.imageName |  default $worker.imageName | default "web-dynamic" -}}
+{{- $workerTag := $worker.imageTag | default $global.imageTag | default $root.Chart.AppVersion | toString -}}
+{{- $imageTag := $dot.imageTag |  default $workerTag | toString -}}
 {{- $releaseName := printf "%v-job-%v" ( include "library.trimmedName" $root | trunc 10 ) $jobName | trimSuffix "-" -}}
-{{- $uid := default 33 $root.Values.worker.uid -}}
-{{- $gid := default 33 $root.Values.worker.gid -}}
-{{- $fsgid := default 33 $root.Values.worker.fsgid }}
+{{- $uid := $dot.uid | default $worker.uid | default 33 -}}
+{{- $gid := $dot.gid | default $worker.gid | default 33 -}}
+{{- $fsgid := $dot.fsgid | default $worker.fsgid | default 33 -}}
 {{- $failedJobsHistoryLimit := default (default 1 $root.Values.job.failedJobsHistoryLimit) $dot.failedJobsHistoryLimit -}}
 {{- $successfulJobsHistoryLimit := default (default 0 $root.Values.job.successfulJobsHistoryLimit) $dot.successfulJobsHistoryLimit -}}
 {{- $enableRandomStartDelay := default (default false $root.Values.job.enableRandomStartDelay) $dot.enableRandomStartDelay -}}
@@ -33,6 +36,10 @@ Expects a dict input with root/dot keys with context
 {{- $tlsRoot := default "/tls" $root.Values.web.tlsRoot }}
 
 {{- $resourceLimits :=  default $root.Values.job.resources $dot.resources }}
+{{/* 
+    If trend reporting is disabled and the job is trend-reporting, don't create the cronjob 
+*/}}
+{{- if or ( $root.Values.trendReporting.enabled ) ( ne $jobName "trend-reporting" ) -}}
 ---
 {{- if semverCompare "<1.21-0" .Capabilities.KubeVersion.Version -}}
 apiVersion: batch/v1beta1
@@ -63,9 +70,9 @@ spec:
             app: {{ $releaseName }}
             cron: {{ $releaseName }}
         spec:
-          {{- if not ((.Values.global.openshift).enabled) }}
+          {{- if not (($global.openshift).enabled) }}
           securityContext:
-            {{- if not $root.Values.global.runAsRoot }}
+            {{- if not $global.runAsRoot }}
             runAsUser: {{ $uid }}
             runAsGroup: {{ $gid }}
             fsGroup: {{ $fsgid }}
@@ -77,18 +84,24 @@ spec:
             runAsGroup: 0
             {{- end }}
           {{- end }}
-          {{- if $enableRandomStartDelay }}
+          {{- if ( or $dot.initContainers $enableRandomStartDelay ) }}
           initContainers:
+          {{- with $dot.initContainers }}
+          {{ toYaml . | nindent 10 }}
+          {{- end }}
+          {{- if $enableRandomStartDelay }}
           - name: {{ printf "%v-%v" $releaseName "sleep" | quote }}
-            image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
-            imagePullPolicy: {{ $dot.imagePullPolicy }}
+            {{- /* Only image we can guarantee a customer has in their custom image registry is the SDE container */}}
+            image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource "web-dynamic" $workerTag | quote }}
+            imagePullPolicy: {{ $imagePullPolicy }}
             command: ['/bin/bash', '-c', 'wait=$(shuf --input-range={{ $randomStartDelayRange }} --head-count=1); echo "$(date): Waiting for ${wait} seconds..."; sleep "${wait}"; echo "$(date): Done waiting!"' ]
+          {{- end }}
           {{- end }}
           containers:
           - name: {{ $releaseName | quote }}
             image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
             {{- if $dot.imagePullPolicy }}
-            imagePullPolicy:  {{ $dot.imagePullPolicy }}
+            imagePullPolicy:  {{ $imagePullPolicy }}
             {{- end }}
             command: {{ required "Jobs are required to specify a command to run"  $dot.command }}
             env:
@@ -96,6 +109,20 @@ spec:
             {{- with $dot.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            - name: ENSURE_DB_UNLOCKED
+              value: "true"
+            {{- /* If trend reporting is enabled and the job runs trend reporting container, or job has custom envFrom */}}
+            {{- if ( ( $root.Values.trendReporting.enabled | and ( eq $imageName "trend-reporting" ) ) | or $dot.envFrom ) }}
+            envFrom:
+            {{- /* If the job is trend-reporting, attach trend reporting env */}}
+            {{- if ( eq $jobName "trend-reporting" ) }}
+            - secretRef:
+                name: "{{ include "library.trimmedName" . }}-tr-env"
+            {{- end }}
+            {{- with $dot.envFrom }}
+              {{ toYaml . | nindent 12 }}
+            {{- end }}
+            {{- end}}
             {{- if $dot.args }}
             args:
               {{- with $dot.args }}
@@ -143,3 +170,4 @@ spec:
           {{- end }}
 status: {}
 {{- end }}
+{{- end -}}
