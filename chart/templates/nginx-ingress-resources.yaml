@@ -1,6 +1,6 @@
 {{- $serviceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "web" "service" -}}
 {{- $ingressName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "web" "ingress" -}}
-{{- $ingressClassName := default (ternary "nginx" "openshift-default" (not (.Values.global.openshift).enabled)) .Values.web.ingressClassName -}}
+{{- $ingressClassName := default (ternary "public" "openshift-default" (not (.Values.global.openshift).enabled)) .Values.web.ingressClassName -}}
 {{- $customCertsProvided := or ( and ( hasKey .Values.web "tlsCertificate" ) ( hasKey .Values.web "tlsKey" )) ( and ( hasKey .Values.web "tlsCertificatePath" ) ( hasKey .Values.web "tlsKeyPath" )) -}}
 {{- $customTlsSecretName := printf "%v-tls-web-custom-secret" .Release.Name -}}
 {{- $dynamicTlsSecretName := ternary ( include "tlsSecretName" ( mergeOverwrite $ ( dict "serviceName" "web-server" ))) $customTlsSecretName ( eq ( include "certManagerEnabled" . ) "true" )  -}}

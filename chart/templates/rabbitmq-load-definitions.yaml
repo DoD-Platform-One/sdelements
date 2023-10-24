@@ -1,0 +1,36 @@
+{{- if .Values.rabbitmq.loadDefinition.enabled }}
+{{- $rabbitmqUsername := required "rabbitmq username is required, e.g. '--set rabbitmq.auth.username=...' or in values.yaml" .Values.rabbitmq.auth.username -}}
+{{- $rabbitmqPassword := required "rabbitmq password is required, e.g. '--set rabbitmq.auth.password=...' or in values.yaml" .Values.rabbitmq.auth.password -}}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "library.trimmedName" . }}-rabbitmq-load-definition
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  load_definition.json: |-
+    {
+      "users": [
+        {
+          "name": "{{ $rabbitmqUsername }}",
+          "password": "{{ $rabbitmqPassword }}",
+          "tags": ["administrator", "management"]
+        }
+      ],
+      "vhosts": [
+        {
+          "name": "{{ .Values.global.broker.adminVhost }}"
+        }
+      ],
+      "permissions":[
+          {
+              "user":"{{ $rabbitmqUsername }}",
+              "vhost":"{{ .Values.global.broker.adminVhost }}",
+              "configure":".*",
+              "read":".*",
+              "write":".*"}
+      ]
+    }
+{{- end}}

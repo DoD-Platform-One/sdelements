@@ -16,10 +16,10 @@ global:
   ## registries/repositories. These are provided by SDElements support staff on
   ## request upon purchase of the SDElements product.
   ##
-  imageRegistry: sdelements.jfrog.io
+  imageRegistry: repository.securitycompass.com
 
   # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
-  # sdelements.jfrog.io/sde-docker-prod/sde/pas_api:latest
+  # repository.securitycompass.com/sde-docker-prod/sde/pas_api:latest
   imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
   imageRegistryUsername: acmecorp
   imageRegistryPassword: SuperSecretPassword
@@ -120,9 +120,14 @@ global:
     #host:
     #port:
 
-  broker: {}
-    #adminClientUser: sde
-    #adminVhost: sde
+  broker:
+    #adminClientUser: rabbit 
+    adminVhost: rabbit
+    #user: rabbit
+    #requireSSL: false
+    #host: broker-headless
+    #port: 5672
+    #url: amqp://www.example.com
 
   # S3 config from SDE
   sharedStorage: {}
@@ -166,8 +171,41 @@ global:
 sc-database: {}
   #secretName:
 
-sc-broker: {}
+# PAS broker config
+broker: {}
   #secretName:
+  #passwordSecretKey:
+
+rabbitmq:
+  nameOverride: "broker"
+  #replicaCount: 1
+  image:
+    # registry: repository.securitycompass.com
+    repository: sde-docker-prod/sde/rabbitmq
+    # tag: 3.11.15-debian-11-r0
+    #pullSecrets:
+    #- pas-api-registry-secret
+  auth:
+    username: rabbit
+    #password: "myrabbitmqpassword"
+    #existingPasswordSecret: ""
+  extraConfiguration: |-
+    default_vhost = {{ .Values.global.broker.adminVhost }}
+
+  ## URL is mutually exclusive to user/pass/host/vhost and takes precidence over
+  ## those values if specified
+  #url: amqp://user:pass@host:post/vhost
+  resources:
+    requests:
+      cpu: 10m
+      memory: 150Mi
+    limits:
+      cpu: 2
+      memory: 2048Mi
+  # metrics:
+  #   enabled: false
+  #   serviceMonitor:
+  #     enabled: false
 
 minio:
   enabled: false
@@ -242,11 +280,6 @@ admin:
     #user: rabbit
     #secretName:
     #passwordSecretKey:
-
-# PAS broker config
-broker: {}
-  #secretName:
-  #passwordSecretKey:
 
 # PAS database config
 database: {}

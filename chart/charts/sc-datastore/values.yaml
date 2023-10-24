@@ -24,7 +24,7 @@ global:
   ## registries/repositories. These are provided by SDElements support staff on
   ## request upon purchase of the SDElements product.
   ##
-  imageRegistry: sdelements.jfrog.io
+  imageRegistry: repository.securitycompass.com
 
   # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
   # sdelements.jfrog.io/sde-docker-prod/sde/postgres-bespoke:latest

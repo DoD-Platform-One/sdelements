@@ -35,6 +35,8 @@ spec:
       labels:
         name: {{ $deploymentName | quote }}
         {{- include "library.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       {{- if and .Values.global.enableNodeSelector .Values.nodeSelector }}
       nodeSelector:

@@ -1,26 +1,26 @@
 apiVersion: v2
-appVersion: 1.7.9
+appVersion: 1.8.0
 dependencies:
 - condition: global.enableNestedDependencies
   name: sc-library
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.1.4
 - condition: useMockSDE,global.enableNestedDependencies
   name: mock-sde
   repository: file://../mock_sde
   version: 0.0.1
 - name: pas-api
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
-  version: 1.7.9
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
+  version: 1.8.0
 - name: pas-plugin-worker
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
-  version: 1.7.9
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
+  version: 1.8.0
 - name: pas-async-worker
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
-  version: 1.7.9
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
+  version: 1.8.0
 - name: pas-frontend
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
-  version: 1.7.9
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
+  version: 1.8.0
 description: SD Elements Pluggable Framework
 home: https://docker.sdelements.com
 icon: https://avatars0.githubusercontent.com/u/739346
@@ -36,4 +36,4 @@ name: pas
 sources:
 - https://agra.sdelements.com/sd-elements/management_command_system
 type: application
-version: 1.7.9
+version: 1.8.0

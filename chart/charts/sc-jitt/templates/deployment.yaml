@@ -27,6 +27,7 @@
 {{- $tlsKeyPath := printf "%v/tls.key" $tlsRoot }}
 
 {{- $mapName := printf "%v-%v" ( include "library.trimmedName" . ) "jitt-resources" -}}
+{{- $updateStrategy := default "RollingUpdate" (index .Values "updateStrategy").type }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -43,7 +44,7 @@ spec:
       name: {{ $deploymentName | quote }}
       {{- include "library.selectorLabels" . | nindent 6 }}
   strategy:
-    type: Recreate
+    type: {{ $updateStrategy }}
   template:
     metadata:
       labels:
@@ -124,6 +125,17 @@ spec:
         - mountPath: {{ $tlsRoot }}
           name: tls
           readOnly: true
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5; /usr/sbin/nginx -s quit; while pgrep -x nginx; do sleep 1; done"]
+        readinessProbe:
+          tcpSocket:
+            port: {{ int $httpsPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+      terminationGracePeriodSeconds: {{ default 30 .Values.terminationGracePeriodSeconds }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always

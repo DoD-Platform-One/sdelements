@@ -8,12 +8,13 @@ Configure a `dev-values.yaml` file with the following values:
 global:
   imageRegistryUsername: <SDELEMENTS.COM FREEIPA USERNAME>
   imageRegistryPassword: <SDELEMENTS.COM FREEIPA PASSWORD>
-  imageRegistry: sdelements.jfrog.io
+  imageRegistry: repository.securitycompass.com
   imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
   imageOrganization: dev
 
-sc-broker:
-  clientPassword: password123
+rabbitmq:
+  auth:
+    password: password123
 ```
 
 Apply any other customizations to this file. View `values.yaml` for examples of possible values this service could use.

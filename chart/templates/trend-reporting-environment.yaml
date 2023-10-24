@@ -1,0 +1,35 @@
+{{- $tr := .Values.trendReporting -}}
+{{- if $tr.enabled -}}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "library.trimmedName" . }}-tr-env
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+{{- /* stringData will convert to base64 for us */}}
+stringData:
+  {{- /* Database is SDE database */}}
+  DATABASE_REQUIRE_SSL: "{{ include "sde.dbRequireSSL" . }}"
+  DATABASE_HOST: "{{ include "sde.dbHost" . }}"
+  DATABASE_PORT: "{{ include "sde.dbPort" . }}"
+  TR_DATABASE_USER: "{{ include "sde.dbUser" . }}"
+  TR_DATABASE_PASSWORD: "{{ include "sde.dbPassword" . }}"
+  TR_DATABASE_NAME: "{{ include "sde.dbName" . }}"
+  {{- /* Trend-Reporting Configurations Configurations */}}
+  TR_REPORTING_SCHEMA: "{{ $tr.reportingSchema | default "reporting" }}"
+  TR_HISTORICAL_SCHEMA : "{{ $tr.historicalSchema | default "snapshots" }}"
+  TR_NUMBER_OF_THREADS: "{{ $tr.numThreads | default 2 }}"
+  TR_LOG_LEVEL: "{{ $tr.logLevel | default "debug" }}"
+  TR_LOG_FORMAT: "{{ $tr.logFormat | default "json" }}"
+  {{- /* Trend-Reporting Sentry Configurations */}}
+  {{- /* If TR_SENTRY_DSN is an empty string, Sentry is disabled for trend reporting */}}
+  TR_SENTRY_DSN: "{{ ($tr.sentry).dsn | default "" }}"
+  TR_SENTRY_ENVIRONMENT: "{{ ($tr.sentry).environment | default (.Values.global.sentry).environment | default "develop" }}"
+  TR_RELEASE: "{{ ($tr.sentry).releaseName | default (.Values.global.sentry).releaseName | default (printf "trend-reporting@%v" (index .Values.job.specifications "trend-reporting").imageTag) }}"
+  TR_SENTRY_SAMPLE_RATE: "{{ ($tr.sentry).sampleRate | default (.Values.global.sentry).sampleRate | default 1 }}"
+  {{- /* Any additional env vars, as a map */}}
+  {{- with $tr.extraEnvVars }}
+    {{ . | toYaml | nindent 2 }}
+  {{- end }}
+{{- end -}}

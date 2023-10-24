@@ -18,7 +18,7 @@ Configure a `dev-values.yaml` file with the following values:
 global:
   imageRegistryUsername: <SDELEMENTS.COM FREEIPA USERNAME>
   imageRegistryPassword: <SDELEMENTS.COM FREEIPA PASSWORD>
-  imageRegistry: sdelements.jfrog.io
+  imageRegistry: repository.securitycompass.com
   imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
   imageOrganization: dev
   rwx:
@@ -41,7 +41,7 @@ pas-api:
   sdeAPIServiceName: mock-sde-service
   sdeAPIServicePort: 5000
   # Enable service subcharts and claims
-  useBrokerSubchart: true
+  useRabbitmqSubchart: true
   useDatabaseSubchart: true
   useDatastoreSubchart: true
   includeSDESecret: true
@@ -49,8 +49,10 @@ pas-api:
   sc-database:
     clientPassword: password123
 
-  sc-broker:
-    clientPassword: password123
+  rabbitmq:
+    auth:
+      username: rabbit
+      password: password123
 
   sc-datastore:
     clientPassword: password123
@@ -83,7 +85,7 @@ Apply any other customizations to this file. View `values.yaml` for examples of 
 ### Authenticating with helm repository
 
 ```
-helm repo add sde-helm-dev https://sdelements.jfrog.io/artifactory/sde-helm-dev --username ${SDELEMENTS_FREEIPA_USER} --password ${SDELEMENTS_FREEIPA_PASSWORD}
+helm repo add sde-helm-dev https://repository.securitycompass.com/artifactory/sde-helm-dev --username ${SDELEMENTS_FREEIPA_USER} --password ${SDELEMENTS_FREEIPA_PASSWORD}
 helm repo update
 ```
 

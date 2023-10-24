@@ -32,7 +32,7 @@
 
 {{/* Env vars */}}
 {{- $secretName := printf "%v-%v" .Release.Name "sde-secrets" -}}
-{{- $dbServiceName := printf "%v-database-service" ( include "library.trimmedName" $root ) -}}
+{{- $dbServiceName := printf "%v-database" ( include "library.trimmedName" $root ) -}}
 {{- $redisUrl := printf "redis://%v-datastore-service:%v" ( include "library.trimmedName" . ) ( include "sde.datastorePort" . ) -}}
 {{- $cacheQueueServiceName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "cache-queue" "service" -}}
 {{- $version := semver $root.Chart.Version -}}

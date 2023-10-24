@@ -1,5 +1,5 @@
 {{- $tlsEnabled := default "false" .Values.tlsEnabled -}}
-{{- $brokerHost := default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-service" ) .Values.global.broker.host -}}
+{{- $brokerHost := default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-headless" ) .Values.global.broker.host -}}
 {{- $brokerPort := default (ternary 5671 5672 ( eq $tlsEnabled "true" )) .Values.global.broker.port -}}
 {{- $brokerServer := printf "%v:%v" $brokerHost $brokerPort -}}
 {{- $brokerVhost := include "pas.brokerVhost" (dict "root" . "dot" .Values) -}}
@@ -28,7 +28,7 @@ data:
 
   SDE_ASYNC_WORKER_BROKER_SERVER: {{ $brokerServer }}
   SDE_ASYNC_WORKER_BROKER_VHOST: {{ default (default "rabbit" .Values.global.broker.adminVhost) .Values.sdeVhost | quote }}
-  SDE_ASYNC_WORKER_BROKER_USER: {{ default (default "rabbit" .Values.global.broker.adminClientUser) .Values.sdeBrokerUser | quote }}
+  SDE_ASYNC_WORKER_BROKER_USER: {{ default (default "rabbit" .Values.global.broker.adminClientUser) .Values.sdeBrokerUser | quote }}  
   {{ if .Values.sdeQueueName }}
   SDE_QUEUE_NAME: {{ .Values.sdeQueueName | quote }}
   {{ end }}

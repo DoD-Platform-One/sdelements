@@ -34,11 +34,11 @@ Create chart name and version as used by the chart label.
 Create a broker URL based on input variables
 */}}
 {{- define "sde.broker" }}
-  {{- $rabbitmqHost := default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-service" ) ( index .Values "sc-broker" "host" ) }}
-  {{- $rabbitmqPort := default 5672 ( index .Values "sc-broker" "port" ) }}
-  {{- $rabbitmqUser := default "rabbit" .Values.global.broker.adminClientUser }}
+  {{- $rabbitmqHost := default ( printf "%s-%s" ( include "library.trimmedName" . ) "broker-headless" ) .Values.rabbitmq.servicenameOverride }}
+  {{- $rabbitmqPort := default 5672 .Values.rabbitmq.service.ports.amqp }}
+  {{- $rabbitmqUser := default "rabbit" .Values.rabbitmq.auth.username }}
   {{- $rabbitmqVHost := default "rabbit" .Values.global.broker.adminVhost }}
-  {{- default ( printf "amqp://%s@%s:%d/%s" $rabbitmqUser $rabbitmqHost $rabbitmqPort $rabbitmqVHost ) .Values.global.broker.url | quote }}
+  {{- default ( printf "amqp://%s@%s:%v/%s" $rabbitmqUser $rabbitmqHost $rabbitmqPort $rabbitmqVHost ) .Values.global.broker.url }}
 {{- end }}
 
 {{/*
@@ -75,15 +75,15 @@ TODO: Abstract out variable headers from all the templates into _helpers to redu
 {{- end -}}
 
 {{- define "sde.dbName" -}}
-{{- printf "sde_%s" (default .Chart.AppVersion .Values.global.imageTag) -}}
+{{- printf "sdelements" -}}
 {{- end -}}
 
 {{- define "sde.dbEnabled" -}}
-{{- ternary "true" "false" ( or ( index .Values "sc-database" "enabled" ) ( eq ( ( index .Values "sc-database" "enabled" ) | toString ) "<nil>" ) ) -}}
+{{- ternary "true" "false" ( or ( index .Values "postgresql" "enabled" ) ( eq ( ( index .Values "postgresql" "enabled" ) | toString ) "<nil>" ) ) -}}
 {{- end -}}
 
 {{- define "sde.externalDbEnabled" -}}
-{{- if index .Values "external-database"  }}
+{{- if index .Values "external-database" -}}
     {{- "true" -}}
 {{- else -}}
     {{- "false" -}}
@@ -92,7 +92,7 @@ TODO: Abstract out variable headers from all the templates into _helpers to redu
 
 {{- define "sde.dbHost" -}}
 {{- if eq ( include "sde.dbEnabled" . ) "true"   }}
-    {{- printf "%v-database-service" ( include "library.trimmedName" . ) -}}
+    {{- printf "%v-database" ( include "library.trimmedName" . ) -}}
 {{- else if eq ( include "sde.externalDbEnabled" . ) "true" -}}
     {{- index .Values "external-database" "host" -}}
 {{- else -}}
@@ -102,7 +102,7 @@ TODO: Abstract out variable headers from all the templates into _helpers to redu
 
 {{- define "sde.dbPort" -}}
 {{- if eq ( include "sde.dbEnabled" . ) "true"   }}
-    {{- default 5432 ( index .Values "sc-database" "port" ) -}}
+    {{- default 5432 ( index .Values "postgresql" "containerPorts" "postgresql" ) -}}
 {{- else if eq ( include "sde.externalDbEnabled" . ) "true" -}}
     {{- default 5432 ( index .Values "external-database" "port" ) -}}
 {{- else -}}
@@ -112,10 +112,23 @@ TODO: Abstract out variable headers from all the templates into _helpers to redu
 
 {{- define "sde.dbUser" -}}
 {{- if eq ( include "sde.dbEnabled" . ) "true"   }}
-    {{- default "postgres" ( index .Values "sc-database" "clientUser" ) -}}
+    {{- default "postgres" ( index .Values "postgresql" "auth" "username" ) -}}
 {{- else if eq ( include "sde.externalDbEnabled" . ) "true" -}}
     {{- index .Values "external-database" "user" -}}
 {{- else -}}
     {{- fail "Error: No db connections defined" -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "sde.dbPassword" -}}
+    {{- default (index .Values "postgresql" "auth" "postgresPassword") (index .Values "postgresql" "auth" "password") -}}
+{{- end -}}
+
+{{- define "sde.dbMetricsPort" -}}
+    {{- default 9187 ( index .Values "postgresql" "metrics" "containerPorts" "metrics" ) -}}
+{{- end -}}
+
+{{- /* Placeholder until we support custom CA certs */ -}}
+{{- define "sde.dbRequireSSL" -}}
+{{- "false" -}}
 {{- end -}}

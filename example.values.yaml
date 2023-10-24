@@ -6,7 +6,7 @@ global:
   imagePullPolicy: Always
   imageOrganization: ironbank/security-compass
   imageSource: sd-elements
-  imageTag: 2023.1.46
+  imageTag: 2023.2.49
   storageClass: gp2 # Should be any RWO storageclass with dynamic provisioning, if possible
   sharedStorage:
     bucketName: <NAME-OF-THE-BUCKET>
@@ -26,54 +26,65 @@ sde:
 web:
   replicas: 1
   imageName: nginx
-  imageTag: "12.5"
-  uid: 998
-  gid: 996
+  imageTag: 2023.2.49-1.25.2
+  uid: 993
+  gid: 993
   fsgid: 49
 sc-jitt:
   replicas: 1
   imageSource: jitt
   imageName: nginx
-  imageTag: 2023.1.0
-  uid: 998
-  gid: 996
+  imageTag: 2023.2.2-1.25.2
+  uid: 993
+  gid: 993
   fsgid: 49
-sc-broker:
-  replicas: 1
-  imageName: rabbitmq38
-  imageOrganization: ironbank/pivotal
-  imageTag: v3.8.35
-  imageSource: rabbitmq
-  clientPassword: <YOUR-BROKER-PASSWORD>
-  uid: 1000
-  gid: 100
-  fsgid: 1000
-sc-database:
-  replicas: 1
-  imageTag: "12.13"
-  clientPassword: <YOUR-DATABASE-PASSWORD>
-  uid: 26
-  gid: 26
-  fsgid: 26
+rabbitmq:
+    replicaCount: 1
+    image:
+        repository: ironbank/bitnami/rabbitmq
+        tag: 3.12.6
+    auth:
+        password: <YOUR-BROKER-PASSWORD>
+        erlangCookie: <YOUR-BROKER-ERLANG-COOKIE>
+    ## User/Group options
+    containerSecurityContext:
+        runAsUser: 1000
+    podSecurityConext:
+        fsGroup: 1000
+postgresql:
+  image:
+    repository: ironbank/opensource/postgres/postgresql12
+    tag: 12.15
+  postgresql:
+    auth:
+      password: <YOUR-DATABASE-PASSWORD>
+  
+  ## User/Group options
+  primary:
+    containerSecurityContext:
+      runAsUser: 26
+      runAsGroup: 26
+    podSecurityContext:
+      fsGroup: 26
 sc-mail:
   imageName: exim
-  imageTag: "1.1"
+  imageTag: 1.1-8.8
 worker:
   imageName: mod_wsgi
-  imageTag: 2023.1.46
+  imageTag: 2023.2.49-8.8
   uid: 48
   gid: 48
   fsgid: 49
 reporting:
   enabled: true
   imageName: reporting
-  imageTag: 2023.1.46
+  imageTag: 2023.2.49-18.17.1
   imagePullPolicy: Always
   enableTls: true
   uid: 1001
   gid: 1001
-  nginxuid: 998
-  nginxgid: 996
+  nginxuid: 993
+  nginxgid: 993
   replicas: 1
 sc-datastore:
   clientPassword: <YOUR-DATASTORE-PASSWORD>
@@ -89,6 +100,13 @@ sc-datastore:
   gid: 1001
   fsgid: 1001
   replicas: 1
+job:
+  specifications:
+    trend-reporting:
+      imageTag: 0.0.3-8.8
+      uid: 998
+      gid: 996
+      fsgid: 996
 # The settings below are for adjusting the big bang customizations
 istio:
   enabled: true

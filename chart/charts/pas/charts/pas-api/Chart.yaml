@@ -1,24 +1,24 @@
 apiVersion: v2
-appVersion: 1.7.9
+appVersion: 1.8.0
 dependencies:
 - name: sc-library
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.1.4
 - condition: useDatabaseSubchart
   name: sc-database
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.3.6
 - condition: useBrokerSubchart
-  name: sc-broker
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
-  version: 1.3.7
+  name: rabbitmq
+  repository: https://charts.bitnami.com/bitnami
+  version: 11.14.4
 - condition: minio.enabled
   name: minio
   repository: https://charts.min.io/
   version: 5.0.8
 - condition: useDatastoreSubchart
   name: sc-datastore
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.0.3
 description: SD Elements PAS API Service
 home: https://docker.sdelements.com
@@ -38,4 +38,4 @@ name: pas-api
 sources:
 - https://agra.sdelements.com/sd-elements/management_command_system
 type: application
-version: 1.7.9
+version: 1.8.0
