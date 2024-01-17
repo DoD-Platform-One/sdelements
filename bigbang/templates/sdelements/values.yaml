@@ -36,15 +36,17 @@ rabbitmq:
   replicaCount: 1
   image:
     repository: ironbank/bitnami/rabbitmq
-    tag: 3.12.6
+    tag: 3.12.11
   containerSecurityContext:
-    runAsUser: 1000
+    runAsUser: 1001
   podSecurityConext:
-    fsGroup: 1000
+    fsGroup: 1001
+  initContainers: []
+  extraEnvVars: []
 postgresql:
   image:
     repository: ironbank/opensource/postgres/postgresql12
-    tag: 12.15
+    tag: 12.17
   primary:
     containerSecurityContext:
       runAsUser: 26
@@ -76,6 +78,11 @@ sc-datastore:
   gid: 1001
   fsgid: 1001
   replicas: 1
+sc-cam:
+  imageName: cam
+  initImageName: common-init
+  uid: 1001
+  gid: 1001
 job:
   specifications:
     trend-reporting:

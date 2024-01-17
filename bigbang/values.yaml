@@ -16,28 +16,44 @@ sdelements:
         - private-registry
     sc-datastore:
       clientPassword: default
-      initImageTag: 1.1
-      imageTag: 6.2.12
+      imageTag: 6.2.14-ubi9
     sc-mail:
-      imageTag: "1.1-8.8"
+      imageTag: 1.2-8.9
+    worker:
+      imageTag: 2023.3.36-8.9
+    reporting:
+      imageTag: 2023.3.36-8.9
     postgresql:
       image:
-        tag: 12.15
+        tag: 12.17
       auth:
         password: default
         postgressPassword: default
     rabbitmq:
       image:
-        tag: 3.12.6
+        tag: 3.12.11
       auth:
         password: default
         erlangCookie: default
     web:
-      imageTag: "2023.2.49-1.25.2"
+      imageTag: 2023.3.36-8.9
+    sc-jitt:
+      imageTag: 2023.3.0-8.9
+    sc-cam:
+      brokerPassword: default
+      databasePassword: default
+      enabled: true
+      imageTag: 2023.3.6-8.9
+      initImageTag: 2023.3.4-8.9
+    minio:
+      image:
+        tag: RELEASE.2023-12-20T01-00-02Z
+      mcImage:
+        tag: RELEASE.2023-12-14T00-37-41Z
     job:
       specification:
         trend-reporting:
-          imageTag: "0.0.3-8.8"
+          imageTag: 2023.3.3-8.9
     sde:
       fqdn: sdelements.bigbang.dev
       jwtSecret: default
@@ -48,11 +64,11 @@ sdelements:
     istio:
       host: sdelements.bigbang.dev
 # Uncomment the following lines to deploy imagePullSecret
-# registryCredentials:
-#   registry: registry1.dso.mil
-#   username: <username>
-#   password: <password>
-#   email: ""
+#registryCredentials:
+#  registry: registry1.dso.mil
+#  username: <username>
+#  password: <password>
+#  email: ""
 
 # Network Policies
 networkPolicies:

@@ -1,19 +1,19 @@
 # SD Elements
 
-![Version: 2023.2.49-bb.1](https://img.shields.io/badge/Version-2023.2.49--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2023.2.49](https://img.shields.io/badge/AppVersion-2023.2.49-informational?style=flat-square)
+![Version: 2023.3.36-bb.1](https://img.shields.io/badge/Version-2023.3.36--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2023.3.36](https://img.shields.io/badge/AppVersion-2023.3.36-informational?style=flat-square)
 
 SDElements by Security Compass Ltd.
 
 ## Learn More
-* [User Guide](https://docs.sdelements.com/release/2023.2/guide/)
-* [Container Sysadmin Documentation](https://docs.sdelements.com/release/2023.2/sysadmin/docs/container/)
+* [User Guide](https://docs.sdelements.com/release/2023.3/guide/)
+* [Container Sysadmin Documentation](https://docs.sdelements.com/release/2023.3/sysadmin/docs/container/)
 
 ## Pre-Requisites
 
 * A pre-existing S3 API compatible bucket (AWS S3, minio, etc) with Access Key and Secret Key credentials populated under `global.SharedStorage`
-* Kubernetes v1.19 or newer deployed
+* Kubernetes v1.24 or newer deployed
 * Kubernetes config installed in `~/.kube/config`
-* Helm 3.2, or an alternative method of parsing and deploying a helm v3 chart
+* Helm 3.8, or an alternative method of parsing and deploying a helm v3 chart
 * An ingress controller or load balancer that allows external clients to reach the SD Elements web deployment
 * Name resolution both within the Kubernetes cluster and for endpoints outside of it
 * Access to IronBank for pulling our images
@@ -46,12 +46,12 @@ helm list -n "${namespace}"
 
 ## Upgrading
 
-Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2023.1/sysadmin/docs/container/upgrade.html)
+Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2023.3/sysadmin/docs/container/upgrade.html)
 
 ## Values
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
+| Key | Type   | Default                                                  | Description |
+|-----|--------|----------------------------------------------------------|-------------|
 | valuesVersion | float | `2` |  |
 | sde.superuserEmail | string | `"sde-superuser@sdelements.com"` |  |
 | sde.systemAdminEmail | string | `"sde-superuser@sdelements.com"` |  |
@@ -229,7 +229,9 @@ Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2023.
 | minio.buckets[0].purge | bool | `false` |  |
 | minio.serviceAccount.create | bool | `true` |  |
 | minio.serviceAccount.name | string | `"minio-sa"` |  |
-
+| sc-cam.brokerPassword| string | `nil`  |             |
+| sc-cam.databasePassword| string |   `nil` |             |
+| sc-cam.enabled| bool   | `false`  |             |
 ## Contributing
 
 Please see the [contributing guide](./CONTRIBUTING.md) if you are interested in contributing.

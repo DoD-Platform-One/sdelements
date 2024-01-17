@@ -6,7 +6,7 @@ global:
   imagePullPolicy: Always
   imageOrganization: ironbank/security-compass
   imageSource: sd-elements
-  imageTag: 2023.2.49
+  imageTag: 2023.3.36
   storageClass: gp2 # Should be any RWO storageclass with dynamic provisioning, if possible
   sharedStorage:
     bucketName: <NAME-OF-THE-BUCKET>
@@ -26,7 +26,7 @@ sde:
 web:
   replicas: 1
   imageName: nginx
-  imageTag: 2023.2.49-1.25.2
+  imageTag: 2023.3.36-8.9
   uid: 993
   gid: 993
   fsgid: 49
@@ -34,7 +34,7 @@ sc-jitt:
   replicas: 1
   imageSource: jitt
   imageName: nginx
-  imageTag: 2023.2.2-1.25.2
+  imageTag: 2023.3.0-8.9
   uid: 993
   gid: 993
   fsgid: 49
@@ -42,23 +42,24 @@ rabbitmq:
     replicaCount: 1
     image:
         repository: ironbank/bitnami/rabbitmq
-        tag: 3.12.6
+        tag: 3.12.11
     auth:
         password: <YOUR-BROKER-PASSWORD>
         erlangCookie: <YOUR-BROKER-ERLANG-COOKIE>
     ## User/Group options
     containerSecurityContext:
-        runAsUser: 1000
+        runAsUser: 1001
     podSecurityConext:
-        fsGroup: 1000
+        fsGroup: 1001
+    initContainers: []
+    extraEnvVars: []
 postgresql:
   image:
     repository: ironbank/opensource/postgres/postgresql12
-    tag: 12.15
+    tag: 12.17
   postgresql:
     auth:
       password: <YOUR-DATABASE-PASSWORD>
-  
   ## User/Group options
   primary:
     containerSecurityContext:
@@ -68,18 +69,17 @@ postgresql:
       fsGroup: 26
 sc-mail:
   imageName: exim
-  imageTag: 1.1-8.8
+  imageTag: 1.2-8.9
 worker:
   imageName: mod_wsgi
-  imageTag: 2023.2.49-8.8
+  imageTag: 2023.3.36-8.9
   uid: 48
   gid: 48
   fsgid: 49
 reporting:
   enabled: true
   imageName: reporting
-  imageTag: 2023.2.49-18.17.1
-  imagePullPolicy: Always
+  imageTag: 2023.3.36-8.9
   enableTls: true
   uid: 1001
   gid: 1001
@@ -88,22 +88,28 @@ reporting:
   replicas: 1
 sc-datastore:
   clientPassword: <YOUR-DATASTORE-PASSWORD>
-  initImageSource: sd-elements
-  initImageName: openssl
-  initImageTag: 1.1
   imageOrganization: ironbank/opensource
-  initImageOrganization: ironbank/security-compass
   imageSource: redis
   imageName: redis6
-  imageTag: 6.2.12
+  imageTag: 6.2.14-ubi9
   uid: 1001
   gid: 1001
   fsgid: 1001
   replicas: 1
+sc-cam:
+  brokerPassword: <YOUR-BROKER-PASSWORD>
+  databasePassword: <YOUR-DATABASE-PASSWORD>
+  enabled: true
+  mageName: cam
+  imageTag: 2023.3.6-8.9
+  initImageName: common-init
+  initImageTag: 2023.3.4-8.9
+  uid: 1001
+  gid: 1001
 job:
   specifications:
     trend-reporting:
-      imageTag: 0.0.3-8.8
+      imageTag: 2023.3.3-8.9
       uid: 998
       gid: 996
       fsgid: 996

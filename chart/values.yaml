@@ -106,6 +106,10 @@ ingress-nginx:
   rbac:
     scope: true
   controller:
+    lifecycle:
+      preStop:
+        exec:
+          command: ["/bin/sh", "-c", "sleep 5; /usr/sbin/nginx -s quit; while pgrep -x nginx; do sleep 1; done"]
     updateStrategy:
       type: RollingUpdate
     admissionWebhooks:
@@ -146,7 +150,6 @@ ingress-nginx:
         cpu: 50m
         memory: 90Mi
       limits:
-        cpu: 2
         memory: 1024Mi
     ingressClassResource:
       name: public
@@ -482,12 +485,17 @@ web:
       cpu: 10m
       memory: 16Mi
     limits:
-      cpu: 1
       memory: 2048Mi
+
+  # The update strategy defines how updates are carried out.
+  #updateStrategy:
+  #  type: RollingUpdate
 
 # Just in Time Training, serves static content (nginx)
 sc-jitt:
   replicas: 1
+  #updateStrategy:
+  #  type: RollingUpdate
   #imageTag: latest
   #imagePullPolicy: Always
   #imageSource: dccsr
@@ -520,8 +528,10 @@ sc-jitt:
       cpu: 10m
       memory: 16Mi
     limits:
-      cpu: 1
       memory: 2048Mi
+
+  #updateStrategy:
+  #  type: RollingUpdate
 
   #networkPolices: {}
 
@@ -529,13 +539,12 @@ sc-jitt:
 rabbitmq:
   enabled: true
   nameOverride: "broker"
-  #replicaCount: 1
+  podLabels:
+    name: "{{ include \"library.trimmedName\" . }}-broker"
   image:
     # registry: repository.securitycompass.com
     repository: sde-docker-prod/bitnami/rabbitmq
     # tag: 3.11.15-debian-11-r0
-    pullSecrets:
-    - security-compass-secret
   persistence:
     enabled: true
     existingClaim: "{{ include \"library.trimmedName\" . }}-broker-volume-claim"
@@ -547,7 +556,24 @@ rabbitmq:
     #password: "myrabbitmqpassword"
   extraConfiguration: |-
     default_vhost = {{ .Values.global.broker.adminVhost }}
-
+  initContainers:
+  - name: config-init
+    image: "{{ printf \"%s/sde-docker-%s/%s:%s\" .Values.global.imageRegistry .Values.global.imageOrganization \"busybox\" \"1.36\" }}"
+    volumeMounts:
+    - name: custom-cfg
+      mountPath: /config
+    command: ["sh", "-c", "{{ printf \"echo {inet6, %v}. > /config/erl_inetrc\" (has \"IPv6\" (default (list \"IPv4\") .Values.global.ipFamilies)) }}"]
+  extraVolumes:
+  - name: custom-cfg
+    emptyDir: {}
+  extraVolumeMounts:
+  - name: custom-cfg
+    mountPath: /config
+  extraEnvVars:
+  - name: RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS
+    value: "-kernel inetrc '/config/erl_inetrc' -proto_dist {{ ternary \"inet6_tcp\" \"inet_tcp\" (has \"IPv6\" (default (list \"IPv4\") .Values.global.ipFamilies)) }}"
+  - name: RABBITMQ_CTL_ERL_ARGS
+    value: "-proto_dist {{ ternary \"inet6_tcp\" \"inet_tcp\" (has \"IPv6\" (default (list \"IPv4\") .Values.global.ipFamilies)) }}"
 
   ## URL is mutually exclusive to user/pass/host/vhost and takes precidence over
   ## those values if specified
@@ -564,81 +590,11 @@ rabbitmq:
       cpu: 200m
       memory: 150Mi
     limits:
-      cpu: 2
       memory: 2048Mi
   # metrics:
   #   enabled: false
   #   serviceMonitor:
   #     enabled: false
-
-  networkPolicy:
-    enabled: true
-    additionalRules:
-      - podSelector:
-          matchLabels:
-            name: "{{ include \"library.trimmedName\" . }}-broker"
-        ingress:
-          - selectors:
-              - podSelector:
-                  matchLabels:
-                    name: "{{ include \"library.trimmedName\" . }}-worker-10"
-              - podSelector:
-                  matchLabels:
-                    name: "{{ include \"library.trimmedName\" . }}-worker-17"
-              - podSelector:
-                  matchLabels:
-                    name: "{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"
-              - podSelector:
-                  matchLabels:
-                    name: "{{ include \"library.trimmedName\" . }}-worker-18-sde-low"
-              - podSelector:
-                  matchLabels:
-                    name: "{{ include \"library.trimmedName\" . }}-pas-async-worker"
-              - podSelector:
-                  matchLabels:
-                    name: "{{ include \"library.trimmedName\" . }}-pas-plugin-worker"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"
-              - podSelector:
-                  matchLabels:
-                    app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"
-            ports:
-              - port: '{{ index .Values "port" | int | default 5672 }}'
-          - selectors:
-              - podSelector:
-                  matchLabels:
-                    name: "{{ include \"library.trimmedName\" . }}-pas-api"
-            ports:
-              - port: '{{ index .Values "port" | int | default 5672 }}'
-              - port: '{{ index .Values "managementPort" | int | default 15672 }}'
 
 postgresql:
   enabled: true
@@ -650,6 +606,7 @@ postgresql:
   containerPorts:
     postgresql: 5432
   auth:
+    username: sde
     database: postgres
   image:
   # registry: repository.securitycompass.com
@@ -660,7 +617,7 @@ postgresql:
       metrics: 9187
     image:
     #  registry: repository.securitycompass.com
-      repository: sde-docker-dev/bitnami/postgres-exporter
+      repository: sde-docker-prod/bitnami/postgres-exporter
       tag: 0.12.0-debian-11-r84
     enabled: false
     serviceMonitor:
@@ -720,7 +677,6 @@ postgresql:
         cpu: 200m
         memory: 1024Mi
       limits:
-        cpu: 6
         memory: 8192Mi
 
 sc-mail:
@@ -756,11 +712,14 @@ sc-mail:
       cpu: 10m
       memory: 16Mi
     limits:
-      cpu: 1
       memory: 1024Mi
 
 sc-cam:
   enabled: false
+  #scheme: http
+  #port: 3000
+  #apiPrefix: "api/asset"
+  #serviceVersion: "v1"
   replicas: 1
   database:
     passwordSecretKey: password
@@ -769,7 +728,6 @@ sc-cam:
       cpu: 10m
       memory: 16Mi
     limits:
-      cpu: 1
       memory: 1024Mi
 
 ## SDElements worker (python process)
@@ -827,6 +785,10 @@ worker:
   # jobsUid: 1000
   # tlsTrustSecretName: secretName
 
+  # The update parameters can also be overridden in each worker.
+  #updateStrategy:
+  #  type: RollingUpdate
+
   ## Synchronous SDE worker settings (apache/mod_wsgi)
   synchronous:
     lowPriority:
@@ -846,7 +808,6 @@ worker:
           cpu: 100m
           memory: 1024Mi
         limits:
-          cpu: 4
           memory: 8192Mi
 
     highPriority:
@@ -868,7 +829,6 @@ worker:
           cpu: 100m
           memory: 1024Mi
         limits:
-          cpu: 4
           memory: 8192Mi
 
   ## Asynchronous SDE service settings (celery)
@@ -888,7 +848,6 @@ worker:
           cpu: 50m
           memory: 275Mi
         limits:
-          cpu: 2
           memory: 8192Mi
 
     mediumPriority:
@@ -906,7 +865,6 @@ worker:
           cpu: 50m
           memory: 275Mi
         limits:
-          cpu: 2
           memory: 8192Mi
 
 reporting:
@@ -925,6 +883,7 @@ reporting:
   # redisUrl: "redis://example.com:6379"
   # nodeTlsRejectUnauthorized: "0"
   # preAggregations: true
+  # enableAdvancedTrendReports: true  # Enables Advanced Reporting Trend Reports
 
   ## Container options
   resources:
@@ -932,7 +891,6 @@ reporting:
       cpu: 10m
       memory: 128Mi
     limits:
-      cpu: 2
       memory: 8192Mi
 
   ## Additional environment variables to set on the reporting pod
@@ -953,6 +911,10 @@ reporting:
   #   httpOPSampleRate: 0
   #   RIASampleRate: 0
 
+  ## Configurations for chart upgrades
+  #updateStrategy:
+  #  type: RollingUpdate
+
 sc-datastore:
   # imageTag: latest
   # imageSource: dccsr
@@ -971,15 +933,15 @@ sc-datastore:
       cpu: 10m
       memory: 16Mi
     limits:
-      cpu: 2
       memory: 4096Mi
 
 trendReporting:
   enabled: true
-# reportingSchema: reporting  # Name of schema name of trend reporting data
-# numThreads: 2               # Number of threads per trend reporting job
-# logLevel: debug             # Valid options: debug, info, warn, error, none
-# logFormat: json             # Valid options: text, debug, json, default
+# historicalSchema: historical  # Name of schema name of trend reporting historical data
+# reportingSchema: reporting    # Name of schema name of trend reporting reporting data
+# numThreads: 2                 # Number of threads per trend reporting job
+# logLevel: debug               # Valid options: debug, info, warn, error, none
+# logFormat: json               # Valid options: text, debug, json, default
 # sentry:
 #   dsn: ""
 #   environment: "develop"
@@ -999,7 +961,6 @@ job:
       cpu: 500m
       memory: 512Mi
     limits:
-      cpu: 2
       memory: 8192Mi
   specifications:
     database-backup:
@@ -1012,7 +973,7 @@ job:
 
     trend-reporting:
       imageName: trend-reporting
-      imageTag: 0.0.3
+      imageTag: 2023.3.3
       schedule: "35 3 * * *"
       command: ["/bin/sh"]
       uid: 101
@@ -1130,7 +1091,7 @@ job:
 
 # Set resource requests and limits (LimitRange) for containers.
 limitrange:
-  enabled: true
+  enabled: false
   container:
     defaultRequest:
       cpu: 50m
@@ -1205,7 +1166,6 @@ minio:
       cpu: 1
       memory: 256Mi
     limits:
-      cpu: 2
       memory: 8192Mi
   # MinIO can accept an existing secret with a TLS certificate and key, or
   # we can create a self-signed copy by enabling tlsCreateSelfSigned.
@@ -1256,6 +1216,12 @@ networkPolicies:
           namespaceSelector:
               matchLabels:
                 kubernetes.io/metadata.name: "prometheus-stack"
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: "grafana-agent"
+          namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: "grafana-agent-deployer"
         - namespaceSelector:
             matchLabels:
               network.openshift.io/policy-group: "monitoring"
@@ -1452,8 +1418,101 @@ networkPolicies:
           namespaceSelector:
               matchLabels:
                 kubernetes.io/metadata.name: "prometheus-stack"
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: "grafana-agent"
+          namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: "grafana-agent-deployer"
         - namespaceSelector:
             matchLabels:
               network.openshift.io/policy-group: "monitoring"
         ports:
           - port: '{{ include "sde.dbMetricsPort" . }}'
+  broker:
+    podSelector:
+        matchLabels:
+          name: "{{ include \"library.trimmedName\" . }}-broker"
+    ingress:
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-10"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-17"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-worker-18-sde-low"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-async-worker"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-plugin-worker"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"
+        ports:
+          - port: '{{ index .Values "port" | int | default 5672 }}'
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-pas-api"
+          - podSelector:
+              matchLabels:
+                name: "{{ include \"library.trimmedName\" . }}-cam"
+        ports:
+          - port: '{{ index .Values "port" | int | default 5672 }}'
+          - port: '{{ index .Values "managementPort" | int | default 15672 }}'
+      - selectors:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: "prometheus"
+          namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: "prometheus-stack"
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: "grafana-agent"
+          namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: "grafana-agent-deployer"
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: "monitoring"
+        ports:
+          - port: 9419

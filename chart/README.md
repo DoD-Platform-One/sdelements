@@ -36,12 +36,14 @@ sde:
   jwtSecret: mysecret
   secretKey: mysecret
   superuserPassword: mysecret
-sc-database:
-  clientPassword: mysecret
+postgresql:
+  auth:
+    password: mysecret
 sc-datastore:
   clientPassword: mysecret
-sc-broker:
-  clientPassword: mysecret
+rabbitmq:
+  auth:
+    password: mysecret
 ```
 
 > **IMPORTANT** Manage these secrets like any software that requires version control

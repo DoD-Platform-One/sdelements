@@ -37,6 +37,9 @@
 {{- $reportingScheme := ternary "https" "http" $enableInternalTls -}}
 {{- $reportingBackendUrl := printf "%v://%v-%v-%v:%v" $reportingScheme ( include "library.trimmedName" . ) "reporting" "service" $reportingPort -}}
 {{- $ipFamilies := default (list "IPv4") .Values.global.ipFamilies -}}
+
+{{- $updateStrategy := default "RollingUpdate" (index $root.Values.web "updateStrategy").type }}
+{{- $terminationGracePeriodSeconds := default 30 $root.Values.web.terminationGracePeriodSeconds }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -53,7 +56,7 @@ spec:
       name: {{ $deploymentName | quote }}
       {{- include "library.selectorLabels" . | nindent 6 }}
   strategy:
-    type: Recreate
+    type: {{ $updateStrategy }}
   template:
     metadata:
       labels:
@@ -193,9 +196,14 @@ spec:
         - mountPath: {{ $tlsRoot }}
           name: tls
           readOnly: true
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5; /usr/sbin/nginx -s quit; while pgrep -x nginx; do sleep 1; done"]
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always
+      terminationGracePeriodSeconds: {{ $terminationGracePeriodSeconds }}
       volumes:
       - name: nginx
         configMap:

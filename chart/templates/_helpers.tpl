@@ -34,7 +34,7 @@ Create chart name and version as used by the chart label.
 Create a broker URL based on input variables
 */}}
 {{- define "sde.broker" }}
-  {{- $rabbitmqHost := default ( printf "%s-%s" ( include "library.trimmedName" . ) "broker-headless" ) .Values.rabbitmq.servicenameOverride }}
+  {{- $rabbitmqHost := default ( printf "%s-broker-headless" ( include "library.trimmedName" . ) ) .Values.rabbitmq.servicenameOverride }}
   {{- $rabbitmqPort := default 5672 .Values.rabbitmq.service.ports.amqp }}
   {{- $rabbitmqUser := default "rabbit" .Values.rabbitmq.auth.username }}
   {{- $rabbitmqVHost := default "rabbit" .Values.global.broker.adminVhost }}
@@ -79,7 +79,7 @@ TODO: Abstract out variable headers from all the templates into _helpers to redu
 {{- end -}}
 
 {{- define "sde.dbEnabled" -}}
-{{- ternary "true" "false" ( or ( index .Values "postgresql" "enabled" ) ( eq ( ( index .Values "postgresql" "enabled" ) | toString ) "<nil>" ) ) -}}
+{{- ternary "true" "false" ( or .Values.postgresql.enabled ( eq ( .Values.postgresql.enabled | toString ) "<nil>" ) ) -}}
 {{- end -}}
 
 {{- define "sde.externalDbEnabled" -}}
@@ -102,7 +102,7 @@ TODO: Abstract out variable headers from all the templates into _helpers to redu
 
 {{- define "sde.dbPort" -}}
 {{- if eq ( include "sde.dbEnabled" . ) "true"   }}
-    {{- default 5432 ( index .Values "postgresql" "containerPorts" "postgresql" ) -}}
+    {{- default 5432 .Values.postgresql.containerPorts.postgresql -}}
 {{- else if eq ( include "sde.externalDbEnabled" . ) "true" -}}
     {{- default 5432 ( index .Values "external-database" "port" ) -}}
 {{- else -}}
@@ -112,7 +112,7 @@ TODO: Abstract out variable headers from all the templates into _helpers to redu
 
 {{- define "sde.dbUser" -}}
 {{- if eq ( include "sde.dbEnabled" . ) "true"   }}
-    {{- default "postgres" ( index .Values "postgresql" "auth" "username" ) -}}
+    {{- default "sde" .Values.postgresql.auth.username -}}
 {{- else if eq ( include "sde.externalDbEnabled" . ) "true" -}}
     {{- index .Values "external-database" "user" -}}
 {{- else -}}
@@ -121,11 +121,17 @@ TODO: Abstract out variable headers from all the templates into _helpers to redu
 {{- end -}}
 
 {{- define "sde.dbPassword" -}}
-    {{- default (index .Values "postgresql" "auth" "postgresPassword") (index .Values "postgresql" "auth" "password") -}}
+{{- if eq ( include "sde.dbEnabled" . ) "true"   }}
+    {{- default .Values.postgresql.auth.postgresPassword .Values.postgresql.auth.password -}}
+{{- else if eq ( include "sde.externalDbEnabled" . ) "true" -}}
+    {{- index .Values "external-database" "password" -}}
+{{- else -}}
+    {{- fail "Error: No db connections defined" -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "sde.dbMetricsPort" -}}
-    {{- default 9187 ( index .Values "postgresql" "metrics" "containerPorts" "metrics" ) -}}
+    {{- default 9187 .Values.postgresql.metrics.containerPorts.metrics -}}
 {{- end -}}
 
 {{- /* Placeholder until we support custom CA certs */ -}}

@@ -18,7 +18,7 @@ stringData:
   TR_DATABASE_NAME: "{{ include "sde.dbName" . }}"
   {{- /* Trend-Reporting Configurations Configurations */}}
   TR_REPORTING_SCHEMA: "{{ $tr.reportingSchema | default "reporting" }}"
-  TR_HISTORICAL_SCHEMA : "{{ $tr.historicalSchema | default "snapshots" }}"
+  TR_HISTORICAL_SCHEMA : "{{ $tr.historicalSchema | default "historical" }}"
   TR_NUMBER_OF_THREADS: "{{ $tr.numThreads | default 2 }}"
   TR_LOG_LEVEL: "{{ $tr.logLevel | default "debug" }}"
   TR_LOG_FORMAT: "{{ $tr.logFormat | default "json" }}"
