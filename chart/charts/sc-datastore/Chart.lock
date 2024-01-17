@@ -3,4 +3,4 @@ dependencies:
   repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
   version: 1.1.4
 digest: sha256:5b3e93299b4ce6e7a63296d74068e13c71cad2e7cac853154687221f2c4a77fa
-generated: "2023-06-19T19:14:45.286693244Z"
+generated: "2023-09-27T18:25:29.839253921Z"

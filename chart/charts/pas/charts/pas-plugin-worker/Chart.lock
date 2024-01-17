@@ -12,4 +12,4 @@ dependencies:
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.0.2
 digest: sha256:a7d9e0ded897958f523511cc79d373d21e0034ebd7591322ae61b11b75a01362
-generated: "2023-06-22T18:23:56.750473838Z"
+generated: "2023-10-18T21:47:34.17088327Z"

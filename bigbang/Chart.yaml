@@ -3,4 +3,4 @@ name: bigbang-sdelements
 description: BigBang compatible Helm chart for sdelements
 type: application
 version: 0.1.0
-appVersion: "2023.2.49"
+appVersion: "2023.3.36"

@@ -34,7 +34,7 @@ Enables creation of an arbitrary number of configurable/programmable SDE workers
 
 # App worker ssl variables
 {{/* database and broker certs are currently disabled */}}
-{{- $tlsDatabaseSecretName := include "tlsSecretName" ( mergeOverwrite $root ( dict "serviceName" "sc-database-client" )) }}
+{{- $tlsDatabaseSecretName := include "tlsSecretName" ( mergeOverwrite $root ( dict "serviceName" "postgresql-client" )) }}
 {{- $tlsDatabaseCACertPath := printf "%v/%v" $tlsRoot "database/ca.crt" }}
 {{- $tlsDatabaseCertPath := printf "%v/%v" $tlsRoot "database/tls.crt" }}
 {{- $tlsDatabaseKeyPath := printf "%v/%v" $tlsRoot "database/tls.key" }}
@@ -63,6 +63,8 @@ Enables creation of an arbitrary number of configurable/programmable SDE workers
 {{- $sentryHttpOPSampleRate := default "" (default ($root.Values.global.sentry).httpOPSampleRate ($root.Values.worker.sentry).httpOPSampleRate) }}
 {{- $sentryRIASampleRate := default "" (default ($root.Values.global.sentry).RIASampleRate ($root.Values.worker.sentry).RIASampleRate) }}
 
+{{- $updateStrategy := default "RollingUpdate" (default (index $root.Values.worker "updateStrategy").type (index $dot "updateStrategy").type) }}
+{{- $terminationGracePeriodSeconds := hasKey $dot "queueVarVal" | ternary (default 3600 $root.Values.sde.celeryTaskTimeLimit) ( default "120" (default $root.Values.worker.terminationGracePeriodSeconds $dot.terminationGracePeriodSeconds) ) }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -79,7 +81,7 @@ spec:
       name: {{ $releaseName | quote }}
       {{- include "library.selectorLabels" $root | nindent 6 }}
   strategy:
-    type: Recreate
+    type: {{ $updateStrategy }}
   template:
     metadata:
       labels:
@@ -190,11 +192,15 @@ spec:
         {{- else }}
         resources: {}
         {{- end }}
+        {{- if not (hasKey $dot "queueVarVal") }}
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5; until test -z \"$(netstat -tn | awk '$4 ~ /:{{ default 8080 $dot.port }}/ && /ESTABLISHED/')\"; do sleep 1; done;"]
+        {{- end }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always
-      {{ if hasKey $dot "queueVarVal" }}
-      terminationGracePeriodSeconds: {{ default 3600 $root.Values.sde.celeryTaskTimeLimit }}
-      {{- end }}
+      terminationGracePeriodSeconds: {{ $terminationGracePeriodSeconds }}
 status: {}
 {{- end }}

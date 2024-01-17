@@ -1,33 +1,33 @@
 dependencies:
 - name: sc-jitt
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 2023.2.2
+  version: 2023.3.0
 - name: sc-library
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.1.4
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
-  version: 12.4.2
+  version: 12.12.10
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
-  version: 11.14.4
+  version: 12.2.2
 - name: sc-datastore
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 1.0.5
+  version: 1.0.6
 - name: sc-mail
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 0.1.11
+  version: 0.1.13
 - name: ingress-nginx
   repository: https://kubernetes.github.io/ingress-nginx
-  version: 4.6.0
+  version: 4.8.2
 - name: pas
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 1.8.0
+  version: 1.8.2
 - name: minio
   repository: https://charts.min.io/
-  version: 5.0.8
+  version: 5.0.13
 - name: sc-cam
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 0.0.22
-digest: sha256:3fe0bdd2502ffb7a320fff072a7d73c62819bd2615a1a625e0f303406af671e0
-generated: "2023-09-27T18:30:17.848231133Z"
+  version: 2023.3.6
+digest: sha256:9d34b5a7fb0999f7ccbe8686ec89f4df86e73e43bb8798d500eebb5d5db6e883
+generated: "2023-10-31T15:36:56.352205065Z"

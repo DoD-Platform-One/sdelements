@@ -73,3 +73,7 @@ Define the deployment name
 {{- define "cam.sde.dbName" -}}
 {{- printf "sdelements" -}}
 {{- end -}}
+
+{{- define "enableSdeTls" -}}
+{{- ternary "true" "false" ( or ( .Values.global.enableInternalTls ) ( eq ( .Values.global.enableInternalTls | toString ) "<nil>" ) ) -}}
+{{- end -}}

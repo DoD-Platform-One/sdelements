@@ -1,9 +1,9 @@
 apiVersion: v2
-appVersion: 0.1.11
+appVersion: 0.1.13
 dependencies:
 - condition: global.enableNestedDependencies
   name: sc-library
-  repository: https://sdelements.jfrog.io/artifactory/sde-helm-dev
+  repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.1.4
 description: The Security Compass SMTP mail relay (Exim)
 icon: https://avatars0.githubusercontent.com/u/739346
@@ -22,4 +22,4 @@ name: sc-mail
 sources:
 - https://agra.sdelements.com/deployment/containers/mail
 type: application
-version: 0.1.11
+version: 0.1.13
