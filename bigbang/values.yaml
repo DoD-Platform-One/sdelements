@@ -3,7 +3,7 @@ sdelements:
   enabled: true
   # The Git location of the package Helm chart
   git:
-    repo: https://repo1.dso.mil/big-bang/apps/sandbox/sdelements
+    repo: https://repo1.dso.mil/big-bang/product/community/sdelements
     branch: main
     path: chart
   flux: {}
@@ -11,6 +11,11 @@ sdelements:
     global:
       storageClass: local-path
       registrySecretName: private-registry
+      sharedStorage:
+        bucketName: sde-bucket        # If using MinIO, ensure value matches a bucket in `minio` section
+        s3Url: http://sdelements-minio-hl:9000/
+        s3AccessKey: accesskey        # If using MinIO, ensure value matches `accessKey` in `minio` section
+        s3SecretKey: secretkey
       # bitnami charts set this differently
       imagePullSecrets:
         - private-registry
@@ -45,13 +50,32 @@ sdelements:
       enabled: true
       imageTag: 2023.3.6-8.9
       initImageTag: 2023.3.4-8.9
-    minio:
-      image:
-        tag: RELEASE.2023-12-20T01-00-02Z
-      mcImage:
-        tag: RELEASE.2023-12-14T00-37-41Z
+    minio-tenant:
+      enabled: true
+      tenant:
+        name: sdelements-minio
+        imagePullSecret:
+          name: private-registry
+        env:
+          - name: MINIO_BROWSER
+            value: "off"
+        pools:
+          - servers: 1
+            name: pool-0
+            volumesPerServer: 4
+            size: 10Gi
+        certificate:
+          requestAutoCert: false
+        buckets:
+          - name: sde-bucket
+        configuration:
+          name: sdelements-minio-env-configuration
+      secrets:
+        name: sdelements-minio-env-configuration
+        accessKey: accesskey
+        secretKey: secretkey
     job:
-      specification:
+      specifications:
         trend-reporting:
           imageTag: 2023.3.3-8.9
     sde:

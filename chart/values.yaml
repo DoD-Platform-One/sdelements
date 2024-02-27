@@ -1193,6 +1193,31 @@ minio:
     create: true
     name: "minio-sa"
 
+minio-tenant:
+  enabled: false
+  tenant:
+    name: sdelements-minio
+    imagePullSecret:
+      name: private-registry
+    env:
+      - name: MINIO_BROWSER
+        value: "off"
+    pools:
+      - servers: 1
+        name: pool-0
+        volumesPerServer: 1
+        size: 30Gi
+    certificate:
+      requestAutoCert: false
+    buckets:
+      - name: sde-bucket
+    configuration:
+      name: sdelements-minio-env-configuration
+  secrets:
+    name: sdelements-minio-env-configuration
+    accessKey: accesskey
+    secretKey: secretkey
+
 # Here are all the network policies that:
 # - pertain to the services exposed by the SDE chart only;
 # - are not declared in subcharts because the subchart is a third-party component.

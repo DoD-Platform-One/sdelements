@@ -10,7 +10,7 @@ global:
   imageRegistryPassword: password
   sharedStorage:
     bucketName: sde-bucket        # If using MinIO, ensure value matches a bucket in `minio` section
-    s3Url: http://sdelements-minio:9000/
+    s3Url: http://sdelements-minio-hl:9000/
     s3AccessKey: accesskey    # If using MinIO, ensure value matches `accessKey` in `minio` section
     s3SecretKey: secretkey    # If using MinIO, ensure value matches `secretKey` in `minio` section
   rwx:
@@ -100,6 +100,30 @@ efsVolumes:
   enabled: false
 networkPolicies:
   enabled: false
+minio-tenant:
+  enabled: false
+  tenant:
+    image:
+      repository: registry1.dso.mil/ironbank/opensource/minio/minio
+    name: sdelements-minio
+  env:
+    - name: MINIO_BROWSER
+      value: "off"
+  pools:
+    - servers: 1
+      name: pool-0
+      volumesPerServer: 4
+      size: 10Gi
+  certificate:
+    requestAutoCert: false
+  buckets:
+    - name: sde-bucket
+  configuration:
+    name: sdelements-minio-env-configuration
+  secrets:
+    name: sdelements-minio-env-configuration
+    accessKey: accesskey
+    secretKey: secretkey
 minio:
   enabled: false
   rootUser: admin
