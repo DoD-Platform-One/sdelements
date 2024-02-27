@@ -29,5 +29,8 @@ dependencies:
 - name: sc-cam
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 2023.3.6
-digest: sha256:9d34b5a7fb0999f7ccbe8686ec89f4df86e73e43bb8798d500eebb5d5db6e883
-generated: "2023-10-31T15:36:56.352205065Z"
+- name: tenant
+  repository: https://operator.min.io
+  version: 5.0.12
+digest: sha256:9d0c82a82e83ceed89107a5d817a059d15de9aaa68d11723637d507777b59267
+generated: "2024-02-08T21:43:43.405431586-08:00"

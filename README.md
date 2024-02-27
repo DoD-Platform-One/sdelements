@@ -207,8 +207,8 @@ Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2023.
 | pas.pas-api.admin.database.passwordSecretKey | string | `"SDE_DATABASE_PASSWORD"` |  |
 | pas.pas-async-worker.useLocalDevDbConfig | bool | `false` |  |
 | pas.pas-frontend | object | `{}` |  |
-| minio.image.repository | string | `"docker.sdelements.com/default_organization-sde-minio"` |  |
-| minio.mcImage.repository | string | `"docker.sdelements.com/default_organization-sde-mc"` |  |
+| minio.image.repository | string | `"repository.securitycompass.com/sde-docker-prod/minio/minio"` |  |
+| minio.mcImage.repository | string | `"repository.securitycompass.com/sde-docker-prod/minio/mc"` |  |
 | minio.enabled | bool | `false` |  |
 | minio.mode | string | `"standalone"` |  |
 | minio.rootUser | string | `"admin"` |  |
@@ -229,6 +229,20 @@ Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2023.
 | minio.buckets[0].purge | bool | `false` |  |
 | minio.serviceAccount.create | bool | `true` |  |
 | minio.serviceAccount.name | string | `"minio-sa"` |  |
+| minio-tenant.enabled | bool | `false` |  |
+| minio-tenant.tenant.name | string | `sdelements-minio` |  |
+| minio-tenant.image.repository | string | `repository.securitycompass.com/sde-docker-prod/minio/minio` |  |
+| minio-tenant.image.tag | string | `RELEASE.2024-01-01T16-36-33Z` |  |
+| minio-tenant.pools[0].servers | int | `1` |  |
+| minio-tenant.pools[0].name | string | `pool-0` |  |
+| minio-tenant.pools[0].volumesPerServer | int | `1` |  |
+| minio-tenant.pools[0].size | string | `100Gi` |  |
+| minio-tenant.certificate.requestAutoCert | bool | `false` |  |
+| minio-tenant.buckets[0].name | string | `backup` |  |
+| minio-tenant.configuration.name | string | `sdelements-minio-env-configuration` |  |
+| minio-tenant.secrets.name | string | `sdelements-minio-env-configuration` |  |
+| minio-tenant.secrets.accessKey | string | `backup` |  |
+| minio-tenant.secrets.secretKey | string | `YOUR_BACKUP_USER_PASSWORD` |  |
 | sc-cam.brokerPassword| string | `nil`  |             |
 | sc-cam.databasePassword| string |   `nil` |             |
 | sc-cam.enabled| bool   | `false`  |             |
