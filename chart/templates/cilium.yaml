@@ -1,0 +1,17 @@
+{{- if ((.Values.cilium).enabled) }}
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-from-hosts
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "library.labels" . | nindent 4 }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ default "ingress-nginx" (.Values.cilium).endpointSelector | quote }}
+  ingress:
+    - fromEntities:
+      - host
+      - remote-node
+{{- end }}

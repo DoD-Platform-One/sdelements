@@ -138,3 +138,24 @@ TODO: Abstract out variable headers from all the templates into _helpers to redu
 {{- define "sde.dbRequireSSL" -}}
 {{- "false" -}}
 {{- end -}}
+
+{{- define "sde.job.randomMinuteScheduling" -}}
+{{- $minutesBetweenRuns := index . 1 "minutes" -}}
+{{- $defaultSchedule := index . 1 "schedule" -}}
+
+{{/* Extract the second part of the cron expression */}}
+{{- $fromHoursToEnd := (regexReplaceAllLiteral "^[^ ]* " $defaultSchedule "") -}}
+{{- $runs := div 60 $minutesBetweenRuns | int -}}
+
+{{/* Create a sequence of minutes starting from a random one */}}
+{{- $randomStart := mod (mod (randNumeric 2 | int) $minutesBetweenRuns) 60 -}}
+{{- $runsList := list (printf "%02d" $randomStart) -}}
+{{- range $i := until $runs -}}
+  {{- if ne $i 0 -}}
+    {{- $nextValue := (mod (add $randomStart (mul $i $minutesBetweenRuns)) 60) -}}
+    {{- $runsList = append $runsList (printf "%02d" $nextValue) -}}
+  {{- end -}}
+{{- end }}
+
+{{- printf "%s %s" (join "," (sortAlpha $runsList)) $fromHoursToEnd -}}
+{{- end -}}

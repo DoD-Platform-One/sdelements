@@ -2,11 +2,13 @@
 {{- $ingressName := printf "%v-%v-%v" ( include "library.trimmedName" . ) "web" "ingress" -}}
 {{- $ingressClassName := default (ternary "public" "openshift-default" (not (.Values.global.openshift).enabled)) .Values.web.ingressClassName -}}
 {{- $customCertsProvided := or ( and ( hasKey .Values.web "tlsCertificate" ) ( hasKey .Values.web "tlsKey" )) ( and ( hasKey .Values.web "tlsCertificatePath" ) ( hasKey .Values.web "tlsKeyPath" )) -}}
-{{- $customTlsSecretName := printf "%v-tls-web-custom-secret" .Release.Name -}}
-{{- $dynamicTlsSecretName := ternary ( include "tlsSecretName" ( mergeOverwrite $ ( dict "serviceName" "web-server" ))) $customTlsSecretName ( eq ( include "certManagerEnabled" . ) "true" )  -}}
 {{- if or .Values.global.nginxIngress.enabled ( eq ( .Values.global.nginxIngress.enabled | toString ) "<nil>" ) }}
 {{- $rootPath := ternary "/" "''" (not (.Values.global.openshift).enabled) }}
 {{- $rootPathType := ternary "Prefix" "ImplementationSpecific" (not (.Values.global.openshift).enabled) }}
+{{- /* TLS Certificates */ -}}
+{{- $externalTlsSecretName := .Values.web.externalTlsSecretName -}}
+{{- $customTlsSecretName := printf "%v-tls-web-custom-secret" ( include "library.trimmedName" . ) -}}
+{{- $certManagerTlsSecretName := include "tlsSecretName" ( mergeOverwrite $ ( dict "serviceName" "web-server" )) -}}
 ---
 {{- if semverCompare ">=1.19.0-0" .Capabilities.KubeVersion.GitVersion }}
 apiVersion: networking.k8s.io/v1
@@ -48,6 +50,7 @@ spec:
     serviceName: {{ $serviceName | quote }}
     servicePort: "https"
   {{- end }}
+  {{- /* If a domain is set, it must use TLS */ -}}
   {{- if or ( ne .Values.sde.fqdn "example.com" ) ( hasKey .Values.sde "alternateVirtualHosts" ) }}
   tls:
   - hosts:
@@ -55,16 +58,30 @@ spec:
     {{- range .Values.sde.alternateDnsNames }}
     - {{ . | quote }}
     {{- end }}
-    secretName: {{ $dynamicTlsSecretName | quote }}
+    {{- /*
+      * Use external secret name
+      * else cert manager secret (if enabled)
+      * else custom tls secret
+    */ -}}
+    {{- if $externalTlsSecretName }}
+    secretName: {{ $externalTlsSecretName | quote }}
+    {{- else if ( eq ( include "certManagerEnabled" . ) "true" ) }}
+    secretName: {{ $certManagerTlsSecretName | quote }}
+    {{- else }}
+    secretName: {{ $customTlsSecretName | quote }}
+    {{- end }}
   {{- if ( hasKey .Values.sde "alternateVirtualHosts" ) }}
   - hosts:
     {{- range .Values.sde.alternateVirtualHosts }}
     - {{ . | quote }}
     {{- end }}
+    {{- /* Custom certs take precedence for alternate vhosts so nothing changes for SaaS */ -}}
     {{- if $customCertsProvided }}
     secretName: {{ $customTlsSecretName }}
+    {{- else if $externalTlsSecretName }}
+    secretName: {{ $externalTlsSecretName | quote }}
     {{- else }}
-    secretName: {{ $dynamicTlsSecretName | quote }}
+    secretName: {{ $certManagerTlsSecretName | quote }}
     {{- end }}
   {{- end }}
   {{- if semverCompare ">=1.19.0-0" .Capabilities.KubeVersion.GitVersion }}

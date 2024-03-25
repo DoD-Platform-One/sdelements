@@ -3,6 +3,19 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [2023.4.23-bb.1] - 2024-03-13
+### Added
+
+- Added mandatory adjustments required for upgrades due to the introduction of sc-cam service.
+
+### Changed
+
+- Upgraded upstream chart to '2023.4.23'
+- Updated README
+- Added the updated default deployment strategy to Recreate for Minio.
+- Added support for minio-tenant
+- Added upgrade notes for SD Elements 2023.4.
+
 ## [2023.3.36-bb.1] - 2024-01-11
 ### Added
 

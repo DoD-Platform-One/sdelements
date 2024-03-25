@@ -26,6 +26,13 @@ Expects a dict input with root/dot keys with context
 {{- $successfulJobsHistoryLimit := default (default 0 $root.Values.job.successfulJobsHistoryLimit) $dot.successfulJobsHistoryLimit -}}
 {{- $enableRandomStartDelay := default (default false $root.Values.job.enableRandomStartDelay) $dot.enableRandomStartDelay -}}
 {{- $randomStartDelayRange := default (default "1-600" $root.Values.job.randomStartDelayRange) $dot.randomStartDelayRange -}}
+{{- $defaultSchedule := (required "Jobs are required to have a cron style schedule" $dot.schedule) }}
+{{- $randomizedSchedulingEnabled := default (default false (index $root.Values "job" "randomizedScheduling").enabled) (index $dot "randomizedScheduling").enabled }}
+{{- $randomizedSchedulingMinutes := default (default 20 (index $root.Values.job "randomizedScheduling").minutesBetweenRuns) (index $dot "randomizedScheduling").minutesBetweenRuns }}
+{{- $schedule := ternary
+(include "sde.job.randomMinuteScheduling" (list . (dict "minutes" $randomizedSchedulingMinutes "schedule" $defaultSchedule)))
+  $defaultSchedule
+  $randomizedSchedulingEnabled -}}
 
 {{/*
      TLS Configurations
@@ -53,7 +60,7 @@ metadata:
     name: {{ $releaseName | quote }}
     {{- include "library.labels" $root | nindent 4 }}
 spec:
-  schedule: {{ required "Jobs are required to have a cron style schedule" $dot.schedule | quote }}
+  schedule: {{ $schedule | quote }}
   concurrencyPolicy: {{ default "Forbid" $dot.concurrencyPolicy }}
   failedJobsHistoryLimit: {{ $failedJobsHistoryLimit }}
   successfulJobsHistoryLimit: {{ $successfulJobsHistoryLimit }}

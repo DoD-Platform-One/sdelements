@@ -36,7 +36,7 @@ rabbitmq:
   replicaCount: 1
   image:
     repository: ironbank/bitnami/rabbitmq
-    tag: 3.12.11
+    tag: 3.12.13
   containerSecurityContext:
     runAsUser: 1001
   podSecurityConext:
@@ -46,7 +46,7 @@ rabbitmq:
 postgresql:
   image:
     repository: ironbank/opensource/postgres/postgresql12
-    tag: 12.17
+    tag: 12.18
   primary:
     containerSecurityContext:
       runAsUser: 26

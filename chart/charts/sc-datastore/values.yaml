@@ -123,8 +123,8 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"
-            namespaceSelector:
+          - podSelector:
               matchLabels:
-                kubernetes.io/metadata.name: "{{ .Release.Namespace }}"
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-reindex-db"
         ports:
           - port: '{{ include "datastore.port" . }}'
