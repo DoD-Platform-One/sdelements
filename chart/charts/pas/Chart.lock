@@ -7,15 +7,15 @@ dependencies:
   version: 0.0.1
 - name: pas-api
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 1.8.2
+  version: 1.8.5
 - name: pas-plugin-worker
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 1.8.2
+  version: 1.8.5
 - name: pas-async-worker
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 1.8.2
+  version: 1.8.5
 - name: pas-frontend
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 1.8.2
-digest: sha256:a6bb3b564e1526ece58973b45df094b51c6f931458b9957adeb8ff00a424d9ff
-generated: "2023-10-18T21:47:47.829430439Z"
+  version: 1.8.5
+digest: sha256:9fccb33e04b71982f6db3ea4b9bf4ad70a58bc6e9ef4df2a2766404c0d2287ad
+generated: "2024-01-30T20:02:37.053545519Z"

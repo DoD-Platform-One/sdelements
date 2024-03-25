@@ -59,6 +59,7 @@ sde:
   ## Data Loader Temporary Storage
   #loaderVolumeSize: 10Gi
   enableJITT: false
+  #exchangeName: "sde"
   ## PostgreSQL
   #databaseVolumeSize: 30Gi
 
@@ -148,7 +149,7 @@ ingress-nginx:
     resources:
       requests:
         cpu: 50m
-        memory: 90Mi
+        memory: 128Mi
       limits:
         memory: 1024Mi
     ingressClassResource:
@@ -409,6 +410,7 @@ web:
   #certIssuer: self-signed
   #tlsCertificatePath: files-static/myServerCert.pem
   #tlsKeyPath: files-static/myServerKey.pem
+  # externalTlsSecretName: "my-k8s-tls-secret-name"
   # tlsCertificate: |-
   #   -----BEGIN CERTIFICATE-----
   #   MIIDrTCCApWgAwIBAgIUNX3roNLr4fQUU8WHb6PZ7T0nZ4QwDQYJKoZIhvcNAQEL
@@ -483,7 +485,7 @@ web:
   resources:
     requests:
       cpu: 10m
-      memory: 16Mi
+      memory: 128Mi
     limits:
       memory: 2048Mi
 
@@ -526,7 +528,7 @@ sc-jitt:
   resources:
     requests:
       cpu: 10m
-      memory: 16Mi
+      memory: 128Mi
     limits:
       memory: 2048Mi
 
@@ -544,7 +546,7 @@ rabbitmq:
   image:
     # registry: repository.securitycompass.com
     repository: sde-docker-prod/bitnami/rabbitmq
-    # tag: 3.11.15-debian-11-r0
+    tag: 3.12.12-debian-11-r0
   persistence:
     enabled: true
     existingClaim: "{{ include \"library.trimmedName\" . }}-broker-volume-claim"
@@ -558,7 +560,7 @@ rabbitmq:
     default_vhost = {{ .Values.global.broker.adminVhost }}
   initContainers:
   - name: config-init
-    image: "{{ printf \"%s/sde-docker-%s/%s:%s\" .Values.global.imageRegistry .Values.global.imageOrganization \"busybox\" \"1.36\" }}"
+    image: "{{ printf .Values.global.imageRegistryFormat .Values.global.imageRegistry .Values.global.imageOrganization (default .Values.global.imageSource .Values.global.initImageSource) \"busybox\" \"1.36\" }}"
     volumeMounts:
     - name: custom-cfg
       mountPath: /config
@@ -588,7 +590,7 @@ rabbitmq:
   resources:
     requests:
       cpu: 200m
-      memory: 150Mi
+      memory: 256Mi
     limits:
       memory: 2048Mi
   # metrics:
@@ -611,7 +613,7 @@ postgresql:
   image:
   # registry: repository.securitycompass.com
     repository: sde-docker-prod/bitnami/postgresql
-    tag: 12.14.0-debian-11-r27
+    tag: 12.17.0-debian-11-r20
   metrics:
     containerPorts:
       metrics: 9187
@@ -675,7 +677,7 @@ postgresql:
     resources:
       requests:
         cpu: 200m
-        memory: 1024Mi
+        memory: 512Mi
       limits:
         memory: 8192Mi
 
@@ -710,16 +712,17 @@ sc-mail:
   resources:
     requests:
       cpu: 10m
-      memory: 16Mi
+      memory: 128Mi
     limits:
       memory: 1024Mi
 
 sc-cam:
-  enabled: false
+  enabled: true
   #scheme: http
   #port: 3000
   #apiPrefix: "api/asset"
   #serviceVersion: "v1"
+  #exchangeName: "cam"
   replicas: 1
   database:
     passwordSecretKey: password
@@ -742,14 +745,19 @@ worker:
   #mediaURL: /media/
   #compressOffline: "True"
   #configPath: "/etc/sde"
+  # SDE default console log level: E.g. 'INFO', 'DEBUG', 'ERROR', 'CRITICAL'
   #consoleLogLevel: DEBUG
+  # Format of the SDE console log output: One of 'console' or 'json'
+  #consoleLogFormat: json
   #wsgiLogLevel: warn
   #wsgiProcesses: 4
   #wsgiThreads: 1
   #wsgiMaxClients: 20
   #wsgiExtraArgs: ""
-  #emailLogLevel: ERROR
-  #samlLogLevel: DEBUG
+  # SDE SAML console log level: E.g. 'INFO', 'DEBUG', 'ERROR', 'CRITICAL'
+  #samlLogLevel: ERROR
+  # SDE LDAP console log level: E.g. 'INFO', 'DEBUG', 'ERROR', 'CRITICAL'
+  #ldapLogLevel: ERROR
   #shellVerbosity: ""
 
   # Additional environment variables to set on worker pods. Values defined
@@ -889,7 +897,7 @@ reporting:
   resources:
     requests:
       cpu: 10m
-      memory: 128Mi
+      memory: 256Mi
     limits:
       memory: 8192Mi
 
@@ -931,7 +939,7 @@ sc-datastore:
   resources:
     requests:
       cpu: 10m
-      memory: 16Mi
+      memory: 128Mi
     limits:
       memory: 4096Mi
 
@@ -954,26 +962,38 @@ job:
   # Delay on start job to equalize load and prevent autoscaling event
   enableRandomStartDelay: false
   randomStartDelayRange: "1-600"
+  # Scheduling randomization will replace the minute part with one random value followed by additional
+  # values calculated according to the minutesBetweenRuns value.
+  #randomizedScheduling:
+  #  enabled: false
+  #  minutesBetweenRuns: 20 # (1 to 60)
   # Resource limits can be applied to all jobs here or specifically in
   # respective job definitions
   resources:
     requests:
-      cpu: 500m
-      memory: 512Mi
+      cpu: 100m
+      memory: 128Mi
     limits:
       memory: 8192Mi
   specifications:
     database-backup:
+      randomizedScheduling:
+        enabled: false
+        minutesBetweenRuns: 20
       schedule: "*/20 * * * *"
       niceness: 19
       command: ["/bin/sh"]
       args:
         - "-c"
         - "/bin/sde.sh backup && /bin/sde.sh delete_backups 14"
+      resources:
+        requests:
+          cpu: 500m
+          memory: 512Mi
 
     trend-reporting:
       imageName: trend-reporting
-      imageTag: 2023.3.3
+      imageTag: 2023.4.2
       schedule: "35 3 * * *"
       command: ["/bin/sh"]
       uid: 101
@@ -981,7 +1001,7 @@ job:
       fsgid: 101
       args:
         - "-c"
-        - "python /app/dbt_wrapper.py snapshot && python /app/dbt_wrapper.py run"
+        - "python /app/dbt_wrapper.py run-operation index_statistics; python /app/dbt_wrapper.py snapshot && python /app/dbt_wrapper.py run"
 
     alm-hourly:
       schedule: "7 * * * *"
@@ -1006,6 +1026,7 @@ job:
       args:
         - "almsync"
         - "weekly"
+
     alm-monthly:
       schedule: "26 4 1 * *"
       niceness: 19
@@ -1150,8 +1171,10 @@ pas:
 minio:
   image:
     repository: repository.securitycompass.com/sde-docker-prod/minio/minio
+    tag: RELEASE.2024-01-01T16-36-33Z
   mcImage:
     repository: repository.securitycompass.com/sde-docker-prod/minio/mc
+    tag: RELEASE.2023-12-29T20-15-29Z
   enabled: false
   mode: standalone
   rootUser: admin
@@ -1192,7 +1215,7 @@ minio:
   serviceAccount:
     create: true
     name: "minio-sa"
-
+    
 minio-tenant:
   enabled: false
   tenant:
@@ -1434,6 +1457,9 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-trend-reporting"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-reindex-db"
         ports:
             - port: '{{ include "sde.dbPort" . }}'
       - selectors:
@@ -1541,3 +1567,9 @@ networkPolicies:
               network.openshift.io/policy-group: "monitoring"
         ports:
           - port: 9419
+
+# For use with Cilium-enabled clusters
+cilium:
+  enabled: false
+  #endpointSelector: ingress-nginx
+

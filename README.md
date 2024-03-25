@@ -1,12 +1,12 @@
 # SD Elements
 
-![Version: 2023.3.36-bb.1](https://img.shields.io/badge/Version-2023.3.36--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2023.3.36](https://img.shields.io/badge/AppVersion-2023.3.36-informational?style=flat-square)
+![Version: 2023.4.23-bb.1](https://img.shields.io/badge/Version-2023.4.23--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2023.4.23](https://img.shields.io/badge/AppVersion-2023.4.23-informational?style=flat-square)
 
 SDElements by Security Compass Ltd.
 
 ## Learn More
-* [User Guide](https://docs.sdelements.com/release/2023.3/guide/)
-* [Container Sysadmin Documentation](https://docs.sdelements.com/release/2023.3/sysadmin/docs/container/)
+* [User Guide](https://docs.sdelements.com/release/2023.4/guide/)
+* [Container Sysadmin Documentation](https://docs.sdelements.com/release/2023.4/sysadmin/docs/container/)
 
 ## Pre-Requisites
 
@@ -46,7 +46,7 @@ helm list -n "${namespace}"
 
 ## Upgrading
 
-Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2023.3/sysadmin/docs/container/upgrade.html)
+Please see our [Upgrade Documentation](https://docs.sdelements.com/release/2023.4/sysadmin/docs/container/upgrade.html)
 
 ## Values
 

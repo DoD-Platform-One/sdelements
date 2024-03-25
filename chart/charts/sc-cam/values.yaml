@@ -67,7 +67,7 @@ replicas: 1
 #imageSource: dccsr
 #imageName: cam
 #initImageName: shared-init
-initImageTag: 2023.3.4
+initImageTag: 2023.4.0
 useDatabaseSubchart: false
 useBrokerSubchart: false
 #readinessEnabled: false
@@ -75,10 +75,27 @@ useBrokerSubchart: false
 #apiPrefix: "api/asset"
 #databaseSchemaName: cam
 
+# RabbitMQ configuration
+#brokerHost: sde-broker-headless
+#brokerUser: cam
+#brokerPort: 5672
+#brokerVhost: rabbit
+
 ## User/Group options
 # uid: 999
 # gid: 1000
 # fsgid: 1000
+
+# CAM sentry config
+sentry: {}
+  # dsn: ""
+  # environment: develop
+  # release: develop
+  # traceSampleRate: 0.1
+  # maxBreadcrumbs: 50
+  # debug: "false"
+  # attachStackTrace: "false"
+  # excludeUA: "kube-probe|nagios-plugins|rez0"
 
 # CAM broker config
 broker: {}

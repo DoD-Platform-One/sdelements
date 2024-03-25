@@ -241,7 +241,11 @@ spec:
       */}}
       - name: tls
         secret:
+          {{- if .Values.web.externalTlsSecretName }}
+          secretName: {{ .Values.web.externalTlsSecretName }}
+          {{- else }}
           secretName: {{ $webTlsSecretName }}
+          {{- end }}
           defaultMode: 0400
 status: {}
 ---

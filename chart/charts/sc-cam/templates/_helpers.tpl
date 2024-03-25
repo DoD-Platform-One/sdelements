@@ -43,7 +43,15 @@ Define the deployment name
 {{- $dot := (get . "dot") -}}
 {{- (default ( default "rabbitmq-password" $root.Values.global.cam.broker.passwordSecretKey ) $dot.broker.passwordSecretKey) -}}
 {{- end -}}
- 
+
+{{- define "cam.broker.url" }}
+  {{- $rabbitmqHost := default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-headless") .Values.brokerHost }}
+  {{- $rabbitmqPort := default 5672 .Values.brokerPort }}
+  {{- $rabbitmqUser := default "cam" .Values.brokerUser }}
+  {{- $rabbitmqVHost := default "rabbit" .Values.brokerVhost }}
+  {{- default ( printf "amqp://%s@%s:%v/%s" $rabbitmqUser $rabbitmqHost $rabbitmqPort $rabbitmqVHost ) (.Values.global.broker).url }}
+{{- end }}
+
 {{- define "cam.database.secretName" -}}
 {{- $root := (get . "root") -}}
 {{- $dot := (get . "dot") -}}

@@ -1,7 +1,19 @@
-# Workaround for argocd issue: https://github.com/argoproj/argo-cd/issues/7875 
+{{/*  Workaround for argocd issue: https://github.com/argoproj/argo-cd/issues/7875  */}}
 {{- if (.Values.global.createNamespace).enabled }}
+{{- /* 
+  Skip if the namespace name is a kubernetes initial namespace 
+  https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/#initial-namespaces
+*/ -}}
+{{- $name := $.Release.Namespace -}}
+{{- if not ( has $name ( list "default" "kube-node-lease" "kube-public" "kube-system" ) ) }}
+---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{.Values.global.createNamespace.name}}
+  name: {{ $name }}
+  {{- with .Values.global.createNamespace.labels }}
+  labels:
+    {{- . | toYaml | nindent 4 }}
+  {{- end -}}
+{{- end }}
 {{- end }}

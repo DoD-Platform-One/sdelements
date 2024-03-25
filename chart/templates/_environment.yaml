@@ -85,6 +85,12 @@ Expects a dict input with root/dot keys with context
   value: {{ default "/etc/sde" $root.Values.worker.configPath | quote }}
 - name: SDE_CONSOLE_LOG_LEVEL
   value: {{ default "INFO" $root.Values.worker.consoleLogLevel | quote }}
+- name: SDE_CONSOLE_LOG_FORMAT
+  value: {{ default "json" $root.Values.worker.consoleLogFormat | quote }}
+- name: SDE_SAML_LOG_LEVEL
+  value: {{ default "ERROR" $root.Values.worker.samlLogLevel | quote }}
+- name: SDE_LDAP_LOG_LEVEL
+  value: {{ default "ERROR" $root.Values.worker.ldapLogLevel | quote }}
 - name: WSGI_LOG_LEVEL
   value: {{ default "warn" $root.Values.worker.wsgiLogLevel | quote }}
 - name: WSGI_PROCESSES
@@ -126,12 +132,8 @@ Expects a dict input with root/dot keys with context
   value: {{ default "default" $root.Values.sde.defaultOrg | quote }}
 - name: SDE_EMAIL_HOST
   value: {{ default $mailServiceName ( index $root.Values "sc-mail" "serviceName" ) | quote }}
-- name: SDE_EMAIL_LOG_LEVEL
-  value: {{ default "ERROR" $root.Values.worker.emailLogLevel | quote }}
 - name: SDE_FEEDBACK_EMAIL
   value: {{ default "sdesupport@securitycompass.com" $root.Values.sde.feedbackEmail | quote }}
-- name: SDE_LOGGING
-  value: {{ tpl ($root.Files.Get "conf/logging.json") $root | quote }}
 - name: SDE_MEDIA_ROOT
   value: {{ default "/media" $root.Values.worker.mediaRoot | quote }}
 - name: SDE_MEDIA_URL
@@ -248,7 +250,11 @@ Expects a dict input with root/dot keys with context
 - name: SDE_GAINSIGHT_TAG_KEY
   value: {{ required "sde.gainsight.tagKey is required when gainsight is enabled" $root.Values.sde.gainsight.tagKey | quote }}
 {{- end }}
+- name: SDE_EXCHANGE_NAME
+  value : {{ default "sde" (index $root.Values "sde" "exchangeName") }}
 {{- if (index $root.Values "sc-cam" "enabled") }}
+- name: CAM_EXCHANGE_NAME
+  value: {{ default "cam" (index $root.Values "sc-cam" "exchangeName") }}
 - name: CAM_API_URL
   value: {{ printf "%v://%v-cam-service:%v/%v/" $camScheme ( include "library.trimmedName" $root ) $camPort $camPath | quote }}
 - name: CAM_SERVICE_VERSION

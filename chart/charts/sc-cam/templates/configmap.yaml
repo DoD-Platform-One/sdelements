@@ -6,6 +6,8 @@
 {{- $sdeWorker := default "worker-10" .Values.sde.worker }}
 {{- $sdeApiPath := default "/api/v2" .Values.sde.apiPath }}
 {{- $sdeUrl := printf "%v://%v-%v-%v:%v%v" $sdeWorkerScheme ( include "library.trimmedName" . ) $sdeWorker "service" $sdeWorkerPort $sdeApiPath -}}
+{{- $sentry := .Values.sentry -}}
+{{- $globalSentry := .Values.global.sentry -}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -14,19 +16,25 @@ metadata:
   labels:
     {{- include "library.labels" . | nindent 4 }}
 data:
-  DATABASE_REQUIRE_SSL: {{ default "false" .Values.databaseUseSsl | quote }}
-  BROKER_REQUIRE_SSL: {{ default "false" .Values.brokerUseSsl | quote }}
-  SDE_OPENSHIFT_ENABLED: {{ ternary "false" "true"  (not (.Values.global.openshift).enabled) | quote }}
-  ADMIN_BROKER_USER: {{ default (default "rabbit" (.Values.global.broker).adminClientUser) .Values.brokerAdminUser | quote }}
-  BROKER_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-headless") .Values.brokerHost | quote }}
-  SERVICE_DATABASE_USER: {{ default "cam" .Values.databaseUser | quote }}
-  SERVICE_DATABASE_NAME: {{ printf "%v" ( include "cam.sde.dbName" . ) }}
-  SERVICE_SCHEMA_NAME: {{ default "cam" .Values.databaseSchemaName | quote }}
-  SERVICE_BROKER_USER: {{ default "cam" .Values.brokerUser | quote }}
   SERVICE_CREATE_POSTGRES_SCHEMA: "true"
   SERVICE_CREATE_POSTGRES_USER: "true"
+  SERVICE_GRANT_SDE_DATABASE_READ: "true"
   SERVICE_CREATE_BROKER_USER: "true"
-  SDE_DATABASE_NAME: {{ printf "%v" ( include "cam.sde.dbName" . ) }}
+  # setup_postgres
+  DATABASE_REQUIRE_SSL: {{ default "false" .Values.databaseUseSsl | quote }}
+  DATABASE_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "database-service") .Values.databaseHost | quote }}
+  DATABASE_PORT: {{ default "5432" .Values.databasePort | quote }}
+  SERVICE_DATABASE_USER: {{ default "cam" .Values.databaseUser | quote }}
+  SERVICE_DATABASE_NAME: {{ printf "%v" ( include "cam.sde.dbName" . ) | quote }}
+  SERVICE_SCHEMA_NAME: {{ default "cam" .Values.databaseSchemaName | quote }}
+  SDE_DATABASE_NAME: {{ printf "%v" ( include "cam.sde.dbName" . ) | quote }}
+  # setup_rabbitmq
+  BROKER_REQUIRE_SSL: {{ default "false" .Values.brokerUseSsl | quote }}
+  BROKER_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-headless") .Values.brokerHost | quote }}
+  BROKER_PORT: {{ default "5672" .Values.brokerPort | quote }}
+  ADMIN_BROKER_USER: {{ default (default "rabbit" (.Values.global.broker).adminClientUser) .Values.brokerAdminUser | quote }}
+  SERVICE_BROKER_USER: {{ default "cam" .Values.brokerUser | quote }}
+  SERVICE_BROKER_VHOSTS: {{ default "rabbit" .Values.brokerVhost | quote }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -35,18 +43,30 @@ metadata:
   labels:
     {{- include "library.labels" . | nindent 4 }}
 data:
-  CAM_PORT: {{ default "3000" .Values.port | quote }}
-  CAM_DATABASE_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "database-service") .Values.databaseHost | quote }}
-  CAM_DATABASE_PORT: {{ default "5432" .Values.databasePort | quote }}
+  DATABASE_REQUIRE_SSL: {{ default "false" .Values.databaseUseSsl | quote }}
+  DATABASE_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "database-service") .Values.databaseHost | quote }}
+  DATABASE_PORT: {{ default "5432" .Values.databasePort | quote }}
+  # sde
+  SDE_OPENSHIFT_ENABLED: {{ ternary "false" "true"  (not (.Values.global.openshift).enabled) | quote }}
+  SDE_EXCHANGE_NAME: {{ default "sde" .Values.sde.exchangeName | quote }}
+  SDE_DATABASE_NAME: {{ printf "%v" ( include "cam.sde.dbName" . ) | quote }}
+  SDE_CORE_API_URL: {{ $sdeUrl | quote }}
+  # cam
+  CAM_BROKER_URL: {{ printf "%v" ( include "cam.broker.url" . ) | quote }}
+  CAM_EXCHANGE_NAME: {{ default "cam" .Values.exchangeName | quote }}
   CAM_DATABASE_USER: {{ default "cam" .Values.databaseUser | quote }}
   CAM_SCHEMA_NAME: {{ default "cam" .Values.databaseSchemaName | quote }}
-  CAM_BROKER_USER: {{ default "cam" .Values.brokerUser | quote }}
-  CAM_BROKER_VHOSTS: {{ default "cam" .Values.brokerVhost | quote }}
-  SDE_DATABASE_NAME: {{ printf "%v" ( include "cam.sde.dbName" . ) }}
-  API_PREFIX: {{ default "api/asset" .Values.apiPrefix | quote }}
-  DATABASE_REQUIRE_SSL: {{ default "false" .Values.databaseUseSsl | quote }}
-  BROKER_REQUIRE_SSL: {{ default "false" .Values.brokerUseSsl | quote }}
-  SDE_OPENSHIFT_ENABLED: {{ ternary "false" "true"  (not (.Values.global.openshift).enabled) | quote }}
-  ADMIN_BROKER_USER: {{ default (default "rabbit" (.Values.global.broker).adminClientUser) .Values.brokerAdminUser | quote }}
-  BROKER_HOST: {{ default ( printf "%v-%v" ( include "library.trimmedName" . ) "broker-headless") .Values.brokerHost | quote }}
-  SDE_CORE_API_URL: {{ $sdeUrl | quote }}
+  CAM_API_PREFIX: {{ default "api/asset" .Values.apiPrefix | quote }}
+  CAM_PORT: {{ default "3000" .Values.port | quote }}
+  {{- /* Sentry Configuration */}}
+  {{- /* If CAM_SENTRY_DSN is an empty string, Sentry is disabled */}}
+  {{- if ($sentry) }}
+  CAM_SENTRY_DSN: {{ ($sentry).dsn | default "" }}
+  CAM_SENTRY_TRACES_SAMPLE_RATE: {{ ($sentry).traceSampleRate | default ($globalSentry).traceSampleRate | default 0.1 | quote }}
+  CAM_SENTRY_MAX_BREADCRUMBS: {{ ($sentry).maxBreadcrumbs | default ($globalSentry).maxBreadcrumbs | default 50 | quote }}
+  CAM_SENTRY_DEBUG: {{ ($sentry).debug | default ($globalSentry).debug | default "false" | quote }}
+  CAM_SENTRY_ATTACH_STACK_TRACE: {{ (quote ($sentry).attachStackTrace) | default (quote ($globalSentry).attachStackTrace) | default (quote "true")  }}
+  CAM_SENTRY_ENVIRONMENT: {{ ($sentry).environment | default ($globalSentry).environment | default "develop" | quote }}
+  CAM_RELEASE: {{ ($sentry).release | default ($globalSentry).release | default "develop" | quote }}
+  CAM_SENTRY_EXCLUDE_UA: {{ ($sentry).excludeUA | default ($globalSentry).excludeUA | default "kube-probe|nagios-plugins|rez0" | quote }}
+  {{- end }}
