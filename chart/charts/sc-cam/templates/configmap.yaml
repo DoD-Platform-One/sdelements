@@ -8,6 +8,8 @@
 {{- $sdeUrl := printf "%v://%v-%v-%v:%v%v" $sdeWorkerScheme ( include "library.trimmedName" . ) $sdeWorker "service" $sdeWorkerPort $sdeApiPath -}}
 {{- $sentry := .Values.sentry -}}
 {{- $globalSentry := .Values.global.sentry -}}
+{{- $version := semver .Chart.Version -}}
+{{- $sdeReleaseName := default ( printf "sde@%v.%v" $version.Major $version.Minor ) (default (.Values.global.sentry).releaseName (.Values.sentry).releaseName) -}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -26,7 +28,7 @@ data:
   DATABASE_PORT: {{ default "5432" .Values.databasePort | quote }}
   SERVICE_DATABASE_USER: {{ default "cam" .Values.databaseUser | quote }}
   SERVICE_DATABASE_NAME: {{ printf "%v" ( include "cam.sde.dbName" . ) | quote }}
-  SERVICE_SCHEMA_NAME: {{ default "cam" .Values.databaseSchemaName | quote }}
+  SERVICE_SCHEMA_NAMES: {{ default "cam" .Values.databaseSchemaName | quote }}
   SDE_DATABASE_NAME: {{ printf "%v" ( include "cam.sde.dbName" . ) | quote }}
   # setup_rabbitmq
   BROKER_REQUIRE_SSL: {{ default "false" .Values.brokerUseSsl | quote }}
@@ -66,7 +68,7 @@ data:
   CAM_SENTRY_MAX_BREADCRUMBS: {{ ($sentry).maxBreadcrumbs | default ($globalSentry).maxBreadcrumbs | default 50 | quote }}
   CAM_SENTRY_DEBUG: {{ ($sentry).debug | default ($globalSentry).debug | default "false" | quote }}
   CAM_SENTRY_ATTACH_STACK_TRACE: {{ (quote ($sentry).attachStackTrace) | default (quote ($globalSentry).attachStackTrace) | default (quote "true")  }}
-  CAM_SENTRY_ENVIRONMENT: {{ ($sentry).environment | default ($globalSentry).environment | default "develop" | quote }}
-  CAM_RELEASE: {{ ($sentry).release | default ($globalSentry).release | default "develop" | quote }}
+  CAM_SENTRY_ENVIRONMENT: {{ ($sentry).environment | default ($globalSentry).environment | default .Release.Namespace | default "develop" | quote }}
+  CAM_RELEASE: {{ ($sentry).release | default ($globalSentry).release | default $sdeReleaseName | default "develop" | quote }}
   CAM_SENTRY_EXCLUDE_UA: {{ ($sentry).excludeUA | default ($globalSentry).excludeUA | default "kube-probe|nagios-plugins|rez0" | quote }}
   {{- end }}

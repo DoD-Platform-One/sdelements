@@ -1,10 +1,10 @@
 apiVersion: v2
-appVersion: 2023.4.23
+appVersion: 2024.1.45
 dependencies:
 - condition: sde.enableJITT
   name: sc-jitt
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 2023.3.2
+  version: 2024.1.1
 - name: sc-library
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.1.4
@@ -18,10 +18,10 @@ dependencies:
   version: 12.6.2
 - name: sc-datastore
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 1.0.9
+  version: 1.0.10
 - name: sc-mail
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 0.1.14
+  version: 0.1.15
 - condition: ingress-nginx.enabled
   name: ingress-nginx
   repository: https://kubernetes.github.io/ingress-nginx
@@ -32,7 +32,7 @@ dependencies:
 - condition: global.pas.enabled
   name: pas
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 1.8.5
+  version: 1.8.10
 - condition: minio.enabled
   name: minio
   repository: https://charts.min.io/
@@ -40,10 +40,10 @@ dependencies:
 - condition: sc-cam.enabled
   name: sc-cam
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 2023.4.9
-- condition: minio-tenant.enabled
+  version: 2024.1.5
+- alias: minio-tenant
+  condition: minio-tenant.enabled
   name: tenant
-  alias: minio-tenant
   repository: https://operator.min.io
   version: 5.0.12
 description: SDElements by Security Compass Ltd.
@@ -56,4 +56,4 @@ maintainers:
   url: https://www.securitycompass.com/
 name: sde
 type: application
-version: 2023.4.23-bb.1
+version: 2024.1.45-bb.1

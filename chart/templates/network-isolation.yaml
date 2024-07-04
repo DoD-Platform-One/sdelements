@@ -18,6 +18,7 @@ spec:
   ingress:
     - from:
         - podSelector: {}
+{{- if (eq (index .Values "ingress-nginx" "enabled" ) true) }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -55,7 +56,7 @@ spec:
       ports:
       - port: 10254
         protocol: TCP
-
+{{- end }}
 {{- else if eq .Values.global.networkIsolation "ingress" }}
 ---
 apiVersion: networking.k8s.io/v1

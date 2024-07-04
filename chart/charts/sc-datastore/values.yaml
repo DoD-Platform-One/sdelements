@@ -59,6 +59,15 @@ replicas: 1
 ## Container options
 resources: {}
 
+## Pod Disruption Budget configuration
+pdb:
+  ## enable/disable a PodDisruptionBudget
+  create: false
+  ## minimum number/percentage of pods that should remain scheduled
+  minAvailable: 1
+  ## maximum number/percentage of pods that may be made unavailable
+  maxUnavailable: ""
+
 networkPolicies:
   datastore:
     podSelector:

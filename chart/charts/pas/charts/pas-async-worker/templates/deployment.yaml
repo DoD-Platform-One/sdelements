@@ -7,7 +7,10 @@
 {{- $imageRegistryFormat := default "%s/%s-%s-%s:%s" .Values.global.imageRegistryFormat -}}
 {{- $contextDict := dict "root" . "dot" .Values -}}
 
-# Deployment config vars
+{{- /* CA Certificates */ -}}
+{{- $caCertificates := .Values.global.thirdPartyCACertificates -}}
+
+{{- /* Deployment config vars */ -}}
 {{- $deploymentName := printf "%v-%v" ( include "library.trimmedName" . ) "pas-async-worker" -}}
 ---
 apiVersion: apps/v1
@@ -101,6 +104,65 @@ spec:
               secretKeyRef:
                 name: {{ include "pas-async-worker.broker.secretName" $contextDict }}
                 key: {{ include "pas-async-worker.broker.resultBackendKey" $contextDict }}
+        {{- if $caCertificates.enabled }}
+        volumeMounts:
+        - name: sslcert-write-access
+          mountPath: /etc/ssl/certs
+        - name: cacert-write-access
+          mountPath: /usr/local/share/ca-certificates
+        {{- /*
+          There are 3 "origins" for CA certificates that is defined, mounted to /tmp/{origin}-ca-certificates
+          1. `internal` - Certificates created as part of SDE helm chart
+          2. `external` - Certificates passed via external Kubernetes ConfigMap
+          3. `secret` - Certificates passed via external Kubernetes Secret
+        */ -}}
+        {{- /* If a customer defines a certificate in the values.yaml */ -}}
+        {{- /* This needs to be mounted first because it mounts a whole directory, which overwrites other certs */ -}}
+        {{- if $caCertificates.certs }}
+        - name: ca-certificate
+          mountPath: /tmp/internal-ca-certificates/
+        {{- end }}
+        {{- if $caCertificates.minioSelfSignedCertSecret }}
+        - name: minio-certificate
+          mountPath: /tmp/internal-ca-certificates/minio-ca.crt
+          subPath: ca.crt
+        {{- end }}
+        {{- /* If the customer specifies an external CA cert in a configmap */ -}}
+        {{- if $caCertificates.externalConfigMapName }}
+        - name: external-ca-certificates
+          mountPath: /tmp/external-ca-certificates
+        {{- end }}
+        {{- /* If the customer specifies an external CA cert in a secret */ -}}
+        {{- if $caCertificates.externalSecretName }}
+        - name: secret-ca-certificates
+          mountPath: /tmp/secret-ca-certificates
+        {{- end }}
+      volumes:
+      - name: sslcert-write-access
+        emptyDir: {}
+      - name: cacert-write-access
+        emptyDir: {}
+      {{- if $caCertificates.certs }}
+      - name: ca-certificate
+        configMap:
+          name: {{ include "library.trimmedName" . }}-ca-certificate
+      {{- end }}
+      {{- if $caCertificates.minioSelfSignedCertSecret }}
+      - name: minio-certificate
+        secret:
+          secretName: {{ tpl $caCertificates.minioSelfSignedCertSecret . }}
+      {{- end }}
+      {{- if $caCertificates.externalConfigMapName }}
+      - name: external-ca-certificates
+        configMap:
+          name: {{ $caCertificates.externalConfigMapName }}
+      {{- end }}
+      {{- if $caCertificates.externalSecretName }}
+      - name: secret-ca-certificates
+        secret:
+          secretName: {{ $caCertificates.externalSecretName }}
+      {{- end }}
+      {{- end }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always

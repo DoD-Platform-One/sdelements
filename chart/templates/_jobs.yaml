@@ -59,6 +59,8 @@ metadata:
   labels:
     name: {{ $releaseName | quote }}
     {{- include "library.labels" $root | nindent 4 }}
+  annotations:
+    defaultSchedule: {{ $defaultSchedule | quote }}
 spec:
   schedule: {{ $schedule | quote }}
   concurrencyPolicy: {{ default "Forbid" $dot.concurrencyPolicy }}
