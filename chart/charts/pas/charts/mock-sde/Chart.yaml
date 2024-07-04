@@ -15,7 +15,7 @@ keywords:
 - python
 - wsgi
 maintainers:
-- email: devops-support@securitycompass.com
+- email: sdesupport@securitycompass.com
   name: Security Compass Technologies Ltd.
   url: https://www.securitycompass.com/
 name: mock-sde

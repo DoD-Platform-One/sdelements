@@ -6,6 +6,7 @@ Create root CA issuer for each issuer type specifie
 
 {{- $certManagerEnabled := eq ( include "certManagerEnabled" . ) "true" -}}
 {{- $fqdn := required "A fully qualified domain name must be be specified when cert-manager is enabled !" .Values.sde.fqdn }}
+{{- $caCertificates := .Values.global.thirdPartyCACertificates -}}
 
 {{- if $certManagerEnabled }}
 {{- range $issuer := .Values.global.certManager.issuers }}
@@ -53,7 +54,6 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ $certName | quote }}
-  namespace: {{ $.Release.NameSpace }}
 spec:
   commonName: {{ $fqdn | quote  }}
   dnsNames:
@@ -138,5 +138,13 @@ data:
       {{- end }}
 {{- end }}
 {{- end }}
-
-
+{{- /* Custom CA Certificate */ -}}
+{{- if and $caCertificates.enabled $caCertificates.certs }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "library.trimmedName" . }}-ca-certificate
+data:
+  {{- .Values.global.thirdPartyCACertificates.certs | toYaml | nindent 2 }}
+{{- end }}

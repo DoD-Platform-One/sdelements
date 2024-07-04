@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [2024.1.45-bb.1] - 2024-06-28
+### Changed
+
+- Upgraded upstream chart to '2021.1.45'
+- Updated README
+
 ## [2023.4.23-bb.1] - 2024-03-13
 ### Added
 

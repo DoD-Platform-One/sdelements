@@ -33,3 +33,6 @@ data:
   {{ if .Values.syncTaskTimeoutSeconds }}
   PLUGIN_SERVICE_SYNC_TASK_TIMEOUT_SECONDS: {{ .Values.syncTaskTimeoutSeconds | quote }}
   {{ end }}
+  {{- if .Values.global.thirdPartyCACertificates.enabled }}
+  TRUST_THIRDPARTY_CA_CERTS: "true"
+  {{- end }}

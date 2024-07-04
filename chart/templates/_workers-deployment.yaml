@@ -31,6 +31,7 @@ Enables creation of an arbitrary number of configurable/programmable SDE workers
 # ssl variables
 {{- $tlsRoot := default "/tls" $root.Values.worker.tlsRoot }}
 {{- $certManagerEnabled := eq ( include "certManagerEnabled" ( merge . $root ) ) "true" -}}
+{{- $caCertificates := $root.Values.global.thirdPartyCACertificates -}}
 
 # App worker ssl variables
 {{/* database and broker certs are currently disabled */}}
@@ -65,6 +66,10 @@ Enables creation of an arbitrary number of configurable/programmable SDE workers
 
 {{- $updateStrategy := default "RollingUpdate" (default (index $root.Values.worker "updateStrategy").type (index $dot "updateStrategy").type) }}
 {{- $terminationGracePeriodSeconds := hasKey $dot "queueVarVal" | ternary (default 3600 $root.Values.sde.celeryTaskTimeLimit) ( default "120" (default $root.Values.worker.terminationGracePeriodSeconds $dot.terminationGracePeriodSeconds) ) }}
+
+# Repo Code Scan Directory variables
+{{- $scanDirectory := "/repo_scan_directory" }}
+{{- $scanDirectorySize := "4Gi" }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -87,6 +92,14 @@ spec:
       labels:
         name: {{ $releaseName | quote }}
         {{- include "library.selectorLabels" $root | nindent 8 }}
+      {{- /* Add annotations for certificate checksums if we enable custom CA certificates */ -}}
+      {{- if $caCertificates.enabled }}
+      annotations:
+        {{- /* Helm chart is only aware of CA certificates it creates, any external secrets requires manual bouncing of pods */ -}}
+        {{- if $caCertificates.cert }}
+        checksum/tls-resources: {{ include (printf "%s/tls-resources.yaml" $root.Template.BasePath) $root | sha256sum}}
+        {{- end }}
+      {{- end }}
     spec:
       {{- if eq $enableWorkerDatabaseAffinity true }}
       {{- if or (eq $deploymentName "worker-10") (eq $deploymentName "worker-17") }}
@@ -120,10 +133,21 @@ spec:
       nodeSelector:
         customer_name: {{ printf "%v" ( include "library.trimmedName" $dot ) | quote }}
       {{- end }}
+      {{- if ( eq $deploymentName "worker-15-sde-medium") }}
+      volumes:
+      - name: repo-scan-directory
+        emptyDir:
+          sizeLimit: {{ $scanDirectorySize }}
+      {{- end}}
       containers:
       - name: {{ $releaseName | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
         imagePullPolicy:  {{ $imagePullPolicy }}
+        {{- if ( eq $deploymentName "worker-15-sde-medium") }}
+        volumeMounts:
+        - mountPath: {{ $scanDirectory }}
+          name: repo-scan-directory
+        {{- end}}
         {{- if eq ( hasKey $dot "queueVarName" ) ( false ) }}
         readinessProbe:
           httpGet:
@@ -151,10 +175,10 @@ spec:
           allowPrivilegeEscalation: false
         env:
         {{- dict "root" (merge $root $tlsContext) "dot" $dot | include "sde.environment" | nindent 8 }}
-        {{- range $root.Values.worker.extraEnvVars }}
-        - name: {{ .name | quote }}
-          value: {{ .value | quote }}
-        {{- end }}
+        {{- if ( eq $deploymentName "worker-15-sde-medium") }}
+        - name: SDE_SCAN_DIRECTORY
+          value: {{ $scanDirectory }}
+        {{- end}}
         {{- if $sentryEnabled }}
         - name: SDE_SENTRY_DSN
           value: {{ required "SDE_SENTRY_DSN must be specified if Sentry configuration is enabled." $sentryDSN | quote }}
@@ -181,6 +205,15 @@ spec:
           value: {{ $sentryRIASampleRate | quote }}
           {{- end }}
         {{- end }}
+        {{- if $caCertificates.enabled }}
+        - name: TRUST_THIRDPARTY_CA_CERTS
+          value: "true"
+        {{- end }}
+        {{- /* Extra env vars are at the end, to override all previous variables */ -}}
+        {{- range $root.Values.worker.extraEnvVars }}
+        - name: {{ .name | quote }}
+          value: {{ .value | quote }}
+        {{- end }}
         {{- if $dot.resources }}
         resources:
         {{- range $limitType, $resources := $dot.resources }}
@@ -198,6 +231,68 @@ spec:
             exec:
               command: ["/bin/sh", "-c", "sleep 5; until test -z \"$(netstat -tn | awk '$4 ~ /:{{ default 8080 $dot.port }}/ && /ESTABLISHED/')\"; do sleep 1; done;"]
         {{- end }}
+      {{- if $caCertificates.enabled }}
+        volumeMounts:
+        - name: cacert-write-access
+          mountPath: /etc/ssl/certs
+        - name: cacert-write-access2
+          mountPath: /usr/local/share/ca-certificates
+        {{- /*
+          There are 3 "origins" for CA certificates that is defined, mounted to /tmp/{origin}-ca-certificates
+          1. `internal` - Certificates created as part of SDE helm chart
+          2. `external` - Certificates passed via external Kubernetes ConfigMap
+          3. `secret` - Certificates passed via external Kubernetes Secret
+        */ -}}
+        {{- /* If a customer defines a certificate in the values.yaml */ -}}
+        {{- /* This needs to be mounted first because it mounts a whole directory, which overwrites other certs */ -}}
+        {{- if $caCertificates.certs }}
+        - name: ca-certificate
+          mountPath: /tmp/internal-ca-certificates/
+        {{- end }}
+        {{- /* If MinIO is enabled and a cert is generated */ -}}
+        {{- if $caCertificates.minioSelfSignedCertSecret }}
+        - name: minio-certificate
+          mountPath: /tmp/internal-ca-certificates/minio-ca.crt
+          subPath: ca.crt
+        {{- end }}
+        {{- /* If the customer specifies an external CA cert in a configmap */ -}}
+        {{- if $caCertificates.externalConfigMapName }}
+        - name: external-ca-certificates
+          mountPath: /tmp/external-ca-certificates
+        {{- end }}
+        {{- /* If the customer specifies an external CA cert in a secret */ -}}
+        {{- if $caCertificates.externalSecretName }}
+        - name: secret-ca-certificates
+          mountPath: /tmp/secret-ca-certificates
+        {{- end }}
+      volumes:
+      - name: cacert-write-access
+        emptyDir:
+          sizeLimit: 10Mi
+      - name: cacert-write-access2
+        emptyDir:
+          sizeLimit: 10Mi
+      {{- if $caCertificates.minioSelfSignedCertSecret }}
+      - name: minio-certificate
+        secret:
+          secretName: {{ tpl $caCertificates.minioSelfSignedCertSecret $root }}
+      {{- end }}
+      {{- if $caCertificates.certs }}
+      - name: ca-certificate
+        configMap:
+          name: {{ include "library.trimmedName" . }}-ca-certificate
+      {{- end }}
+      {{- if $caCertificates.externalConfigMapName }}
+      - name: external-ca-certificates
+        configMap:
+          name: {{ $caCertificates.externalConfigMapName }}
+      {{- end }}
+      {{- if $caCertificates.externalSecretName }}
+      - name: secret-ca-certificates
+        secret:
+          secretName: {{ $caCertificates.externalSecretName }}
+      {{- end }}
+      {{- end }}
       imagePullSecrets:
       - name: {{ include "library.registrySecretName" . }}
       restartPolicy: Always

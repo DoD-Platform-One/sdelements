@@ -9,12 +9,11 @@
 {{- $externalTlsSecretName := .Values.web.externalTlsSecretName -}}
 {{- $customTlsSecretName := printf "%v-tls-web-custom-secret" ( include "library.trimmedName" . ) -}}
 {{- $certManagerTlsSecretName := include "tlsSecretName" ( mergeOverwrite $ ( dict "serviceName" "web-server" )) -}}
+{{- $pasEnabled := default false .Values.global.pas.enabled -}}
+{{- $pasWhitelist := default "" (index .Values.global "pas" "whitelist-source-range") -}}
+{{- $pasPath := "/pas/" -}}
 ---
-{{- if semverCompare ">=1.19.0-0" .Capabilities.KubeVersion.GitVersion }}
 apiVersion: networking.k8s.io/v1
-{{- else }}
-apiVersion: networking.k8s.io/v1beta1
-{{- end }}
 kind: Ingress
 metadata:
   name: {{ $ingressName | quote }}
@@ -25,31 +24,19 @@ metadata:
     {{- if ((.Values.sde).ingress).annotations -}}
     {{ toYaml .Values.sde.ingress.annotations | nindent 4 }}
     {{- else if  (.Values.global.openshift).enabled }}
-    {{- if semverCompare "<1.19.0-0" .Capabilities.KubeVersion.GitVersion }}
-    kubernetes.io/ingress.class: {{ $ingressClassName | quote }}
-    {{- end }}
     route.openshift.io/termination: "passthrough"
     {{- else }}
-    {{- if semverCompare "<1.19.0-0" .Capabilities.KubeVersion.GitVersion }}
-    kubernetes.io/ingress.class: {{ $ingressClassName | quote }}
-    {{- end }}
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     nginx.ingress.kubernetes.io/proxy-body-size: "2048m"
     {{- end }}
 
 spec:
-  {{- if semverCompare ">=1.19.0-0" .Capabilities.KubeVersion.GitVersion }}
   ingressClassName: {{ $ingressClassName | quote }}
   defaultBackend:
     service:
       name: {{ $serviceName | quote }}
       port:
         name: "https"
-  {{- else }}
-  backend:
-    serviceName: {{ $serviceName | quote }}
-    servicePort: "https"
-  {{- end }}
   {{- /* If a domain is set, it must use TLS */ -}}
   {{- if or ( ne .Values.sde.fqdn "example.com" ) ( hasKey .Values.sde "alternateVirtualHosts" ) }}
   tls:
@@ -84,7 +71,6 @@ spec:
     secretName: {{ $certManagerTlsSecretName | quote }}
     {{- end }}
   {{- end }}
-  {{- if semverCompare ">=1.19.0-0" .Capabilities.KubeVersion.GitVersion }}
   rules:
   - host: {{ .Values.sde.fqdn | quote }}
     http:
@@ -119,36 +105,108 @@ spec:
             name: {{ $serviceName | quote }}
             port:
               name: "https"
-  {{- end }}
-  {{- else }}
-  rules:
-  - host: {{ .Values.sde.fqdn | quote }}
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: {{ $serviceName | quote }}
-          servicePort: "https"
-  {{- range .Values.sde.alternateDnsNames }}
-  - host: {{ . | quote }}
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: {{ $serviceName | quote }}
-          servicePort: "https"
-  {{- end }}
-  {{- range .Values.sde.alternateVirtualHosts }}
-  - host: {{ . | quote }}
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: {{ $serviceName | quote }}
-          servicePort: "https"
-  {{- end }}
   {{- end }}
   {{- end }}
 status:
   loadBalancer: {}
+{{- if and $pasEnabled (not (empty $pasWhitelist)) }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ printf "%v-%v" $ingressName "pas-filtering" | quote }}
+  labels:
+    service: {{ $ingressName | quote }}
+    {{- include "library.labels" . | nindent 4 }}
+  annotations:
+    {{- if ((.Values.sde).ingress).annotations -}}
+    {{ toYaml .Values.sde.ingress.annotations | nindent 4 }}
+    {{- else if  (.Values.global.openshift).enabled }}
+    route.openshift.io/termination: "passthrough"
+    {{- else }}
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/proxy-body-size: "2048m"
+    nginx.ingress.kubernetes.io/whitelist-source-range: {{ $pasWhitelist | quote }}
+    {{- end }}
+
+spec:
+  ingressClassName: {{ $ingressClassName | quote }}
+  defaultBackend:
+    service:
+      name: {{ $serviceName | quote }}
+      port:
+        name: "https"
+  {{- /* If a domain is set, it must use TLS */ -}}
+  {{- if or ( ne .Values.sde.fqdn "example.com" ) ( hasKey .Values.sde "alternateVirtualHosts" ) }}
+  tls:
+  - hosts:
+    - {{ .Values.sde.fqdn | quote }}
+    {{- range .Values.sde.alternateDnsNames }}
+    - {{ . | quote }}
+    {{- end }}
+    {{- /*
+      * Use external secret name
+      * else cert manager secret (if enabled)
+      * else custom tls secret
+*/ -}}
+    {{- if $externalTlsSecretName }}
+    secretName: {{ $externalTlsSecretName | quote }}
+    {{- else if ( eq ( include "certManagerEnabled" . ) "true" ) }}
+    secretName: {{ $certManagerTlsSecretName | quote }}
+    {{- else }}
+    secretName: {{ $customTlsSecretName | quote }}
+    {{- end }}
+  {{- if ( hasKey .Values.sde "alternateVirtualHosts" ) }}
+  - hosts:
+    {{- range .Values.sde.alternateVirtualHosts }}
+    - {{ . | quote }}
+    {{- end }}
+    {{- /* Custom certs take precedence for alternate vhosts so nothing changes for SaaS */ -}}
+    {{- if $customCertsProvided }}
+    secretName: {{ $customTlsSecretName }}
+    {{- else if $externalTlsSecretName }}
+    secretName: {{ $externalTlsSecretName | quote }}
+    {{- else }}
+    secretName: {{ $certManagerTlsSecretName | quote }}
+    {{- end }}
+  {{- end }}
+  rules:
+  - host: {{ .Values.sde.fqdn | quote }}
+    http:
+      paths:
+      - path: {{ $pasPath }}
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ $serviceName | quote }}
+            port:
+              name: "https"
+  {{- range .Values.sde.alternateDnsNames }}
+  - host: {{ . | quote }}
+    http:
+      paths:
+      - path: {{ $pasPath }}
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ $serviceName | quote }}
+            port:
+              name: "https"
+  {{- end }}
+  {{- range .Values.sde.alternateVirtualHosts }}
+  - host: {{ . | quote }}
+    http:
+      paths:
+      - path: {{ $pasPath }}
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ $serviceName | quote }}
+            port:
+              name: "https"
+  {{- end }}
+  {{- end }}
+status:
+  loadBalancer: {}
+{{- end }}
 {{- end -}}

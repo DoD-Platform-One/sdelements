@@ -6,7 +6,7 @@ global:
   imagePullPolicy: Always
   imageOrganization: ironbank/security-compass
   imageSource: sd-elements
-  imageTag: 2023.4.23
+  imageTag: 2024.1.42
   storageClass: gp2 # Should be any RWO storageclass with dynamic provisioning, if possible
   sharedStorage:
     bucketName: <NAME-OF-THE-BUCKET>
@@ -26,7 +26,7 @@ sde:
 web:
   replicas: 1
   imageName: nginx
-  imageTag: 2023.4.23-8.9
+  imageTag: 2024.1.42-9.4-001
   uid: 993
   gid: 993
   fsgid: 49
@@ -34,7 +34,7 @@ sc-jitt:
   replicas: 1
   imageSource: jitt
   imageName: nginx
-  imageTag: 2023.3.2-8.9
+  imageTag: 2024.1.1-9.4-001
   uid: 993
   gid: 993
   fsgid: 49
@@ -42,7 +42,7 @@ rabbitmq:
     replicaCount: 1
     image:
         repository: ironbank/bitnami/rabbitmq
-        tag: 3.12.13
+        tag: 3.12.14
     auth:
         password: <YOUR-BROKER-PASSWORD>
         erlangCookie: <YOUR-BROKER-ERLANG-COOKIE>
@@ -56,7 +56,7 @@ rabbitmq:
 postgresql:
   image:
     repository: ironbank/opensource/postgres/postgresql12
-    tag: 12.18
+    tag: 12.19
   postgresql:
     auth:
       password: <YOUR-DATABASE-PASSWORD>
@@ -69,17 +69,17 @@ postgresql:
       fsGroup: 26
 sc-mail:
   imageName: exim
-  imageTag: 1.3-8.9
+  imageTag: 1.4-9.4-001
 worker:
   imageName: mod_wsgi
-  imageTag: 2023.4.23-8.9
+  imageTag: 2024.1.42-9.4-001
   uid: 48
   gid: 48
   fsgid: 49
 reporting:
   enabled: true
   imageName: reporting
-  imageTag: 2023.4.23-8.9
+  imageTag: 2024.1.42-9.4-001
   enableTls: true
   uid: 1001
   gid: 1001
@@ -101,15 +101,15 @@ sc-cam:
   databasePassword: <YOUR-DATABASE-PASSWORD>
   enabled: true
   mageName: cam
-  imageTag: 2023.4.8-8.9
+  imageTag: 2024.1.5-9.4-001
   initImageName: common-init
-  initImageTag: 2023.4.0-8.9
+  initImageTag: 2024.1.2-8.10-001
   uid: 1001
   gid: 1001
 job:
   specifications:
     trend-reporting:
-      imageTag: 2023.4.2-8.9
+      imageTag: 2024.1.4-8.10-001
       uid: 998
       gid: 996
       fsgid: 996

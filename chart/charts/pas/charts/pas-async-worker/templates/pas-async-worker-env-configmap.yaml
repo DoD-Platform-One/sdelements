@@ -32,3 +32,6 @@ data:
   SDE_SENTRY_SAMPLE_RATE: {{ $sentrySampleRate | quote }}
   SDE_SENTRY_TRACE_SAMPLE_RATE: {{ $sentryTraceSampleRate | quote }}
   {{ end }}
+  {{- if .Values.global.thirdPartyCACertificates.enabled }}
+  TRUST_THIRDPARTY_CA_CERTS: "true"
+  {{- end }}

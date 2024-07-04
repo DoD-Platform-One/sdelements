@@ -99,64 +99,9 @@ sde:
     #id: gainsight-id
     #tagKey: gainsight-tag-key
 
-## Deploy Nginx Controller with SDE. The `ingress-nginx.controller.scope.enabled` parameter below
-## defaults to `true` which restricts the scope of the controller to a namespace (vs. cluster).
-## See: https://kubernetes.github.io/ingress-nginx/deploy/#scope
+## Deploy Nginx Controller with SDE. Most deployments do not need this enabled.
 ingress-nginx:
   enabled: false
-  rbac:
-    scope: true
-  controller:
-    lifecycle:
-      preStop:
-        exec:
-          command: ["/bin/sh", "-c", "sleep 5; /usr/sbin/nginx -s quit; while pgrep -x nginx; do sleep 1; done"]
-    updateStrategy:
-      type: RollingUpdate
-    admissionWebhooks:
-      enabled: false
-    scope:
-      enabled: true
-    config:
-      forwarded-for-header: proxy_protocol
-      use-forwarded-headers: "true"
-      # Set a comma separated ip whitelist range here
-      # whitelist-source-range: "127.0.0.1,127.0.0.2"
-      annotation-value-word-blocklist: "load_module,lua_package,_by_lua,location,root,proxy_pass,serviceaccount,{,},',\""
-    metrics:
-      enabled: "true"
-    service:
-      type: LoadBalancer
-      externalTrafficPolicy: Local
-      targetPorts:
-        http: http
-        https: https
-      annotations:
-        service.beta.kubernetes.io/aws-load-balancer-type: nlb
-        service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
-        service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
-        #service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
-        #service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-        #service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:ommitted-xxx"
-        #
-    extraArgs:
-      enable-ssl-passthrough: true
-      # ssl-redirect: true
-    image:
-      registry: repository.securitycompass.com/sde-docker-prod
-      digest: ""
-      allowPrivilegeEscalation: false
-    resources:
-      requests:
-        cpu: 50m
-        memory: 128Mi
-      limits:
-        memory: 1024Mi
-    ingressClassResource:
-      name: public
-  revisionHistoryLimit: 0
-  imagePullSecrets:
-    - name: security-compass-secret
 
 ## These options are global and shared by all charts and namespaces in a cluster
 global:
@@ -240,6 +185,50 @@ global:
     #         tsigKeyName: dummy_keyname
     #         tsigKeySecret: u20QIqZ6pOAeJ25jzlxhl7uV3OaRxyfbBK+9N/8tdxPY2ZJX0IJT5RXex8dJGBk7hdeSPJEujt5qrOO/vIRvBw==
     #         tsigAlgorithm: HMACSHA512
+
+  thirdPartyCACertificates:
+    # Enable use of custom CA certificates
+    enabled: false
+    # The external config map and secret should contain all PEM-formated CA certificates
+    #externalConfigMapName: "my-k8s-ca-certificate-configmap-name"
+    #externalSecretName: "my-k8s-ca-certificate-secret-name"
+    # This should only be uncommented if minio.tlsCreateSelfSigned=true
+    #minioSelfSignedCertSecret: "{{ include \"library.trimmedName\" . }}-minio-server-tls-secrets"
+    # You may define a PEM-formatted certificate. Ensure the filename ends in ".crt"
+    #certs:
+    #  apricot.crt: |-
+    #    -----BEGIN CERTIFICATE-----
+    #    MIIFWzCCA0OgAwIBAgIQTfQrldHumzpMLrM7jRBd1jANBgkqhkiG9w0BAQsFADBm
+    #    MQswCQYDVQQGEwJVUzEzMDEGA1UEChMqKFNUQUdJTkcpIEludGVybmV0IFNlY3Vy
+    #    aXR5IFJlc2VhcmNoIEdyb3VwMSIwIAYDVQQDExkoU1RBR0lORykgUHJldGVuZCBQ
+    #    ZWFyIFgxMB4XDTIwMDkwNDAwMDAwMFoXDTI1MDkxNTE2MDAwMFowWTELMAkGA1UE
+    #    BhMCVVMxIDAeBgNVBAoTFyhTVEFHSU5HKSBMZXQncyBFbmNyeXB0MSgwJgYDVQQD
+    #    Ex8oU1RBR0lORykgQXJ0aWZpY2lhbCBBcHJpY290IFIzMIIBIjANBgkqhkiG9w0B
+    #    AQEFAAOCAQ8AMIIBCgKCAQEAu6TR8+74b46mOE1FUwBrvxzEYLck3iasmKrcQkb+
+    #    gy/z9Jy7QNIAl0B9pVKp4YU76JwxF5DOZZhi7vK7SbCkK6FbHlyU5BiDYIxbbfvO
+    #    L/jVGqdsSjNaJQTg3C3XrJja/HA4WCFEMVoT2wDZm8ABC1N+IQe7Q6FEqc8NwmTS
+    #    nmmRQm4TQvr06DP+zgFK/MNubxWWDSbSKKTH5im5j2fZfg+j/tM1bGaczFWw8/lS
+    #    nukyn5J2L+NJYnclzkXoh9nMFnyPmVbfyDPOc4Y25aTzVoeBKXa/cZ5MM+WddjdL
+    #    biWvm19f1sYn1aRaAIrkppv7kkn83vcth8XCG39qC2ZvaQIDAQABo4IBEDCCAQww
+    #    DgYDVR0PAQH/BAQDAgGGMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAS
+    #    BgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBTecnpI3zHDplDfn4Uj31c3S10u
+    #    ZTAfBgNVHSMEGDAWgBS182Xy/rAKkh/7PH3zRKCsYyXDFDA2BggrBgEFBQcBAQQq
+    #    MCgwJgYIKwYBBQUHMAKGGmh0dHA6Ly9zdGcteDEuaS5sZW5jci5vcmcvMCsGA1Ud
+    #    HwQkMCIwIKAeoByGGmh0dHA6Ly9zdGcteDEuYy5sZW5jci5vcmcvMCIGA1UdIAQb
+    #    MBkwCAYGZ4EMAQIBMA0GCysGAQQBgt8TAQEBMA0GCSqGSIb3DQEBCwUAA4ICAQCN
+    #    DLam9yN0EFxxn/3p+ruWO6n/9goCAM5PT6cC6fkjMs4uas6UGXJjr5j7PoTQf3C1
+    #    vuxiIGRJC6qxV7yc6U0X+w0Mj85sHI5DnQVWN5+D1er7mp13JJA0xbAbHa3Rlczn
+    #    y2Q82XKui8WHuWra0gb2KLpfboYj1Ghgkhr3gau83pC/WQ8HfkwcvSwhIYqTqxoZ
+    #    Uq8HIf3M82qS9aKOZE0CEmSyR1zZqQxJUT7emOUapkUN9poJ9zGc+FgRZvdro0XB
+    #    yphWXDaqMYph0DxW/10ig5j4xmmNDjCRmqIKsKoWA52wBTKKXK1na2ty/lW5dhtA
+    #    xkz5rVZFd4sgS4J0O+zm6d5GRkWsNJ4knotGXl8vtS3X40KXeb3A5+/3p0qaD215
+    #    Xq8oSNORfB2oI1kQuyEAJ5xvPTdfwRlyRG3lFYodrRg6poUBD/8fNTXMtzydpRgy
+    #    zUQZh/18F6B/iW6cbiRN9r2Hkh05Om+q0/6w0DdZe+8YrNpfhSObr/1eVZbKGMIY
+    #    qKmyZbBNu5ysENIK5MPc14mUeKmFjpN840VR5zunoU52lqpLDua/qIM8idk86xGW
+    #    xx2ml43DO/Ya/tVZVok0mO0TUjzJIfPqyvr455IsIut4RlCR9Iq0EDTve2/ZwCuG
+    #    hSjpTUFGSiQrR2JK2Evp+o6AETUkBCO1aw0PpQBPDQ==
+    #    -----END CERTIFICATE-----
+
   # Broker customizations
   broker:
     #adminClientUser: rabbit
@@ -328,6 +317,9 @@ global:
     enabled: false
     # Enable or disable custom plugin functionality
     enableCustomPlugins: true
+
+    # Enable or disable ip/subnet whitelist
+    # whitelist-source-range: 127.0.0.1/32
 
     ## Configurations for the service to connect with a shared storage
     sharedStorage:
@@ -541,7 +533,8 @@ sc-jitt:
 rabbitmq:
   enabled: true
   nameOverride: "broker"
-  podLabels:
+  commonLabels:
+    app.kubernetes.io/part-of: "{{ include \"library.name\" . }}"
     name: "{{ include \"library.trimmedName\" . }}-broker"
   image:
     # registry: repository.securitycompass.com
@@ -550,6 +543,10 @@ rabbitmq:
   persistence:
     enabled: true
     existingClaim: "{{ include \"library.trimmedName\" . }}-broker-volume-claim"
+  pdb:
+    create: false
+    minAvailable: 1
+    maxUnavailable: ""
   loadDefinition:
     enabled: true
     existingSecret: "{{ include \"library.trimmedName\" . }}-rabbitmq-load-definition"
@@ -558,6 +555,7 @@ rabbitmq:
     #password: "myrabbitmqpassword"
   extraConfiguration: |-
     default_vhost = {{ .Values.global.broker.adminVhost }}
+    management.listener.ip = {{ ternary "::" "0.0.0.0" (has "IPv6" (default (list "IPv4") .Values.global.ipFamilies)) }}
   initContainers:
   - name: config-init
     image: "{{ printf .Values.global.imageRegistryFormat .Values.global.imageRegistry .Values.global.imageOrganization (default .Values.global.imageSource .Values.global.initImageSource) \"busybox\" \"1.36\" }}"
@@ -613,7 +611,11 @@ postgresql:
   image:
   # registry: repository.securitycompass.com
     repository: sde-docker-prod/bitnami/postgresql
-    tag: 12.17.0-debian-11-r20
+    tag: 12.18.0-debian-12-r6
+  pdb:
+    create: false
+    minAvailable: 1
+    maxUnavailable: ""
   metrics:
     containerPorts:
       metrics: 9187
@@ -680,6 +682,11 @@ postgresql:
         memory: 512Mi
       limits:
         memory: 8192Mi
+
+# external-database:
+#   host: ""
+#   user: postgres
+#   password: security
 
 sc-mail:
   replicas: 1
@@ -935,6 +942,11 @@ sc-datastore:
   #clientPassword: mySuperDatastorePass
   #dataVolumeSize: 10Gi
 
+  pdb:
+    create: false
+    minAvailable: 1
+    maxUnavailable: ""
+
   ## Container options
   resources:
     requests:
@@ -993,7 +1005,7 @@ job:
 
     trend-reporting:
       imageName: trend-reporting
-      imageTag: 2023.4.2
+      imageTag: 2024.1.4
       schedule: "35 3 * * *"
       command: ["/bin/sh"]
       uid: 101
@@ -1043,14 +1055,14 @@ job:
         - "clearsessions"
 
     refresh-task-relevance:
-      schedule: "26 3 * * *"
+      schedule: "26 5 * * *"
       niceness: 19
       command: ["/bin/sde.sh"]
       args:
         - "refresh-task-relevance"
 
     send-new-relevant-task-notifications:
-      schedule: "33 3 * * *"
+      schedule: "33 5 * * *"
       niceness: 19
       command: ["/bin/sde.sh"]
       args:
@@ -1171,10 +1183,10 @@ pas:
 minio:
   image:
     repository: repository.securitycompass.com/sde-docker-prod/minio/minio
-    tag: RELEASE.2024-01-01T16-36-33Z
+    tag: RELEASE.2024-02-26T09-33-48Z
   mcImage:
     repository: repository.securitycompass.com/sde-docker-prod/minio/mc
-    tag: RELEASE.2023-12-29T20-15-29Z
+    tag: RELEASE.2024-02-24T01-33-20Z
   enabled: false
   mode: standalone
   rootUser: admin
@@ -1183,7 +1195,7 @@ minio:
     MINIO_BROWSER: "off"
   persistence:
     #storageClass: ebs-storageclass
-    size: 30Gi
+    size: 100Gi
   resources:
     requests:
       cpu: 1
@@ -1195,7 +1207,7 @@ minio:
   tlsCreateSelfSigned: false
   tls:
     enabled: false
-    # This should be a pre-existing secret unless global.minio.tlsCreateSelfSigned
+    # This should be a pre-existing secret unless minio.tlsCreateSelfSigned
     # is enabled. See the minio documentation for examples:
     # https://github.com/minio/minio/tree/master/helm/minio#configure-tls
     certSecret: "sde-minio-server-tls-secrets"
@@ -1215,13 +1227,18 @@ minio:
   serviceAccount:
     create: true
     name: "minio-sa"
-    
+  deploymentUpdate:
+    type: Recreate
+
 minio-tenant:
   enabled: false
   tenant:
     name: sdelements-minio
+    image:
+      repository: repository.securitycompass.com/sde-docker-prod/minio/minio
+      tag: RELEASE.2024-01-01T16-36-33Z
     imagePullSecret:
-      name: private-registry
+      name: security-compass-secret
     env:
       - name: MINIO_BROWSER
         value: "off"
@@ -1229,17 +1246,17 @@ minio-tenant:
       - servers: 1
         name: pool-0
         volumesPerServer: 1
-        size: 30Gi
+        size: 100Gi
     certificate:
       requestAutoCert: false
     buckets:
-      - name: sde-bucket
+      - name: backup
     configuration:
       name: sdelements-minio-env-configuration
   secrets:
     name: sdelements-minio-env-configuration
-    accessKey: accesskey
-    secretKey: secretkey
+    accessKey: backup
+    secretKey: YOUR_BACKUP_USER_PASSWORD
 
 # Here are all the network policies that:
 # - pertain to the services exposed by the SDE chart only;
@@ -1255,8 +1272,8 @@ networkPolicies:
         - ipBlock:
             cidr: 0.0.0.0/0
         ports:
-          - port: '{{ index .Values "ingress-nginx" "controller" "service" "targetPorts" "http" | int | default 80 }}'
-          - port: '{{ index .Values "ingress-nginx" "controller" "service" "targetPorts" "https" | int | default 443 }}'
+          - port: 80
+          - port: 443
       - selectors:
         - podSelector:
             matchLabels:
@@ -1389,6 +1406,24 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: "minio-operator"
+            namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: "minio-operator"
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: "operator"
+            namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: "minio-operator"
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: "operator"
+            namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: "openshift-operators"
         ports:
           - port: '{{ index .Values "minio" "minioAPIPort" | default 9000 }}'
   database:

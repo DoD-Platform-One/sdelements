@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: 1.8.5
+appVersion: 1.8.10
 dependencies:
 - name: sc-library
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
@@ -12,11 +12,11 @@ keywords:
 - frontend-service
 - nginx
 maintainers:
-- email: devops-support@securitycompass.com
+- email: sdesupport@securitycompass.com
   name: Security Compass Technologies Ltd.
   url: https://www.securitycompass.com/
 name: pas-frontend
 sources:
 - https://agra.sdelements.com/sd-elements/management_command_system
 type: application
-version: 1.8.5
+version: 1.8.10
