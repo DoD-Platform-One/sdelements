@@ -2,7 +2,7 @@
 {{- $httpsPort := default 9443 .Values.web.httpsPort -}}
 ---
 {{- if ((.Values.istio).enabled) }}
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: {{ .Release.Name }}-ssl-destinationrule

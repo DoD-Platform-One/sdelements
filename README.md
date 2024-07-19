@@ -1,6 +1,6 @@
 # SD Elements
 
-![Version: 2024.1.45-bb.1](https://img.shields.io/badge/Version-2024.1.45--bb.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2024.1.45](https://img.shields.io/badge/AppVersion-2024.1.45-informational?style=flat-square)
+![Version: 2024.1.45-bb.2](https://img.shields.io/badge/Version-2024.1.45--bb.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2024.1.45](https://img.shields.io/badge/AppVersion-2024.1.45-informational?style=flat-square)
 
 SDElements by Security Compass Ltd.
 
@@ -13,7 +13,7 @@ SDElements by Security Compass Ltd.
 * A pre-existing S3 API compatible bucket (AWS S3, minio, etc) with Access Key and Secret Key credentials populated under `global.SharedStorage`
 * Kubernetes v1.24 or newer deployed
 * Kubernetes config installed in `~/.kube/config`
-* Helm 3.8, or an alternative method of parsing and deploying a helm v3 chart
+* Helm >=3.10, or an alternative method of parsing and deploying a helm v3 chart
 * An ingress controller or load balancer that allows external clients to reach the SD Elements web deployment
 * Name resolution both within the Kubernetes cluster and for endpoints outside of it
 * Access to IronBank for pulling our images

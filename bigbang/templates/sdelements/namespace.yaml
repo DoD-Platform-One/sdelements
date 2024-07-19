@@ -6,7 +6,7 @@ metadata:
   name: {{ $pkg }}
   labels:
     {{- if .Values.istio.enabled }}
-    istio-injection: "enabled"
+    istio-injection: "disabled"
     {{- end }}
     app.kubernetes.io/name: {{ $pkg }}
     {{- include "commonLabels" . | nindent 4}}
