@@ -1,7 +1,7 @@
 {{- $pkg := "sdelements" }}
-{{- $fluxSettings := merge (get .Values $pkg).flux .Values.flux -}}
+{{- $fluxSettings := mergeOverwrite .Values.flux (get .Values $pkg).flux -}}
 {{- if (get .Values $pkg).enabled }}
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: {{ $pkg }}
@@ -11,6 +11,7 @@ metadata:
     {{- include "commonLabels" . | nindent 4}}
 spec:
   targetNamespace: {{ $pkg }}
+  timeout: 25m
   chart:
     spec:
       chart: {{ (get .Values $pkg).git.path }}
@@ -36,10 +37,14 @@ spec:
     - name: {{ .Release.Name }}-{{ $pkg }}-values
       kind: Secret
       valuesKey: "overlays"
-  {{- if .Values.istio.enabled }}
+  {{- if or (.Values.istio.enabled) ((.Values.addons.minioOperator).enabled) }}
   dependsOn:
     {{- if .Values.istio.enabled }}
     - name: istio
+      namespace: bigbang
+    {{- end }}
+    {{- if (.Values.addons.minioOperator).enabled }}
+    - name: minio-operator
       namespace: bigbang
     {{- end }}
   {{- end }}
