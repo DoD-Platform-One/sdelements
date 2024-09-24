@@ -100,7 +100,7 @@ sc-cam:
   brokerPassword: <YOUR-BROKER-PASSWORD>
   databasePassword: <YOUR-DATABASE-PASSWORD>
   enabled: true
-  mageName: cam
+  imageName: cam
   imageTag: 2024.1.5-9.4-001
   initImageName: common-init
   initImageTag: 2024.1.2-8.10-001
