@@ -10,7 +10,7 @@ sde:
   superuserEmail: sde-superuser@sdelements.com
   #superuserPassword: thePasswordForTheDefaultWebSuperUser
   #jwtSecret: superSecretPassword
-  defaultFromEmail: "SDElements <noreply@sdelements.com>"
+  defaultFromEmail: "SDElements <noreply@securitycompass.com>"
   # serverEmail: sdelements@example.com
   defaultOrg: default
   feedbackEmail: sdesupport@securitycompass.com
@@ -98,6 +98,11 @@ sde:
     enabled: false
     #id: gainsight-id
     #tagKey: gainsight-tag-key
+
+  codeScanning:
+    github: {}
+      #client: ""
+      #secret: ""
 
 ## Deploy Nginx Controller with SDE. Most deployments do not need this enabled.
 ingress-nginx:
@@ -362,6 +367,16 @@ global:
 
 # Event based proxy, serves static and proxies dynamic content (nginx)
 web:
+  ## Customization for error pages 403,404,500 and 503
+  customError: {}
+    #error_403_header: "<p><strong>403 Forbidden</strong></p>"
+    #error_403_body: "<p>You do not have access to this resource.</p>"
+    #error_404_header: "<p><strong>404 Not Found</strong></p>"
+    #error_404_body: "<p>The server cannot find the requested resource.</p>"
+    #error_500_header: "<p><strong>500 Internal Server Error</strong></p>"
+    #error_500_body: "<p>Well, this is embarrassing. Something went wrong and we don't know how to handle it.</p><br><p>If this error persists, you can report it to site administrators</p>"
+    #error_503_header: "<p><strong>503 Service Unavailable</strong></p>"
+    #error_503_body: "<p>We're probably just performing some maintenance. Please try again shortly.</p><br><p>If this error persists, you can report it to site administrators</p>"
   replicas: 1
   #imageTag: latest
   #imagePullPolicy: Always
@@ -484,6 +499,32 @@ web:
   # The update strategy defines how updates are carried out.
   #updateStrategy:
   #  type: RollingUpdate
+
+  # Additionally include configuration files for nginx
+  #nginxAdditionalIncludeConf: ""
+
+  # Additional environment variables to set on web pod from
+  # configmaps or secrets
+  # extraEnvFrom:
+  # - configMapRef:
+  #     name: env-configmap
+  # - secretRef:
+  #     name: env-secret
+
+  # Additional volume mounts and volumes
+  # extraVolumeMounts:
+  # - name: test-volume
+  #   mountPath: /var/tmp/test
+  #   subPath: test
+  #   readOnly: true
+  # extraVolumes:
+  # - name: test-volume
+  #   configMap:
+  #     name: test-configmap
+  #     items:
+  #     - key: key_name
+  #       path: path_name
+
 
 # Just in Time Training, serves static content (nginx)
 sc-jitt:
@@ -708,7 +749,7 @@ sc-mail:
 
     #useSplitConfiguration: false
 
-    mailFrom: noreply@sdelements.com
+    mailFrom: noreply@securitycompass.com
     #localDomains: "@"
     #localPort: "8025"
     #disableIpv6: "true"
@@ -766,6 +807,14 @@ worker:
   # SDE LDAP console log level: E.g. 'INFO', 'DEBUG', 'ERROR', 'CRITICAL'
   #ldapLogLevel: ERROR
   #shellVerbosity: ""
+
+  # Additional environment variables to set on worker pods from
+  # configmaps or secrets
+  # extraEnvFrom:
+  # - configMapRef:
+  #     name: env-configmap
+  # - secretRef:
+  #     name: env-secret
 
   # Additional environment variables to set on worker pods. Values defined
   # here take precedence over existing variables in the _environments template
@@ -971,6 +1020,8 @@ trendReporting:
 #   FOO: "BAR"
 
 job:
+  # Enable scheduled jobs to run
+  enabled: true
   # Delay on start job to equalize load and prevent autoscaling event
   enableRandomStartDelay: false
   randomStartDelayRange: "1-600"
@@ -1005,12 +1056,12 @@ job:
 
     trend-reporting:
       imageName: trend-reporting
-      imageTag: 2024.1.4
+      imageTag: 2024.2.0
       schedule: "35 3 * * *"
       command: ["/bin/sh"]
-      uid: 101
-      gid: 101
-      fsgid: 101
+      uid: 100
+      gid: 100
+      fsgid: 100
       args:
         - "-c"
         - "python /app/dbt_wrapper.py run-operation index_statistics; python /app/dbt_wrapper.py snapshot && python /app/dbt_wrapper.py run"
@@ -1607,4 +1658,3 @@ networkPolicies:
 cilium:
   enabled: false
   #endpointSelector: ingress-nginx
-

@@ -72,11 +72,11 @@ $ helm upgrade [RELEASE_NAME] sdelements/sde --install -f values.custom.yaml
 ```
 
 ## Common Customizations
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| sde.superuserEmail | string | "sde-superuser@sdelements.com" | The SDE Superuser Login Email |
-| sde.defaultFromEmail | string | "SDElements \<noreply@sdelements.com\>" | |
-| sde.fqdn | string | "example.com" | SDE Server FQDN |
-| sde.enableJITT | bool | `false` | Set to `true` to enable Just In Time Training |
-| global.imagePullPolicy | string | "IfNotPresent" | |
-| global.networkIsolation | string | "none" | Isolate network access to SDE pods. Valid values "none", "namespace", "ingress", "full" |
+| Key | Type | Default                                      | Description |
+|-----|------|----------------------------------------------|-------------|
+| sde.superuserEmail | string | "sde-superuser@sdelements.com"               | The SDE Superuser Login Email |
+| sde.defaultFromEmail | string | "SDElements \<noreply@securitycompass.com\>" | |
+| sde.fqdn | string | "example.com"                                | SDE Server FQDN |
+| sde.enableJITT | bool | `false`                                      | Set to `true` to enable Just In Time Training |
+| global.imagePullPolicy | string | "IfNotPresent"                               | |
+| global.networkIsolation | string | "none"                                       | Isolate network access to SDE pods. Valid values "none", "namespace", "ingress", "full" |

@@ -133,16 +133,8 @@
              </div>
         </div>
         <div class="container">
-            <p>
-                <strong>500 Internal Server Error</strong>
-            </p>
-            <p>
-                Well, this is embarrassing. Something went wrong and we don't know how to handle it.
-            </p>
-            <br>
-            <p>
-                If this error persists, you can report it to site administrators
-            </p>
+            ${NGINX_500_HEADER} 
+            ${NGINX_500_BODY}
         </div>
         <script type="text/javascript" src="/custom_status/js/error.js"></script>
     </body>

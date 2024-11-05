@@ -127,7 +127,7 @@ Expects a dict input with root/dot keys with context
 - name: SDE_DATABASE_KEEP_AMOUNT
   value: {{ default "100" $root.Values.sde.databaseKeepAmount | quote }}
 - name: SDE_DEFAULT_FROM_EMAIL
-  value: {{ default "SDElements <noreply@sdelements.com>" $root.Values.sde.defaultFromEmail | quote }}
+  value: {{ default "SDElements <noreply@securitycompass.com>" $root.Values.sde.defaultFromEmail | quote }}
 - name: SDE_DEFAULT_ORG
   value: {{ default "default" $root.Values.sde.defaultOrg | quote }}
 - name: SDE_EMAIL_HOST
@@ -259,5 +259,17 @@ Expects a dict input with root/dot keys with context
   value: {{ printf "%v://%v-cam-service:%v/%v/" $camScheme ( include "library.trimmedName" $root ) $camPort $camPath | quote }}
 - name: CAM_SERVICE_VERSION
   value: {{ default "v1" (index $root.Values "sc-cam" "serviceVersion") }}
+- name: SDE_GITHUB_OAUTH_CLIENT_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secretName | quote }}
+      key: SDE_GITHUB_OAUTH_CLIENT_ID
+      optional: true
+- name: SDE_GITHUB_OAUTH_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secretName | quote }}
+      key: SDE_GITHUB_OAUTH_SECRET
+      optional: true
 {{- end }}
 {{- end }}

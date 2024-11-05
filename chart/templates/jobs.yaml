@@ -2,6 +2,7 @@
 SDElements scheduled job processing
 # Launches asynchronous jobs
 */}}
+{{- if .Values.job.enabled -}}
 {{- $root := . -}}
 {{- if .Values.job }}
 {{- if hasKey .Values.job "specifications" }}
@@ -15,3 +16,4 @@ SDElements scheduled job processing
 {{- fail "Please provide asynchronous jobs specifications. Refer to https://docs.sdelements.com/release/latest/sysadmin/docs/container/configuration.html for more information." }}
 {{ end }}
 {{ end }}
+{{- end -}}

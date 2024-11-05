@@ -67,7 +67,7 @@ replicas: 1
 #imageSource: dccsr
 #imageName: cam
 #initImageName: shared-init
-initImageTag: 2024.1.2
+initImageTag: 2024.2.2
 useDatabaseSubchart: false
 useBrokerSubchart: false
 #readinessEnabled: false

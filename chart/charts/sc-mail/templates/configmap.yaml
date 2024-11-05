@@ -17,7 +17,7 @@ data:
   {{- if .Values.config.mailHostName }}
   MAILNAME: {{ .Values.config.mailHostName | quote }}
   {{- end }}
-  MAILFROM: {{ default "noreply@sdelements.com" .Values.config.mailFrom | quote }}
+  MAILFROM: {{ default "noreply@securitycompass.com" .Values.config.mailFrom | quote }}
   LOCAL_DOMAINS: {{ default "@" .Values.config.localDomains | quote }}
   PORT: {{ default "8025" .Values.config.localPort | quote }}
   {{- if (and $IPv4enabled $IPv6enabled) }}

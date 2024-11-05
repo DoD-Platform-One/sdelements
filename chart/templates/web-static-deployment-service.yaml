@@ -48,6 +48,10 @@ metadata:
   labels:
     name: {{ $deploymentName | quote }}
     {{- include "library.labels" . | nindent 4 }}
+  annotations:
+    {{- if not .Values.ignoreChartChecksums }}
+    checksum/config: {{ include (print $.Template.BasePath "/nginx-resources.yaml") . | sha256sum }}
+    {{- end }}
 spec:
   replicas: {{ default 1 .Values.web.replicas }}
   revisionHistoryLimit: 0
@@ -139,6 +143,46 @@ spec:
         - name: SDE_OPENSHIFT_ENABLED
           value: "true"
         {{- end }}
+        - name: NGINX_403_HEADER
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $mapName }}
+              key: NGINX_403_HEADER
+        - name: NGINX_403_BODY
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $mapName }}
+              key: NGINX_403_BODY
+        - name: NGINX_404_HEADER
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $mapName }}
+              key: NGINX_404_HEADER
+        - name: NGINX_404_BODY
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $mapName }}
+              key: NGINX_404_BODY
+        - name: NGINX_500_HEADER
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $mapName }}
+              key: NGINX_500_HEADER
+        - name: NGINX_500_BODY
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $mapName }}
+              key: NGINX_500_BODY
+        - name: NGINX_503_HEADER
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $mapName }}
+              key: NGINX_503_HEADER
+        - name: NGINX_503_BODY
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $mapName }}
+              key: NGINX_503_BODY
         - name: NGINX_REPORTING_INCLUDE_CONF
           value: {{ eq $reportingEnabled "true" | ternary "include reporting/*.conf;" "" | quote }}
         - name: NGINX_REPORTING_BACKEND_URL
@@ -175,6 +219,12 @@ spec:
           value: {{ default "10m" .Values.web.clientMaxBodySize | quote }}
         - name: NGINX_STATIC_ACCESS_LOG
           value: {{ default "off" .Values.web.staticAccessLog | quote }}
+        - name: NGINX_ADDITIONAL_INCLUDE_CONF
+          value: {{ default "" .Values.web.nginxAdditionalIncludeConf | quote }}
+        {{- if .Values.web.extraEnvFrom}}
+        envFrom:
+        {{- toYaml .Values.web.extraEnvFrom | nindent 8 }}
+        {{- end }}
         ports:
         - containerPort: {{ int $httpPort }}
         - containerPort: {{ int $httpsPort }}
@@ -196,6 +246,9 @@ spec:
         - mountPath: {{ $tlsRoot }}
           name: tls
           readOnly: true
+        {{- if .Values.web.extraVolumeMounts }}
+        {{- toYaml .Values.web.extraVolumeMounts | nindent 8 }}
+        {{- end }}
         lifecycle:
           preStop:
             exec:
@@ -247,6 +300,9 @@ spec:
           secretName: {{ $webTlsSecretName }}
           {{- end }}
           defaultMode: 0400
+      {{- if .Values.web.extraVolumes }}
+      {{- toYaml .Values.web.extraVolumes | nindent 6 }}
+      {{- end }}
 status: {}
 ---
 apiVersion: v1

@@ -134,12 +134,8 @@
              </div>
         </div>
         <div class="container">
-            <p>
-                <strong>404 Not Found</strong>
-            </p>
-            <p>
-            The server cannot find the requested resource.
-            </p>
+            ${NGINX_404_HEADER} 
+            ${NGINX_404_BODY}
         </div>
         <script type="text/javascript" src="/custom_status/js/error.js"></script>
     </body>
