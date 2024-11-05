@@ -214,6 +214,10 @@ spec:
         - name: {{ .name | quote }}
           value: {{ .value | quote }}
         {{- end }}
+        {{- if $root.Values.worker.extraEnvFrom}}
+        envFrom:
+        {{- toYaml $root.Values.worker.extraEnvFrom | nindent 8 }}
+        {{- end }}
         {{- if $dot.resources }}
         resources:
         {{- range $limitType, $resources := $dot.resources }}

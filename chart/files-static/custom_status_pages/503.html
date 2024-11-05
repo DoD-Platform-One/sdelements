@@ -133,16 +133,8 @@
              </div>
         </div>
         <div class="container">
-            <p>
-                <strong>503 Service Unavailable</strong>
-            </p>
-            <p>
-                We're probably just performing some maintenance. Please try again shortly.
-            </p>
-            <br>
-            <p>
-                If this error persists, you can report it to site administrators
-            </p>
+            ${NGINX_503_HEADER} 
+            ${NGINX_503_BODY}
         </div>
         <script type="text/javascript" src="/custom_status/js/error.js"></script>
     </body>

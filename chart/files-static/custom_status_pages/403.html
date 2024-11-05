@@ -132,12 +132,8 @@
              </div>
         </div>
         <div class="container">
-            <p>
-                <strong>403 Forbidden</strong>
-            </p>
-            <p>
-                You do not have access to this resource.
-            </p>
+            ${NGINX_403_HEADER} 
+            ${NGINX_403_BODY}
         </div>
         <script type="text/javascript" src="/custom_status/js/error.js"></script>
     </body>

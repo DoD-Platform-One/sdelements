@@ -73,7 +73,7 @@ config:
 
   #useSplitConfiguration: false
 
-  mailFrom: noreply@sdelements.com
+  mailFrom: noreply@securitycompass.com
   #localDomains: "@"
   #localPort: "8025"
   #disableIpv6: "true"
