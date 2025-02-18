@@ -13,6 +13,7 @@
 {{- $dataMountPoint := default "/data" .Values.dataMountPoint -}}
 {{- $pvcName := include "datastore.pvcName" . -}}
 {{- $configMapName := include "datastore.configMapName" . -}}
+{{- $updateStrategy := default "Recreate" (index .Values "updateStrategy").type }}
 
 ---
 apiVersion: apps/v1
@@ -30,7 +31,7 @@ spec:
       name: {{ $deploymentName | quote }}
       {{- include "library.selectorLabels" . | nindent 6 }}
   strategy:
-    type: Recreate
+    type: {{ $updateStrategy }}
   template:
     metadata:
       labels:
@@ -99,8 +100,12 @@ spec:
       restartPolicy: Always
       volumes:
       - name: datastore
+        {{- if eq (include "datastore.pvcEnabled" .) "true" }}
         persistentVolumeClaim:
           claimName: {{ $pvcName | quote }}
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
       - name: redis-config
         configMap:
           name: {{ $configMapName | quote }}

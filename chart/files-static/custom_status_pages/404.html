@@ -64,6 +64,7 @@
             #parallax_wrapper {
                 position: relative;
                 z-index: 0;
+                background-color: #87cefa;
             }
 
             #parallax_field {
@@ -79,7 +80,7 @@
                 display: block;
                 margin: 0 auto;
                 width: 100%;
-                height: 400px;
+                height: 480px;
                 position: relative;
                 overflow: hidden;
             }
@@ -87,22 +88,22 @@
             #parallax_illustration #parallax_foreground {
                 position: absolute;
                 top: 20px;
-                left: 500px;
+                left: 300px;
                 z-index: 10;
             }
 
             #parallax_illustration #parallax_adam {
                 position: absolute;
                 top: 60px;
-                left: 50%;
+                left: 431px;
                 z-index: 12;
             }
 
             #parallax_illustration #parallax_midground {
                 position: absolute;
-                top: 40px;
+                top: 20px;
+                left: 582px;
                 z-index: 8;
-                left: -50px;
             }
 
             #parallax_field #parallax_background {
@@ -112,8 +113,6 @@
                 top: -20px;
                 left: -20px;
                 z-index: 1;
-                background-color: #f1c40f;
-
             }
 
             #parallax_illustration #parallax_error_text span {
@@ -125,12 +124,12 @@
     <body>
         <div id="parallax_wrapper">
             <div id="parallax_field">
-               <img src="/custom_status/images/desert-background.png?ver=1.1" class="js-plaxify" id="parallax_background" title="The sand... it gets everywhere" alt="Some desert background">
+                <img src="/custom_status/images/sky-background.png?ver=1.1" class="js-plaxify" id="parallax_background" title="THE SKY IS BLUE" alt="The sky, the background">
             </div>
             <div id="parallax_illustration">
-                <img src="/custom_status/images/desert-adam.png?ver=1.1" class="js-plaxify" data-xrange="500" data-yrange="5"  id="parallax_adam" title="So alone, so very alone" alt="Our Man Adam, lost in the desert">
-                <img src="/custom_status/images/desert-foreground.png?ver=1.1" class="js-plaxify" data-xrange="2000" data-yrange="10"  id="parallax_foreground" title="Is this a western?" alt="Some tumbleweed floating by" style="left: 600px; top: 300px;">
-                <img src="/custom_status/images/desert-midground.png?ver=1.1" class="js-plaxify" data-xrange="40" id="parallax_midground" title="You could ride off into the sunset" alt="Sunset and cactus">
+                <img src="/custom_status/images/sky-adam.png?ver=1.1" class="js-plaxify" data-xrange="15" data-yrange="70" id="parallax_adam" title="Adam in the sky with diamonds" alt="Our Man Adam, sitting in a chair" style="left: 45%; top: 160px;">
+                <img src="/custom_status/images/sky-foreground.png?ver=1.1" class="js-plaxify" data-xrange="20" data-yrange="30"  id="parallax_foreground" title="Some clouds" alt="Some foreground clouds" style="top: 28px;">
+                <img src="/custom_status/images/sky-midground.png?ver=1.1" class="js-plaxify" data-xrange="40" data-yrange="40" id="parallax_midground" title="Some more clouds" alt="Clouds in the background float around" style="left: 400px; top: 9px;">
              </div>
         </div>
         <div class="container">

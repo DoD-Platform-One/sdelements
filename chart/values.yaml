@@ -69,6 +69,7 @@ sde:
   #celeryJobTaskSoftTimeLimit: 3540
   #ldapSyncTimeLimit: 7200
   #ldapSyncSoftTimeLimit: 7080
+  #celeryJobQueuedTaskTimeLimit: 18000
 
   ## Security options for integrations
   # Disable network restrictions on all integrations
@@ -101,6 +102,9 @@ sde:
 
   codeScanning:
     github: {}
+      #client: ""
+      #secret: ""
+    gitlab: {}
       #client: ""
       #secret: ""
 
@@ -233,6 +237,9 @@ global:
     #    xx2ml43DO/Ya/tVZVok0mO0TUjzJIfPqyvr455IsIut4RlCR9Iq0EDTve2/ZwCuG
     #    hSjpTUFGSiQrR2JK2Evp+o6AETUkBCO1aw0PpQBPDQ==
     #    -----END CERTIFICATE-----
+
+  # Upgrade from Postgres12 to Postgres16 flag
+  upgradeToPostgres16: true
 
   # Broker customizations
   broker:
@@ -377,6 +384,15 @@ web:
     #error_500_body: "<p>Well, this is embarrassing. Something went wrong and we don't know how to handle it.</p><br><p>If this error persists, you can report it to site administrators</p>"
     #error_503_header: "<p><strong>503 Service Unavailable</strong></p>"
     #error_503_body: "<p>We're probably just performing some maintenance. Please try again shortly.</p><br><p>If this error persists, you can report it to site administrators</p>"
+    ## Overrides above error messages for Django template error pages
+    #error_django_403_header: ""
+    #error_django_403_body: ""
+    #error_django_404_header: ""
+    #error_django_404_body: ""
+    #error_django_500_header: ""
+    #error_django_500_body: ""
+    #error_django_503_header: ""
+    #error_django_503_body: ""
   replicas: 1
   #imageTag: latest
   #imagePullPolicy: Always
@@ -580,7 +596,7 @@ rabbitmq:
   image:
     # registry: repository.securitycompass.com
     repository: sde-docker-prod/bitnami/rabbitmq
-    tag: 3.12.12-debian-11-r0
+    tag: 3.13.7-debian-12-r2
   persistence:
     enabled: true
     existingClaim: "{{ include \"library.trimmedName\" . }}-broker-volume-claim"
@@ -652,11 +668,8 @@ postgresql:
   image:
   # registry: repository.securitycompass.com
     repository: sde-docker-prod/bitnami/postgresql
-    tag: 12.18.0-debian-12-r6
-  pdb:
-    create: false
-    minAvailable: 1
-    maxUnavailable: ""
+    #tag: 12.18.0-debian-12-r6
+    tag: 16.4.0-debian-12-r2
   metrics:
     containerPorts:
       metrics: 9187
@@ -670,9 +683,42 @@ postgresql:
   # These values are only used for bootstrapping a db
   # by default on initdb, bitnami postgres will have a postgresql user
   primary:
+    initContainers:
+      - name: shared-init
+        image: repository.securitycompass.com/sde-docker-prod/sde/shared-init:2024.3.5
+        env:
+          - name: POSTGRES_UPGRADE
+            value: '{{ ternary "true" "false" (or ( .Values.global.upgradeToPostgres16 ) ( eq ( .Values.global.upgradeToPostgres16 | toString ) "<nil>" )) }}'
+          - name: PGUSER
+            value: '{{ .Values.primary.initdb.user }}'
+          - name: POSTGRES_INITDB_ARGS
+            value: '{{ printf "-U %s" .Values.primary.initdb.user }}'
+          - name: PGDATA
+            value: "/bitnami/postgresql/data/pgdata"
+          - name: PGDATATMP
+            value: "/var/lib/postgresql/16/data/pg16data"
+          #- name: PGDATABACKUP
+          #  value: "/bitnami/postgresql/data/backup"
+        volumeMounts:
+          - mountPath: /bitnami/postgresql/data
+            name: data
+          - mountPath: /var/lib/postgresql/16/data
+            name: empty-dir-init
+        resources:
+          requests:
+            ephemeral-storage: 1Gi
+          limits:
+            ephemeral-storage: 50Gi
+    extraVolumes:
+      - name: empty-dir-init
+        emptyDir: {}
     extendedConfiguration: |-
       jit = on
       log_min_duration_statement = 60000
+    pdb:
+      create: false
+      minAvailable: 1
+      maxUnavailable: ""
     # for legacy rollback to using sc-database chart
     lifecycleHooks:
       preStop:
@@ -764,23 +810,6 @@ sc-mail:
     limits:
       memory: 1024Mi
 
-sc-cam:
-  enabled: true
-  #scheme: http
-  #port: 3000
-  #apiPrefix: "api/asset"
-  #serviceVersion: "v1"
-  #exchangeName: "cam"
-  replicas: 1
-  database:
-    passwordSecretKey: password
-  resources:
-    requests:
-      cpu: 10m
-      memory: 16Mi
-    limits:
-      memory: 1024Mi
-
 ## SDElements worker (python process)
 worker:
   #contentPath: /content
@@ -856,6 +885,8 @@ worker:
   ## Synchronous SDE worker settings (apache/mod_wsgi)
   synchronous:
     lowPriority:
+      # Send compositeApi requests here by default
+      compositeApi: true
       # Header/Session token to match for proxy_pass/map
       # https://nginx.org/en/docs/http/ngx_http_map_module.html
       # https://nginx.org/en/docs/http/load_balancing.html#algorithms
@@ -948,6 +979,7 @@ reporting:
   # nodeTlsRejectUnauthorized: "0"
   # preAggregations: true
   # enableAdvancedTrendReports: true  # Enables Advanced Reporting Trend Reports
+  # taskRiskRelevancePreAggregationInterval: "30 minute"
 
   ## Container options
   resources:
@@ -984,12 +1016,15 @@ sc-datastore:
   # imageSource: dccsr
   # imagePullPolicy: Always
   # enableTls: true
+  #updateStrategy:
+  #  type: Recreate
 
   replicas: 1
   # port: 0
   # tlsPort: 6379
   #clientPassword: mySuperDatastorePass
   #dataVolumeSize: 10Gi
+  #dataPersistence: false
 
   pdb:
     create: false
@@ -1056,7 +1091,7 @@ job:
 
     trend-reporting:
       imageName: trend-reporting
-      imageTag: 2024.2.0
+      imageTag: 2024.2.1
       schedule: "35 3 * * *"
       command: ["/bin/sh"]
       uid: 100
@@ -1138,7 +1173,7 @@ job:
       niceness: 19
       command: ["/bin/sde.sh"]
       args:
-        - "cancel-external-sync-jobs"
+        - "cancel_external_sync_jobs"
         - "all"
         - "--force"
 
@@ -1234,10 +1269,8 @@ pas:
 minio:
   image:
     repository: repository.securitycompass.com/sde-docker-prod/minio/minio
-    tag: RELEASE.2024-02-26T09-33-48Z
   mcImage:
     repository: repository.securitycompass.com/sde-docker-prod/minio/mc
-    tag: RELEASE.2024-02-24T01-33-20Z
   enabled: false
   mode: standalone
   rootUser: admin
@@ -1391,9 +1424,6 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 name: "{{ include \"library.trimmedName\" . }}-reporting"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-cam"
         ports:
           - port: '{{ index .Values "worker" "synchronous" "highPriority" "port" | int | default 8080 }}'
   worker-17:
@@ -1411,9 +1441,6 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 name: "{{ include \"library.trimmedName\" . }}-pas-plugin-worker"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-cam"
         ports:
           - port: '{{ index .Values "worker" "synchronous" "lowPriority" "port" | int | default 8080 }}'
   reporting:
@@ -1504,9 +1531,6 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 name: "{{ include \"library.trimmedName\" . }}-pas-api"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-cam"
           - podSelector:
               matchLabels:
                 app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"
@@ -1629,9 +1653,6 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 name: "{{ include \"library.trimmedName\" . }}-pas-api"
-          - podSelector:
-              matchLabels:
-                name: "{{ include \"library.trimmedName\" . }}-cam"
         ports:
           - port: '{{ index .Values "port" | int | default 5672 }}'
           - port: '{{ index .Values "managementPort" | int | default 15672 }}'

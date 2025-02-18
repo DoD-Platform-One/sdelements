@@ -1,3 +1,4 @@
+{{- if eq (include "datastore.pvcEnabled" .) "true" }}
 {{- $pvcName := include "datastore.pvcName" . -}}
 {{- $storageClassName:= default .Values.global.storageClass .Values.dataStorageClass -}}
 ---
@@ -17,3 +18,4 @@ spec:
   storageClassName: {{ $storageClassName | quote }}
   {{- end }}
 status: {}
+{{- end }}

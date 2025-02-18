@@ -251,6 +251,10 @@ spec:
         {{- else }}
           value: "false"
         {{- end }}
+        {{- if (.Values.reporting.taskRiskRelevancePreAggregationInterval) }}
+        - name: TASK_RISK_RELEVANCE_PREAGGREGATION_INTERVAL
+          value: {{ .Values.reporting.taskRiskRelevancePreAggregationInterval | quote }}
+        {{- end }}
         - name: IP_FAMILY
           value: {{ ternary "IPv6" "IPv4" (has "IPv6" $ipFamilies) | quote }}
         {{- if .Values.reporting.resources }}

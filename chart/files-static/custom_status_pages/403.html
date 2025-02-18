@@ -64,6 +64,7 @@
             #parallax_wrapper {
                 position: relative;
                 z-index: 0;
+                background-color: #87cefa;
             }
 
             #parallax_field {
@@ -78,7 +79,7 @@
             #parallax_illustration {
                 display: block;
                 margin: 0 auto;
-                width: 1024px;
+                width: 100%;
                 height: 480px;
                 position: relative;
                 overflow: hidden;
@@ -87,7 +88,7 @@
             #parallax_illustration #parallax_foreground {
                 position: absolute;
                 top: 20px;
-                left: 500px;
+                left: 300px;
                 z-index: 10;
             }
 
@@ -123,12 +124,12 @@
     <body>
         <div id="parallax_wrapper">
             <div id="parallax_field">
-                <img src="/custom_status/images/space-background.png?ver=1.1" class="js-plaxify" id="parallax_background" title="frontier" alt="background spac and some stars">
+                <img src="/custom_status/images/sky-background.png?ver=1.1" class="js-plaxify" id="parallax_background" title="THE SKY IS BLUE" alt="The sky, the background">
             </div>
             <div id="parallax_illustration">
-                <img src="/custom_status/images/space-adam.png?ver=1.1" class="js-plaxify" data-xrange="15" data-yrange="15" id="parallax_adam" title="Adam is lost!" alt="Adam floating in space">
-                <img src="/custom_status/images/space-foreground.png?ver=1.1" class="js-plaxify" data-xrange="60" data-yrange="40" id="parallax_foreground" title="Space" alt="Foreground stars">
-                <img src="/custom_status/images/space-midground.png?ver=1.1" class="js-plaxify" data-xrange="40" data-yrange="40"id="parallax_midground" title="This is where you can find the restaurant at the end of the universe" alt="Stars and planets">
+                <img src="/custom_status/images/sky-adam.png?ver=1.1" class="js-plaxify" data-xrange="15" data-yrange="70" id="parallax_adam" title="Adam in the sky with diamonds" alt="Our Man Adam, sitting in a chair" style="left: 45%; top: 160px;">
+                <img src="/custom_status/images/sky-foreground.png?ver=1.1" class="js-plaxify" data-xrange="20" data-yrange="30"  id="parallax_foreground" title="Some clouds" alt="Some foreground clouds" style="top: 28px;">
+                <img src="/custom_status/images/sky-midground.png?ver=1.1" class="js-plaxify" data-xrange="40" data-yrange="40" id="parallax_midground" title="Some more clouds" alt="Clouds in the background float around" style="left: 400px; top: 9px;">
              </div>
         </div>
         <div class="container">

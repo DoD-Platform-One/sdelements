@@ -42,6 +42,7 @@ global:
 
 replicas: 1
 #port: 6379
+#dataPersistence: false
 #dataStorageClass: aws-ebs
 #dataVolumeSize: 10Gi
 #dataMountPoint: /data
@@ -58,6 +59,9 @@ replicas: 1
 
 ## Container options
 resources: {}
+
+#updateStrategy:
+#  type: Recreate
 
 ## Pod Disruption Budget configuration
 pdb:

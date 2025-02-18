@@ -70,6 +70,14 @@ Enables creation of an arbitrary number of configurable/programmable SDE workers
 # Repo Code Scan Directory variables
 {{- $scanDirectory := "/repo_scan_directory" }}
 {{- $scanDirectorySize := "4Gi" }}
+
+# Custom Error Pages
+{{- $customError403Header:= default $root.Values.web.customError.error_403_header $root.Values.web.customError.error_django_403_header }}
+{{- $customError403Body:= default $root.Values.web.customError.error_403_body $root.Values.web.customError.error_django_403_body }}
+{{- $customError404Header:= default $root.Values.web.customError.error_404_header $root.Values.web.customError.error_django_404_header }}
+{{- $customError404Body:= default $root.Values.web.customError.error_404_body $root.Values.web.customError.error_django_404_body }}
+{{- $customError500Header:= default $root.Values.web.customError.error_500_header $root.Values.web.customError.error_django_500_header }}
+{{- $customError500Body:= default $root.Values.web.customError.error_500_body $root.Values.web.customError.error_django_500_body }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -133,21 +141,10 @@ spec:
       nodeSelector:
         customer_name: {{ printf "%v" ( include "library.trimmedName" $dot ) | quote }}
       {{- end }}
-      {{- if ( eq $deploymentName "worker-15-sde-medium") }}
-      volumes:
-      - name: repo-scan-directory
-        emptyDir:
-          sizeLimit: {{ $scanDirectorySize }}
-      {{- end}}
       containers:
       - name: {{ $releaseName | quote }}
         image: {{ printf $imageRegistryFormat $imageRegistry $imageOrganization $imageSource $imageName $imageTag | quote }}
         imagePullPolicy:  {{ $imagePullPolicy }}
-        {{- if ( eq $deploymentName "worker-15-sde-medium") }}
-        volumeMounts:
-        - mountPath: {{ $scanDirectory }}
-          name: repo-scan-directory
-        {{- end}}
         {{- if eq ( hasKey $dot "queueVarName" ) ( false ) }}
         readinessProbe:
           httpGet:
@@ -209,6 +206,32 @@ spec:
         - name: TRUST_THIRDPARTY_CA_CERTS
           value: "true"
         {{- end }}
+        {{- if $root.Values.web.customError}}
+          {{- if $customError403Header }}
+        - name: SDE_TEMPLATE_403_HEADER
+          value: {{ $customError403Header | quote }}
+          {{- end }}
+          {{- if $customError403Body }}
+        - name: SDE_TEMPLATE_403_BODY
+          value: {{ $customError403Body | quote }}
+          {{- end }}
+          {{- if $customError404Header }}
+        - name: SDE_TEMPLATE_404_HEADER
+          value: {{ $customError404Header | quote }}
+          {{- end }}
+          {{- if $customError404Body }}
+        - name: SDE_TEMPLATE_404_BODY
+          value: {{ $customError404Body | quote }}
+          {{- end }}
+          {{- if $customError500Header }}
+        - name: SDE_TEMPLATE_500_HEADER
+          value: {{ $customError500Header | quote }}
+          {{- end }}
+          {{- if $customError500Body }}
+        - name: SDE_TEMPLATE_500_BODY
+          value: {{ $customError500Body | quote }}
+          {{- end }}
+        {{- end}}
         {{- /* Extra env vars are at the end, to override all previous variables */ -}}
         {{- range $root.Values.worker.extraEnvVars }}
         - name: {{ .name | quote }}
@@ -235,8 +258,13 @@ spec:
             exec:
               command: ["/bin/sh", "-c", "sleep 5; until test -z \"$(netstat -tn | awk '$4 ~ /:{{ default 8080 $dot.port }}/ && /ESTABLISHED/')\"; do sleep 1; done;"]
         {{- end }}
-      {{- if $caCertificates.enabled }}
+        {{- if ( or $caCertificates.enabled ( eq $deploymentName "worker-15-sde-medium") )}}
         volumeMounts:
+        {{- if ( eq $deploymentName "worker-15-sde-medium") }}
+        - mountPath: {{ $scanDirectory }}
+          name: repo-scan-directory
+        {{- end}}
+        {{- if $caCertificates.enabled }}
         - name: cacert-write-access
           mountPath: /etc/ssl/certs
         - name: cacert-write-access2
@@ -269,7 +297,15 @@ spec:
         - name: secret-ca-certificates
           mountPath: /tmp/secret-ca-certificates
         {{- end }}
+        {{- end }}
+      {{- if ( or $caCertificates.enabled ( eq $deploymentName "worker-15-sde-medium") )}}
       volumes:
+      {{- if ( eq $deploymentName "worker-15-sde-medium") }}
+      - name: repo-scan-directory
+        emptyDir:
+          sizeLimit: {{ $scanDirectorySize }}
+      {{- end}}
+      {{- if $caCertificates.enabled }}
       - name: cacert-write-access
         emptyDir:
           sizeLimit: 10Mi
@@ -295,6 +331,8 @@ spec:
       - name: secret-ca-certificates
         secret:
           secretName: {{ $caCertificates.externalSecretName }}
+      {{- end }}
+      {{- end }}
       {{- end }}
       {{- end }}
       imagePullSecrets:
