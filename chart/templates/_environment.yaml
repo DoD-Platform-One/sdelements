@@ -26,9 +26,6 @@ Expects a dict input with root/dot keys with context
 {{- $pasUrl := default (printf "http://%v-%v:8000" ( include "library.trimmedName" $root ) "pas-api-service" ) $root.pasUrl -}}
 {{- $gainsightEnabled := default false $root.Values.sde.gainsight.enabled -}}
 {{- $defaultGainsightId := index ( splitList "." $root.Values.sde.fqdn ) 0  -}}
-{{- $camPort := default 3000 (index $root.Values "sc-cam" "port") -}}
-{{- $camPath := default "api/asset" (index $root.Values "sc-cam" "apiUrl") | trimPrefix "/" -}}
-{{- $camScheme := default "http" (index $root.Values "sc-cam" "scheme") -}}
 {{- $version := semver $root.Chart.Version -}}
 {{- $sdeReleaseName := default ( printf "sde@%v.%v" $version.Major $version.Minor ) (default ($root.Values.global.sentry).releaseName ($root.Values.worker.sentry).releaseName) -}}
 - name: SDE_RELEASE
@@ -164,6 +161,13 @@ Expects a dict input with root/dot keys with context
   value: {{ required "sde.systemAdminEmail is required" $root.Values.sde.systemAdminEmail | quote }}
 - name: SDE_DEBUG
   value: {{ default "False" $root.Values.sde.sdeDebugMode | quote }}
+{{- if (default false $root.Values.sde.unsafeAdminMode) }}
+# This is a dangerous setting that can lead to data loss.
+- name: SDE_ADMIN_MODE
+  value: "True"
+- name: ADMIN_MODE
+  value: "True"
+{{- end }}
 - name: ENABLE_ORG_DELETE_API
   value: {{ default "False" $root.Values.sde.enableOrgDeleteApi | quote }}
 - name: LOGIN_REDIRECT_URL
@@ -182,6 +186,8 @@ Expects a dict input with root/dot keys with context
   value: {{ default "7200" $root.Values.sde.ldapSyncTimeLimit | quote }}
 - name: SDE_LDAP_SYNC_SOFT_TIME_LIMIT
   value: {{ default "7080" $root.Values.sde.ldapSyncSoftTimeLimit | quote }}
+- name: SDE_CELERY_JOB_QUEUED_TASK_TIME_LIMIT
+  value: {{ default "18000" $root.Values.sde.celeryJobQueuedTaskTimeLimit | quote }}
 - name: JWT_SECRET
   valueFrom:
     secretKeyRef:
@@ -252,13 +258,6 @@ Expects a dict input with root/dot keys with context
 {{- end }}
 - name: SDE_EXCHANGE_NAME
   value : {{ default "sde" (index $root.Values "sde" "exchangeName") }}
-{{- if (index $root.Values "sc-cam" "enabled") }}
-- name: CAM_EXCHANGE_NAME
-  value: {{ default "cam" (index $root.Values "sc-cam" "exchangeName") }}
-- name: CAM_API_URL
-  value: {{ printf "%v://%v-cam-service:%v/%v/" $camScheme ( include "library.trimmedName" $root ) $camPort $camPath | quote }}
-- name: CAM_SERVICE_VERSION
-  value: {{ default "v1" (index $root.Values "sc-cam" "serviceVersion") }}
 - name: SDE_GITHUB_OAUTH_CLIENT_ID
   valueFrom:
     secretKeyRef:
@@ -271,5 +270,16 @@ Expects a dict input with root/dot keys with context
       name: {{ $secretName | quote }}
       key: SDE_GITHUB_OAUTH_SECRET
       optional: true
-{{- end }}
+- name: SDE_GITLAB_OAUTH_CLIENT_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secretName | quote }}
+      key: SDE_GITLAB_OAUTH_CLIENT_ID
+      optional: true
+- name: SDE_GITLAB_OAUTH_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secretName | quote }}
+      key: SDE_GITLAB_OAUTH_SECRET
+      optional: true
 {{- end }}

@@ -46,3 +46,15 @@ Define the deployment name
 {{- define "datastore.imageSource" -}}
 {{- ( index .Values .Chart.Name ).imageSource | default .Values.global.imageSource | default "sde" -}}
 {{- end -}}
+
+{{- define "datastore.pvcEnabled" -}}
+{{- $pasEnabled := default false (index .Values "global" "pas").enabled -}}
+{{- $dataPersistenceEnabled := default false .Values.dataPersistence -}}
+{{- if or $dataPersistenceEnabled $pasEnabled -}}
+true
+{{- else -}}
+false
+{{- end -}}
+
+
+{{- end -}}

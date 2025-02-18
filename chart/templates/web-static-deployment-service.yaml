@@ -18,8 +18,6 @@
 {{- $enableInternalTls := eq ( include "enableInternalTls" . ) "true" -}}
 {{- $pasPort := default 8081 (index .Values "pas" "pas-frontend" "port") -}}
 {{- $pasPath := default "pas" .Values.global.pas.baseUrl | trimPrefix "/" -}}
-{{- $camPort := default 3000 (index .Values "sc-cam" "port") -}}
-{{- $camPath := default "api/asset" (index .Values "sc-cam" "apiUrl") | trimPrefix "/" -}}
 {{- $tlsRoot := default "/tls" .Values.web.tlsRoot -}}
 {{- $hasCustomCertPaths := and ( hasKey .Values.web "tlsCertificatePath" ) ( hasKey .Values.web "tlsKeyPath" ) -}}
 {{- $hasCustomCertValues := and ( hasKey .Values.web "tlsCertificate" ) ( hasKey .Values.web "tlsKey" ) -}}
@@ -113,6 +111,12 @@ spec:
             {{- printf "- name: DEFAULT_NGINX_BACKEND_URL" | nindent 8 -}}
             {{- printf "value: %s" ( printf "http://%v:%v" $workerServiceName $port | quote ) | nindent 10 }}
           {{- end -}}
+          {{- if .compositeApi -}}
+            {{- $workerServiceName :=  printf "%v-worker-%v-service.%v.svc.cluster.local" ( include "library.trimmedName" $root ) .niceness $root.Release.Namespace -}}
+            {{- $port := default 8080 .port -}}
+            {{- printf "- name: COMPOSITE_API_URL" | nindent 8 -}}
+            {{- printf "value: %s" ( printf "http://%v:%v" $workerServiceName $port | quote ) | nindent 10 }}
+          {{- end -}}
         {{- end }}
         - name: NGINX_BACKEND_MAP
           value: |+
@@ -132,12 +136,6 @@ spec:
           value: {{ printf "http://%v-pas-frontend-service:%v/%v/" ( include "library.trimmedName" . ) $pasPort $pasPath | quote }}
         - name: NGINX_PAS_PATH
           value: {{ $pasPath | quote }}
-        {{- end }}
-        {{- if (index .Values "sc-cam" "enabled") }}
-        - name: NGINX_CAM_BACKEND_URL
-          value: {{ printf "http://%v-cam-service:%v/%v/" ( include "library.trimmedName" . ) $camPort $camPath | quote }}
-        - name: NGINX_CAM_PATH
-          value: {{ $camPath | quote }}
         {{- end }}
         {{- if (.Values.global.openshift).enabled }}
         - name: SDE_OPENSHIFT_ENABLED
@@ -195,8 +193,6 @@ spec:
           value: {{ ternary "include jitt/*.conf;" "" $jittEnabled | quote }}
         - name: NGINX_PAS_INCLUDE_CONF
           value: {{ ternary "include pas/*.conf;" "" $pasEnabled | quote }}
-        - name: NGINX_CAM_INCLUDE_CONF
-          value: {{ eq (index .Values "sc-cam" "enabled") true | ternary "include cam/*.conf;" "" | quote }}
         - name: NGINX_PORT
           value: {{ default $httpPort | quote }}
         - name: NGINX_TLS_PORT
@@ -279,9 +275,9 @@ spec:
           - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-static/"  ) | replace "/" "_" }}
             path: {{ toString $path | trimPrefix "files-static/" | quote }}
           {{- end }}
-          # jitt/pas/cam
+          # jitt/pasm
           {{- range $path, $bytes := .Files.Glob "files-static/*/*.conf" }}
-          {{- if ( or ( and (contains "jitt" $path) $jittEnabled ) (and (contains "pas" $path) $pasEnabled) (and (contains "cam" $path) (eq (index $.Values "sc-cam" "enabled") true) )) }}
+          {{- if ( or ( and (contains "jitt" $path) $jittEnabled ) (and (contains "pas" $path) $pasEnabled)) }}
           - key: {{ printf "conf/%s" ( toString $path | trimPrefix "files-static/"  ) | replace "/" "_" }}
             path: {{ toString $path | trimPrefix "files-static/" | quote }}
           {{- end }}

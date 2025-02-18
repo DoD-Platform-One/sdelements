@@ -13,6 +13,7 @@ sdelements:
     #  - name: minio-operator
   values:
     global:
+      upgradeToPostgres16: false
       storageClass: local-path
       registrySecretName: private-registry
       sharedStorage:
@@ -27,11 +28,11 @@ sdelements:
       clientPassword: default
       imageTag: 6.2.14-ubi9
     sc-mail:
-      imageTag: 1.4-9.4-001
+      imageTag: 1.5-9.4-001
     worker:
-      imageTag: 2024.1.42-9.4-001
+      imageTag: 2024.3.33-9.4-001
     reporting:
-      imageTag: 2024.1.42-9.4-001
+      imageTag: 2024.3.33-9.4-001
     postgresql:
       image:
         tag: 12.19
@@ -39,6 +40,7 @@ sdelements:
         password: default
         postgressPassword: default
       primary:
+        initContainers: []
         containerSecurityContext:
           runAsUser: 26
           runAsGroup: 26
@@ -46,6 +48,15 @@ sdelements:
           fsGroup: 26
         podLabels:
           sidecar.istio.io/inject: "false"
+        extraVolumeMounts:
+          - mountPath: /var/run/postgresql
+            name: empty-dir-run
+        extraVolumes:
+          - emptyDir: {}
+            name: empty-dir-init
+          - emptyDir: {}
+            name: empty-dir-run
+
     rabbitmq:
       image:
         tag: 3.12.14
@@ -64,15 +75,9 @@ sdelements:
         enabled: false
       ulimitNofiles: ""
     web:
-      imageTag: 2024.1.42-9.4-001
+      imageTag: 2024.3.33-9.4-001
     sc-jitt:
-      imageTag: 2024.1.1-9.4-001
-    sc-cam:
-      brokerPassword: default
-      databasePassword: default
-      enabled: true
-      imageTag: 2024.1.5-9.4-001
-      initImageTag: 2024.1.2-8.10-001
+      imageTag: 2024.3.0-9.4-001
     minio:
       image:
         repository: registry1.dso.mil/ironbank/opensource/minio/minio
@@ -126,7 +131,7 @@ sdelements:
     job:
       specifications:
         trend-reporting:
-          imageTag: 2024.1.4-8.10-001
+          imageTag: 2024.2.1-9.4-001
           schedule: "0 0 30 2 0"
         alm-hourly:
           schedule: "0 0 30 2 0"
