@@ -666,10 +666,9 @@ postgresql:
     username: sde
     database: postgres
   image:
-  # registry: repository.securitycompass.com
-    repository: sde-docker-prod/bitnami/postgresql
-    #tag: 12.18.0-debian-12-r6
-    tag: 16.4.0-debian-12-r2
+    registry: registry1.dso.mil
+    repository: ironbank/opensource/postgres/postgresql
+    tag: 16
   metrics:
     containerPorts:
       metrics: 9187
@@ -685,7 +684,7 @@ postgresql:
   primary:
     initContainers:
       - name: shared-init
-        image: repository.securitycompass.com/sde-docker-prod/sde/shared-init:2024.3.5
+        image: registry1.dso.mil/ironbank/security-compass/sd-elements/common-init:2024.3.5-9.4-003
         env:
           - name: POSTGRES_UPGRADE
             value: '{{ ternary "true" "false" (or ( .Values.global.upgradeToPostgres16 ) ( eq ( .Values.global.upgradeToPostgres16 | toString ) "<nil>" )) }}'
@@ -729,12 +728,12 @@ postgresql:
             - "cp /opt/bitnami/postgresql/conf/*.conf ${POSTGRESQL_VOLUME_DIR}/pgdata/ ; sed -i 's/pgaudit.*//g;s/.*preload.*//g;s/include_dir.*//g' ${POSTGRESQL_VOLUME_DIR}/pgdata/postgresql.conf"
     # permissions to match legacy rollback using sc-database chart
     containerSecurityContext:
-      runAsUser: 33
+      runAsUser: 1001
       enabled: true
     podSecurityContext:
-      runAsUser: 33
-      runAsGroup: 0
-      fsGroup: 33
+      runAsUser: 1001
+      runAsGroup: 1001
+      fsGroup: 1001
       enabled: true
     volumePermissions:
       enabled: false
@@ -984,7 +983,7 @@ reporting:
   ## Container options
   resources:
     requests:
-      cpu: 10m
+      cpu: 100m
       memory: 256Mi
     limits:
       memory: 8192Mi
@@ -1091,7 +1090,7 @@ job:
 
     trend-reporting:
       imageName: trend-reporting
-      imageTag: 2024.2.1
+      imageTag: 2024.4.0
       schedule: "35 3 * * *"
       command: ["/bin/sh"]
       uid: 100
@@ -1145,21 +1144,21 @@ job:
       niceness: 19
       command: ["/bin/sde.sh"]
       args:
-        - "refresh-task-relevance"
+        - "refresh_task_relevance"
 
     send-new-relevant-task-notifications:
       schedule: "33 5 * * *"
       niceness: 19
       command: ["/bin/sde.sh"]
       args:
-        - "send-new-relevant-task-notifications"
+        - "send_new_relevant_task_notifications"
 
     time-since:
       schedule: "33 2 * * *"
       niceness: 19
       command: ["/bin/sde.sh"]
       args:
-        - "time-since"
+        - "time_since"
 
     metrics:
       schedule: "26 0 * * *"
@@ -1184,29 +1183,38 @@ job:
       args:
         - "reindex_db"
         - "--only-reindex-if-invalid"
+    
+    # license-count-report:
+    #   schedule: "0 0 1 * *"
+    #   niceness: 19
+    #   command: [ "/bin/sde.sh" ]
+    #   args:
+    #     - "license_count_report"
+    #     - "--email=<handle>@securitycompass.com"
+    #     - "--term-start-date=2024-10-01"
 
-#   custom_job:
-#     schedule: "01 1 * * *"
-#     niceness: 15
-#     command: ["/bin/sde.sh"]
-#     args:
-#     - "custom_management_command"
-#     failedJobsHistoryLimit: 1
-#     successfulJobsHistoryLimit: 1
-#     concurrencyPolicy: Forbid
-#     restartPolicy: OnFailure
-#     volumeWritePermission: false
-#     suspend: false
-#     env:
-#     - name: ENV_VAR_NAME
-#       value: ENV_VAR_VALUE
-#     resources:
-#       requests:
-#         cpu: 1
-#         memory: 1024Mi
-#       limits:
-#         cpu: 2
-#         memory: 2048Mi
+    # custom_job:
+    #   schedule: "01 1 * * *"
+    #   niceness: 15
+    #   command: ["/bin/sde.sh"]
+    #   args:
+    #   - "custom_management_command"
+    #   failedJobsHistoryLimit: 1
+    #   successfulJobsHistoryLimit: 1
+    #   concurrencyPolicy: Forbid
+    #   restartPolicy: OnFailure
+    #   volumeWritePermission: false
+    #   suspend: false
+    #   env:
+    #   - name: ENV_VAR_NAME
+    #     value: ENV_VAR_VALUE
+    #   resources:
+    #     requests:
+    #       cpu: 1
+    #       memory: 1024Mi
+    #     limits:
+    #       cpu: 2
+    #       memory: 2048Mi
 
 # Set resource requests and limits (LimitRange) for containers.
 limitrange:

@@ -139,5 +139,8 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-reindex-db"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-license-count-report"
         ports:
           - port: '{{ include "datastore.port" . }}'
