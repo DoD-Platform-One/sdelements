@@ -1,0 +1,18 @@
+global:
+  enableNestedDependencies: true
+  imageRegistryUsername: registryUsername
+  imageRegistryPassword: registryPwd
+
+networkPolicies:
+  jitt:
+    podSelector:
+      matchLabels:
+        name: "sde-jitt"
+    ingress:
+      - selectors:
+          - podSelector:
+              matchLabels:
+                name: "sde-web"
+        ports:
+          - port: 7443
+          - port: 9080

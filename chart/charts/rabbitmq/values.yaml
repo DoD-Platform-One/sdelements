@@ -119,7 +119,7 @@ diagnosticMode:
     - infinity
 ## @param automountServiceAccountToken Mount Service Account token in pod
 ##
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 ## @param hostAliases Deployment pod host aliases
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##

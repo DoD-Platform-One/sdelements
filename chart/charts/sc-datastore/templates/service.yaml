@@ -11,6 +11,7 @@ metadata:
     service: {{ $serviceName | quote }}
     {{- include "library.labels" . | nindent 4 }}
 spec:
+  type: ClusterIP
   ipFamilies:
   {{- $ipFamilies | toYaml | trim | nindent 2 }}
   ipFamilyPolicy: {{ ternary "PreferDualStack" "SingleStack" (gt (len $ipFamilies) 1) }}

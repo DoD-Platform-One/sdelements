@@ -1,10 +1,10 @@
 apiVersion: v2
-appVersion: 2024.3.35
+appVersion: 2024.4.38
 dependencies:
 - condition: sde.enableJITT
   name: sc-jitt
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 2024.3.0
+  version: 2024.4.3
 - name: sc-library
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
   version: 1.1.5
@@ -18,10 +18,10 @@ dependencies:
   version: 14.7.0
 - name: sc-datastore
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 1.0.13
+  version: 1.0.14
 - name: sc-mail
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 0.1.16
+  version: 0.1.18
 - condition: ingress-nginx.enabled
   name: ingress-nginx
   repository: https://kubernetes.github.io/ingress-nginx
@@ -32,7 +32,7 @@ dependencies:
 - condition: global.pas.enabled
   name: pas
   repository: https://repository.securitycompass.com/artifactory/sde-helm-dev
-  version: 2.0.5
+  version: 2.0.6
 - condition: minio.enabled
   name: minio
   repository: https://charts.min.io/
@@ -52,4 +52,4 @@ maintainers:
   url: https://www.securitycompass.com/
 name: sde
 type: application
-version: 2024.3.35
+version: 2024.4.38

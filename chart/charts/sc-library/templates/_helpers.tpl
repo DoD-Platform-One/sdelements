@@ -90,6 +90,8 @@ Selector labels
 {{- define "library.selectorLabels" -}}
 app.kubernetes.io/part-of: {{ include "library.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/name: {{ template "library.name" . }}
+app.kubernetes.io/version: {{ .Chart.Version }}
 app: {{ template "library.name" . }}
 release: {{ .Release.Name }}
 heritage: {{ .Release.Service }}

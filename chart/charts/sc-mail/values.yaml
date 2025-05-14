@@ -119,5 +119,8 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"
+          - podSelector:
+              matchLabels:
+                app: "{{ include \"library.trimmedName\" . | trunc 10 }}-job-license-count-report"
         ports:
           - port: '{{ index .Values "localPort" | int | default 8025 }}'
