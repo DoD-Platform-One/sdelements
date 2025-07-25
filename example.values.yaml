@@ -6,7 +6,7 @@ global:
   imagePullPolicy: Always
   imageOrganization: ironbank/security-compass
   imageSource: sd-elements
-  imageTag: 2024.1.42
+  imageTag: 2024.4.38-9.4-002
   storageClass: gp2 # Should be any RWO storageclass with dynamic provisioning, if possible
   sharedStorage:
     bucketName: <NAME-OF-THE-BUCKET>
@@ -26,7 +26,7 @@ sde:
 web:
   replicas: 1
   imageName: nginx
-  imageTag: 2024.1.42-9.4-001
+  imageTag: 2024.3.33-9.4-001
   uid: 993
   gid: 993
   fsgid: 49
@@ -34,7 +34,7 @@ sc-jitt:
   replicas: 1
   imageSource: jitt
   imageName: nginx
-  imageTag: 2024.1.1-9.4-001
+  imageTag: 2024.4.3-9.4-001
   uid: 993
   gid: 993
   fsgid: 49
@@ -55,8 +55,8 @@ rabbitmq:
     extraEnvVars: []
 postgresql:
   image:
-    repository: ironbank/opensource/postgres/postgresql12
-    tag: 12.19
+    repository: ironbank/opensource/postgres/postgresql
+    tag: 16
   postgresql:
     auth:
       password: <YOUR-DATABASE-PASSWORD>
@@ -69,17 +69,17 @@ postgresql:
       fsGroup: 26
 sc-mail:
   imageName: exim
-  imageTag: 1.4-9.4-001
+  imageTag: 1.5-9.4-001
 worker:
   imageName: mod_wsgi
-  imageTag: 2024.1.42-9.4-001
+  imageTag: 2024.4.38-9.4-002
   uid: 48
   gid: 48
   fsgid: 49
 reporting:
   enabled: true
   imageName: reporting
-  imageTag: 2024.1.42-9.4-001
+  imageTag: 2024.4.38-9.4-001
   enableTls: true
   uid: 1001
   gid: 1001

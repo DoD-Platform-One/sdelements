@@ -22,6 +22,7 @@ sde:
 web:
   replicas: 1
   imageName: nginx
+  imageTag: 2024.3.33-9.4-001
   uid: 993
   gid: 993
   fsgid: 49
@@ -29,6 +30,7 @@ sc-jitt:
   replicas: 1
   imageSource: jitt
   imageName: nginx
+  imageTag: 2024.4.3-9.4-001
   uid: 993
   gid: 993
   fsgid: 49
@@ -36,31 +38,79 @@ rabbitmq:
   replicaCount: 1
   image:
     repository: ironbank/bitnami/rabbitmq
+    tag: 3.13.7
   containerSecurityContext:
     runAsUser: 1001
   podSecurityConext:
     fsGroup: 1001
   initContainers: []
   extraEnvVars: []
+  readinessProbe:
+    enabled: false
+  ulimitNofiles: ""
+  automountServiceAccountToken: false
 postgresql:
   image:
-    repository: ironbank/opensource/postgres/postgresql16
+    registry: registry1.dso.mil
+    repository: ironbank/opensource/postgres/postgresql
+    tag: 16
+  volumePermissions:
+    enabled: false
+    image:
+        registry: registry1.dso.mil
+        repository: ironbank/opensource/postgres/postgresql
+        tag: 16
   primary:
+    initContainers:
+      - name: shared-init
+        image: registry1.dso.mil/ironbank/security-compass/sd-elements/common-init:2024.3.5-9.4-003
+        imagePullPolicy: Always
+        securityContext:
+          runAsUser: 1001
+          runAsGroup: 1001
+        env:
+          - name: POSTGRES_UPGRADE
+            value: '{{ ternary "true" "false" (or ( .Values.global.upgradeToPostgres16 ) ( eq ( .Values.global.upgradeToPostgres16 | toString ) "<nil>" )) }}'
+          - name: PGUSER
+            value: '{{ .Values.primary.initdb.user }}'
+          - name: POSTGRES_INITDB_ARGS
+            value: '{{ printf "-U %s" .Values.primary.initdb.user }}'
+          - name: PGDATA
+            value: /bitnami/postgresql/data/pgdata
+          - name: PGDATATMP
+            value: /var/lib/postgresql/16/data/pg16data
+        volumeMounts:
+          - mountPath: /bitnami/postgresql/data
+            name: data
+          - mountPath: /var/lib/postgresql/16/data
+            name: empty-dir-init
+        resources:
+          requests:
+              ephemeral-storage: 1Gi
+          limits:
+              ephemeral-storage: 50Gi
     containerSecurityContext:
-      runAsUser: 26
-      runAsGroup: 26
+      readOnlyRootFilesystem: false
+      runAsUser: 1001
+      runAsGroup: 1001
     podSecurityContext:
-      fsGroup: 26
+      fsGroup: 1001
+    extraVolumes:
+      - emptyDir: {}
+        name: empty-dir-init
 sc-mail:
   imageName: exim
+  imageTag: 1.5-9.4-001
 worker:
   imageName: mod_wsgi
+  imageTag: 2024.4.38-9.4-003
   uid: 48
   gid: 48
   fsgid: 49
 reporting:
   enabled: true
   imageName: reporting
+  imageTag: 2024.4.38-9.4-001
   imagePullPolicy: Always
   enableTls: true
   uid: 1001
@@ -72,21 +122,41 @@ sc-datastore:
   imageOrganization: ironbank/opensource
   imageSource: redis
   imageName: redis6
+  imageTag: 6.2.14-ubi9
   uid: 1001
   gid: 1001
   fsgid: 1001
   replicas: 1
-sc-cam:
-  imageName: cam
-  initImageName: common-init
-  uid: 1001
-  gid: 1001
 job:
   specifications:
     trend-reporting:
+      imageTag: 2024.4.0-9.4-001
+      schedule: "0 0 30 2 0"
       uid: 998
       gid: 996
       fsgid: 996
+    alm-hourly:
+      schedule: "0 0 30 2 0"
+    alm-daily:
+      schedule: "0 0 30 2 0"
+    alm-weekly:
+      schedule: "0 0 30 2 0"
+    alm-monthly:
+      schedule: "0 0 30 2 0"
+    database-backup:
+      schedule: "0 0 30 2 0"
+    clear-expired-sessions:
+      schedule: "0 0 30 2 0"
+    refresh-task-relevance:
+      schedule: "0 0 30 2 0"
+    send-new-relevant-task-notifications:
+      schedule: "0 0 30 2 0"
+    time-since:
+      schedule: "0 0 30 2 0"
+    metrics:
+      schedule: "0 0 30 2 0"
+    cancel-external-sync-jobs:
+      schedule: "0 0 30 2 0"
 # The settings below are for adjusting the big bang customizations
 istio:
   enabled: {{ .Values.istio.enabled }}
@@ -103,7 +173,10 @@ minio-tenant:
   tenant:
     image:
       repository: registry1.dso.mil/ironbank/opensource/minio/minio
+      tag: RELEASE.2024-06-04T19-20-08Z
     name: sdelements-minio
+  imagePullSecret:
+    name: private-registry
   env:
     - name: MINIO_BROWSER
       value: "off"
@@ -124,6 +197,16 @@ minio-tenant:
     secretKey: secretkey
 minio:
   enabled: false
+  image:
+    repository: registry1.dso.mil/ironbank/opensource/minio/minio
+    tag: RELEASE.2022-11-08T05-27-07Z
+  mcImage:
+    repository: registry1.dso.mil/ironbank/opensource/minio/mc
+    tag: RELEASE.2022-11-07T23-47-39Z
+  configPathmc: "/tmp/minio/mc/"
+  extraEnvVars:
+    - name: MINIO_CLIENT_CONFIG_DIR
+      value: "/.mc"
   rootUser: admin
   rootPassword: password
   tls:
