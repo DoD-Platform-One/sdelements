@@ -95,16 +95,8 @@ kyvernoReporter:
 networkPolicies:
   enabled: false
 
-# Istio
-istioOperator:
-  enabled: true
-istio:
-  enabled: true
-
 # Gatekeeper
 gatekeeper:
-  enabled: false
-clusterAuditor:
   enabled: false
 
 # Logging
@@ -139,8 +131,6 @@ grafana:
   enabled: false
 
 # Other Tools
-jaeger:
-  enabled: false
 kiali:
   enabled: false
 twistlock:
