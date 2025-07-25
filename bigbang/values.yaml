@@ -109,8 +109,6 @@ networkPolicies:
 # Gatekeeper
 gatekeeper:
   enabled: false
-clusterAuditor:
-  enabled: false
 
 # Logging
 eckOperator:
