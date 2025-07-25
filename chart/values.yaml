@@ -6,16 +6,17 @@ valuesVersion: 2.0
 ## SDElements specific options
 sde:
   ## Emails, passwords and keys
-  #secretKey: aRandomEncryptionString
+  secretKey: aRandomEncryptionString
   superuserEmail: sde-superuser@sdelements.com
-  #superuserPassword: thePasswordForTheDefaultWebSuperUser
-  #jwtSecret: superSecretPassword
+  superuserPassword: thePasswordForTheDefaultWebSuperUser
+  jwtSecret: superSecretPassword
   defaultFromEmail: "SDElements <noreply@securitycompass.com>"
   # serverEmail: sdelements@example.com
   defaultOrg: default
   feedbackEmail: sdesupport@securitycompass.com
   supportEmail: sdesupport@securitycompass.com
   # systemAdminEmail: devops-support@securitycompass.com
+  systemAdminEmail: default@example.com
   fqdn: example.com
   # DNS Aliases & Extra names
   # FQDN and alternateDnsNames are used to create DNS records and
@@ -130,7 +131,7 @@ global:
   ## registries/repositories. These are provided by SDElements support staff on
   ## request upon purchase of the SDElements product.
   ##
-  imageRegistry: repository.securitycompass.com
+  imageRegistry: registry1.dso.mil
 
   # Name of a kubernetes.io/dockerconfigjson secret to use for pulling containers that is defined
   # external to the one created by the helm chart.
@@ -140,8 +141,8 @@ global:
   # Format: $imageRegistry $imageOrganization $imageSource $imageName $imageTag
   # repository.securitycompass.com/sde-docker-prod/sde/postgres-bespoke:latest
   imageRegistryFormat: "%s/sde-docker-%s/%s/%s:%s"
-  #imageRegistryUsername: acmecorp
-  #imageRegistryPassword: myPassword
+  imageRegistryUsername: acmecorp
+  imageRegistryPassword: myPassword
   imageOrganization: prod  # dev/staging/prod
   imageSource: sde
   imagePullPolicy: IfNotPresent
@@ -304,13 +305,13 @@ global:
   #   name: sde
 
   ## Configuration for aws s3 bucket storage
-  sharedStorage: {}
-    #bucketName: "bucket-name"
-    #s3Url: "https://my-bucket.s3.us-west-2.amazonaws.com/"
-    #s3BucketPath: "/path/to/storage/in/bucket/
-    #s3AccessKey: "accesskey"
-    #s3SecretKey: "secretKey"
-    #region: "us-east-1"
+  sharedStorage:
+    bucketName: "bucket-name"
+    s3Url: "https://my-bucket.s3.us-west-2.amazonaws.com/"
+    s3BucketPath: "/path/to/storage/in/bucket/"
+    s3AccessKey: "accesskey"
+    s3SecretKey: "secretKey"
+    region: "us-east-1"
 
   ## Global datastore configurations
   datastore: {}
@@ -609,7 +610,7 @@ rabbitmq:
     existingSecret: "{{ include \"library.trimmedName\" . }}-rabbitmq-load-definition"
   auth:
     username: rabbit
-    #password: "myrabbitmqpassword"
+    password: "myrabbitmqpassword"
   extraConfiguration: |-
     default_vhost = {{ .Values.global.broker.adminVhost }}
     management.listener.ip = {{ ternary "::" "0.0.0.0" (has "IPv6" (default (list "IPv4") .Values.global.ipFamilies)) }}
@@ -664,6 +665,7 @@ postgresql:
     postgresql: 5432
   auth:
     username: sde
+    password: mydatabasepassword
     database: postgres
   image:
     registry: registry1.dso.mil
@@ -1021,7 +1023,7 @@ sc-datastore:
   replicas: 1
   # port: 0
   # tlsPort: 6379
-  #clientPassword: mySuperDatastorePass
+  clientPassword: mySuperDatastorePass
   #dataVolumeSize: 10Gi
   #dataPersistence: false
 

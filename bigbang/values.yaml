@@ -13,7 +13,6 @@ sdelements:
     #  - name: minio-operator
   values:
     global:
-      upgradeToPostgres16: false
       storageClass: local-path
       registrySecretName: private-registry
       sharedStorage:
@@ -24,96 +23,24 @@ sdelements:
       # bitnami charts set this differently
       imagePullSecrets:
         - private-registry
+    sde:
+      fqdn: sdelements.dev.bigbang.mil
+      jwtSecret: default
+      secretKey: default
+      superuserPassword: default
+      enableJITT: false
+      systemAdminEmail: default@example.com
     sc-datastore:
       clientPassword: default
-      imageTag: 6.2.14-ubi9
-    sc-mail:
-      imageTag: 1.5-9.4-001
-    worker:
-      imageTag: 2024.4.48-9.4-001
-    reporting:
-      imageTag: 2024.4.48-9.4-001
     postgresql:
-      image:
-        tag: 16
       auth:
         password: default
         postgressPassword: default
-      volumePermissions:
-        enabled: false
-        image:
-            registry: registry1.dso.mil
-            repository: ironbank/opensource/postgres/postgresql
-            tag: 16
-      primary:
-        initContainers:
-          - name: shared-init
-            image: registry1.dso.mil/ironbank/security-compass/sd-elements/common-init:2024.3.5-9.4-003
-            imagePullPolicy: Always
-            securityContext:
-              runAsUser: 1001
-              runAsGroup: 1001
-            env:
-              - name: POSTGRES_UPGRADE
-                value: '{{ ternary "true" "false" (or ( .Values.global.upgradeToPostgres16 ) ( eq ( .Values.global.upgradeToPostgres16 | toString ) "<nil>" )) }}'
-              - name: PGUSER
-                value: '{{ .Values.primary.initdb.user }}'
-              - name: POSTGRES_INITDB_ARGS
-                value: '{{ printf "-U %s" .Values.primary.initdb.user }}'
-              - name: PGDATA
-                value: /bitnami/postgresql/data/pgdata
-              - name: PGDATATMP
-                value: /var/lib/postgresql/16/data/pg16data
-            volumeMounts:
-              - mountPath: /bitnami/postgresql/data
-                name: data
-              - mountPath: /var/lib/postgresql/16/data
-                name: empty-dir-init
-            resources:
-              requests:
-                  ephemeral-storage: 1Gi
-              limits:
-                  ephemeral-storage: 50Gi
-        containerSecurityContext:
-          readOnlyRootFilesystem: false
-          runAsUser: 1001
-          runAsGroup: 1001
-        podSecurityContext:
-          fsGroup: 1001
-        extraVolumes:
-          - emptyDir: {}
-            name: empty-dir-init
     rabbitmq:
-      image:
-        tag: 3.12.14
       auth:
         password: default
         erlangCookie: default
-      containerSecurityContext:
-        runAsUser: 1001
-      podSecurityConext:
-        fsGroup: 1001
-      initContainers: []
-      extraEnvVars: []
-      readinessProbe:
-        enabled: false
-      ulimitNofiles: ""
-      automountServiceAccountToken: false
-    web:
-      imageTag: 2024.4.48-9.4-001
-    sc-jitt:
-      imageTag: 2024.3.0-9.4-001
     minio:
-      image:
-        repository: registry1.dso.mil/ironbank/opensource/minio/minio
-        tag: RELEASE.2022-11-08T05-27-07Z
-      mcImage:
-        repository: registry1.dso.mil/ironbank/opensource/minio/mc
-        tag: RELEASE.2022-11-07T23-47-39Z
-      configPathmc: "/tmp/minio/mc/"
-      extraEnvVars:
-        - name: MINIO_CLIENT_CONFIG_DIR
-          value: "/.mc"
       enabled: false
       rootUser: admin
       rootPassword: password
@@ -130,9 +57,6 @@ sdelements:
     minio-tenant:
       enabled: true
       tenant:
-        name: sdelements-minio
-        image:
-          tag: RELEASE.2024-06-04T19-20-08Z
         imagePullSecret:
           name: private-registry
         env:
@@ -143,50 +67,9 @@ sdelements:
             name: pool-0
             volumesPerServer: 4
             size: 10Gi
-        certificate:
-          requestAutoCert: false
-        buckets:
-          - name: sde-bucket
-        configuration:
-          name: sdelements-minio-env-configuration
       secrets:
-        name: sdelements-minio-env-configuration
         accessKey: accesskey
         secretKey: secretkey
-    job:
-      specifications:
-        trend-reporting:
-          imageTag: 2024.4.0-9.4-001
-          schedule: "0 0 30 2 0"
-        alm-hourly:
-          schedule: "0 0 30 2 0"
-        alm-daily:
-          schedule: "0 0 30 2 0"
-        alm-weekly:
-          schedule: "0 0 30 2 0"
-        alm-monthly:
-          schedule: "0 0 30 2 0"
-        database-backup:
-          schedule: "0 0 30 2 0"
-        clear-expired-sessions:
-          schedule: "0 0 30 2 0"
-        refresh-task-relevance:
-          schedule: "0 0 30 2 0"
-        send-new-relevant-task-notifications:
-          schedule: "0 0 30 2 0"
-        time-since:
-          schedule: "0 0 30 2 0"
-        metrics:
-          schedule: "0 0 30 2 0"
-        cancel-external-sync-jobs:
-          schedule: "0 0 30 2 0"
-    sde:
-      fqdn: sdelements.dev.bigbang.mil
-      jwtSecret: default
-      secretKey: default
-      superuserPassword: default
-      enableJITT: false
-      systemAdminEmail: default@example.com
     istio:
       enabled: true
       gateways:
