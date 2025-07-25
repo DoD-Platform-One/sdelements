@@ -61,43 +61,12 @@ postgresql:
         repository: ironbank/opensource/postgres/postgresql
         tag: 16
   primary:
-    initContainers:
-      - name: shared-init
-        image: registry1.dso.mil/ironbank/security-compass/sd-elements/common-init:2024.3.5-9.4-003
-        imagePullPolicy: Always
-        securityContext:
-          runAsUser: 1001
-          runAsGroup: 1001
-        env:
-          - name: POSTGRES_UPGRADE
-            value: '{{ ternary "true" "false" (or ( .Values.global.upgradeToPostgres16 ) ( eq ( .Values.global.upgradeToPostgres16 | toString ) "<nil>" )) }}'
-          - name: PGUSER
-            value: '{{ .Values.primary.initdb.user }}'
-          - name: POSTGRES_INITDB_ARGS
-            value: '{{ printf "-U %s" .Values.primary.initdb.user }}'
-          - name: PGDATA
-            value: /bitnami/postgresql/data/pgdata
-          - name: PGDATATMP
-            value: /var/lib/postgresql/16/data/pg16data
-        volumeMounts:
-          - mountPath: /bitnami/postgresql/data
-            name: data
-          - mountPath: /var/lib/postgresql/16/data
-            name: empty-dir-init
-        resources:
-          requests:
-              ephemeral-storage: 1Gi
-          limits:
-              ephemeral-storage: 50Gi
     containerSecurityContext:
       readOnlyRootFilesystem: false
       runAsUser: 1001
       runAsGroup: 1001
     podSecurityContext:
       fsGroup: 1001
-    extraVolumes:
-      - emptyDir: {}
-        name: empty-dir-init
 sc-mail:
   imageName: exim
   imageTag: 1.5-9.4-001
@@ -159,7 +128,7 @@ job:
       schedule: "0 0 30 2 0"
 # The settings below are for adjusting the big bang customizations
 istio:
-  enabled: {{ .Values.istio.enabled }}
+  enabled: {{ $pkg.istio.enabled }}
   gateways:
     - istio-system/public
 ingress-nginx:
