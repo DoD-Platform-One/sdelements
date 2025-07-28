@@ -128,7 +128,7 @@ job:
       schedule: "0 0 30 2 0"
 # The settings below are for adjusting the big bang customizations
 istio:
-  enabled: true
+  enabled: {{ (get .Values $pkg).istio.enabled }}
   gateways:
     - istio-system/public
 ingress-nginx:
