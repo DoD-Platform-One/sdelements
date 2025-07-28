@@ -5,7 +5,7 @@ kind: Namespace
 metadata:
   name: {{ $pkg }}
   labels:
-    {{- if .Values.istio.enabled }}
+    {{- if (get .Values $pkg).istio.enabled }}
     istio-injection: "disabled"
     {{- end }}
     app.kubernetes.io/name: {{ $pkg }}
