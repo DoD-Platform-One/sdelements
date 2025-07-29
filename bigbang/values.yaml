@@ -127,6 +127,8 @@ monitoring:
   enabled: false
 grafana:
   enabled: false
+bbctl:
+  enabled: false
 
 # Other Tools
 kiali:
