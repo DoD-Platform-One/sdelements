@@ -40,7 +40,7 @@ spec:
   {{- if or (get .Values $pkg).values.istio.enabled ((.Values.addons.minioOperator).enabled) }}
   dependsOn:
     {{- if (get .Values $pkg).values.istio.enabled }}
-    - name: istio
+    - name: istio-crds
       namespace: bigbang
     {{- end }}
     {{- if (.Values.addons.minioOperator).enabled }}
