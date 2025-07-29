@@ -37,9 +37,9 @@ spec:
     - name: {{ .Release.Name }}-{{ $pkg }}-values
       kind: Secret
       valuesKey: "overlays"
-  {{- if or (get .Values $pkg).istio.enabled ((.Values.addons.minioOperator).enabled) }}
+  {{- if or (get .Values $pkg).values.istio.enabled ((.Values.addons.minioOperator).enabled) }}
   dependsOn:
-    {{- if (get .Values $pkg).istio.enabled }}
+    {{- if (get .Values $pkg).values.istio.enabled }}
     - name: istio
       namespace: bigbang
     {{- end }}
