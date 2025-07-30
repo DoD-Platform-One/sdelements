@@ -79,7 +79,9 @@ Common labels
 helm.sh/chart: {{ include "library.chart" . }}
 {{ include "library.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
+{{- else }}
+app.kubernetes.io/version: {{ .Chart.Version }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
@@ -91,7 +93,6 @@ Selector labels
 app.kubernetes.io/part-of: {{ include "library.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/name: {{ template "library.name" . }}
-app.kubernetes.io/version: {{ .Chart.Version }}
 app: {{ template "library.name" . }}
 release: {{ .Release.Name }}
 heritage: {{ .Release.Service }}
