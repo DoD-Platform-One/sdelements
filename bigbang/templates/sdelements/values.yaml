@@ -48,7 +48,7 @@ rabbitmq:
   readinessProbe:
     enabled: false
   ulimitNofiles: ""
-  automountServiceAccountToken: false
+  automountServiceAccountToken: true
 postgresql:
   image:
     registry: registry1.dso.mil
@@ -149,11 +149,6 @@ minio-tenant:
   env:
     - name: MINIO_BROWSER
       value: "off"
-  pools:
-    - servers: 1
-      name: pool-0
-      volumesPerServer: 4
-      size: 10Gi
   certificate:
     requestAutoCert: false
   buckets:
@@ -162,8 +157,8 @@ minio-tenant:
     name: sdelements-minio-env-configuration
   secrets:
     name: sdelements-minio-env-configuration
-    accessKey: accesskey
-    secretKey: secretkey
+  rootUser: admin
+  rootPassword: password
 minio:
   enabled: false
   image:

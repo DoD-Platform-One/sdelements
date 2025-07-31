@@ -1,543 +1,8 @@
-# sc-datastore
+# mock-sde
 
-![Version: 1.0.14](https://img.shields.io/badge/Version-1.0.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.14](https://img.shields.io/badge/AppVersion-1.0.14-informational?style=flat-square)
+![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.1](https://img.shields.io/badge/AppVersion-0.0.1-informational?style=flat-square)
 
-The Security Compass datastore (Redis)
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/datastore>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://sdelements.jfrog.io/artifactory/sde-helm-dev | sc-library | 1.1.4 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| global.enableNestedDependencies | bool | `false` |  |
-| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imageSource | string | `"sde"` |  |
-| global.imagePullPolicy | string | `"IfNotPresent"` |  |
-| replicas | int | `1` |  |
-| resources | object | `{}` |  |
-| pdb.create | bool | `false` |  |
-| pdb.minAvailable | int | `1` |  |
-| pdb.maxUnavailable | string | `""` |  |
-| networkPolicies.datastore.podSelector.matchLabels.name | string | `"{{ include \"datastore.deploymentName\" . }}"` |  |
-| networkPolicies.datastore.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
-| networkPolicies.datastore.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-async-worker"` |  |
-| networkPolicies.datastore.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-plugin-worker"` |  |
-| networkPolicies.datastore.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
-| networkPolicies.datastore.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
-| networkPolicies.datastore.ingress[0].selectors[5].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
-| networkPolicies.datastore.ingress[0].selectors[6].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
-| networkPolicies.datastore.ingress[0].selectors[7].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-reporting"` |  |
-| networkPolicies.datastore.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
-| networkPolicies.datastore.ingress[0].selectors[9].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
-| networkPolicies.datastore.ingress[0].selectors[10].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
-| networkPolicies.datastore.ingress[0].selectors[11].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
-| networkPolicies.datastore.ingress[0].selectors[12].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"` |  |
-| networkPolicies.datastore.ingress[0].selectors[13].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
-| networkPolicies.datastore.ingress[0].selectors[14].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"` |  |
-| networkPolicies.datastore.ingress[0].selectors[15].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"` |  |
-| networkPolicies.datastore.ingress[0].selectors[16].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"` |  |
-| networkPolicies.datastore.ingress[0].selectors[17].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"` |  |
-| networkPolicies.datastore.ingress[0].selectors[18].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"` |  |
-| networkPolicies.datastore.ingress[0].selectors[19].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-reindex-db"` |  |
-| networkPolicies.datastore.ingress[0].selectors[20].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-license-count-report"` |  |
-| networkPolicies.datastore.ingress[0].ports[0].port | string | `"{{ include \"datastore.port\" . }}"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-library
-
-![Version: 1.1.5](https://img.shields.io/badge/Version-1.1.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.5](https://img.shields.io/badge/AppVersion-1.1.5-informational?style=flat-square)
-
-A Library Project
-
-**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/library>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| library.back-end | bool | `true` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# ingress-nginx
-
-![Version: 4.8.2](https://img.shields.io/badge/Version-4.8.2-informational?style=flat-square) ![AppVersion: 1.9.3](https://img.shields.io/badge/AppVersion-1.9.3-informational?style=flat-square)
-
-Ingress controller for Kubernetes using NGINX as a reverse proxy and load balancer
-
-**Homepage:** <https://github.com/kubernetes/ingress-nginx>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| rikatz |  |  |
-| strongjz |  |  |
-| tao12345666333 |  |  |
-
-## Source Code
-
-* <https://github.com/kubernetes/ingress-nginx>
-
-## Requirements
-
-Kubernetes: `>=1.20.0-0`
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| commonLabels | object | `{}` |  |
-| controller.name | string | `"controller"` |  |
-| controller.enableAnnotationValidations | bool | `false` |  |
-| controller.image.chroot | bool | `false` |  |
-| controller.image.registry | string | `"registry.k8s.io"` |  |
-| controller.image.image | string | `"ingress-nginx/controller"` |  |
-| controller.image.tag | string | `"v1.9.3"` |  |
-| controller.image.digest | string | `"sha256:8fd21d59428507671ce0fb47f818b1d859c92d2ad07bb7c947268d433030ba98"` |  |
-| controller.image.digestChroot | string | `"sha256:df4931fd6859fbf1a71e785f02a44b2f9a16f010ae852c442e9bb779cbefdc86"` |  |
-| controller.image.pullPolicy | string | `"IfNotPresent"` |  |
-| controller.image.runAsUser | int | `101` |  |
-| controller.image.allowPrivilegeEscalation | bool | `true` |  |
-| controller.existingPsp | string | `""` | Use an existing PSP instead of creating one |
-| controller.containerName | string | `"controller"` | Configures the controller container name |
-| controller.containerPort | object | `{"http":80,"https":443}` | Configures the ports that the nginx-controller listens on |
-| controller.config | object | `{}` | Will add custom configuration options to Nginx https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/ |
-| controller.configAnnotations | object | `{}` | Annotations to be added to the controller config configuration configmap. |
-| controller.proxySetHeaders | object | `{}` | Will add custom headers before sending traffic to backends according to https://github.com/kubernetes/ingress-nginx/tree/main/docs/examples/customization/custom-headers |
-| controller.addHeaders | object | `{}` | Will add custom headers before sending response traffic to the client according to: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#add-headers |
-| controller.dnsConfig | object | `{}` | Optionally customize the pod dnsConfig. |
-| controller.hostAliases | list | `[]` | Optionally customize the pod hostAliases. |
-| controller.hostname | object | `{}` | Optionally customize the pod hostname. |
-| controller.dnsPolicy | string | `"ClusterFirst"` | Optionally change this to ClusterFirstWithHostNet in case you have 'hostNetwork: true'. By default, while using host network, name resolution uses the host's DNS. If you wish nginx-controller to keep resolving names inside the k8s network, use ClusterFirstWithHostNet. |
-| controller.reportNodeInternalIp | bool | `false` | Bare-metal considerations via the host network https://kubernetes.github.io/ingress-nginx/deploy/baremetal/#via-the-host-network Ingress status was blank because there is no Service exposing the Ingress-Nginx Controller in a configuration using the host network, the default --publish-service flag used in standard cloud setups does not apply |
-| controller.watchIngressWithoutClass | bool | `false` | Process Ingress objects without ingressClass annotation/ingressClassName field Overrides value for --watch-ingress-without-class flag of the controller binary Defaults to false |
-| controller.ingressClassByName | bool | `false` | Process IngressClass per name (additionally as per spec.controller). |
-| controller.enableTopologyAwareRouting | bool | `false` | This configuration enables Topology Aware Routing feature, used together with service annotation service.kubernetes.io/topology-mode="auto" Defaults to false |
-| controller.allowSnippetAnnotations | bool | `false` | This configuration defines if Ingress Controller should allow users to set their own *-snippet annotations, otherwise this is forbidden / dropped when users add those annotations. Global snippets in ConfigMap are still respected |
-| controller.hostNetwork | bool | `false` | Required for use with CNI based kubernetes installations (such as ones set up by kubeadm), since CNI and hostport don't mix yet. Can be deprecated once https://github.com/kubernetes/kubernetes/issues/23920 is merged |
-| controller.hostPort.enabled | bool | `false` | Enable 'hostPort' or not |
-| controller.hostPort.ports.http | int | `80` | 'hostPort' http port |
-| controller.hostPort.ports.https | int | `443` | 'hostPort' https port |
-| controller.networkPolicy.enabled | bool | `false` | Enable 'networkPolicy' or not |
-| controller.electionID | string | `""` | Election ID to use for status update, by default it uses the controller name combined with a suffix of 'leader' |
-| controller.ingressClassResource.name | string | `"nginx"` | Name of the ingressClass |
-| controller.ingressClassResource.enabled | bool | `true` | Is this ingressClass enabled or not |
-| controller.ingressClassResource.default | bool | `false` | Is this the default ingressClass for the cluster |
-| controller.ingressClassResource.controllerValue | string | `"k8s.io/ingress-nginx"` | Controller-value of the controller that is processing this ingressClass |
-| controller.ingressClassResource.parameters | object | `{}` | Parameters is a link to a custom resource containing additional configuration for the controller. This is optional if the controller does not require extra parameters. |
-| controller.ingressClass | string | `"nginx"` | For backwards compatibility with ingress.class annotation, use ingressClass. Algorithm is as follows, first ingressClassName is considered, if not present, controller looks for ingress.class annotation |
-| controller.podLabels | object | `{}` | Labels to add to the pod container metadata |
-| controller.podSecurityContext | object | `{}` | Security Context policies for controller pods |
-| controller.sysctls | object | `{}` | See https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/ for notes on enabling and using sysctls |
-| controller.publishService | object | `{"enabled":true,"pathOverride":""}` | Allows customization of the source of the IP address or FQDN to report in the ingress status field. By default, it reads the information provided by the service. If disable, the status field reports the IP address of the node or nodes where an ingress controller pod is running. |
-| controller.publishService.enabled | bool | `true` | Enable 'publishService' or not |
-| controller.publishService.pathOverride | string | `""` | Allows overriding of the publish service to bind to Must be <namespace>/<service_name> |
-| controller.scope.enabled | bool | `false` | Enable 'scope' or not |
-| controller.scope.namespace | string | `""` | Namespace to limit the controller to; defaults to $(POD_NAMESPACE) |
-| controller.scope.namespaceSelector | string | `""` | When scope.enabled == false, instead of watching all namespaces, we watching namespaces whose labels only match with namespaceSelector. Format like foo=bar. Defaults to empty, means watching all namespaces. |
-| controller.configMapNamespace | string | `""` | Allows customization of the configmap / nginx-configmap namespace; defaults to $(POD_NAMESPACE) |
-| controller.tcp.configMapNamespace | string | `""` | Allows customization of the tcp-services-configmap; defaults to $(POD_NAMESPACE) |
-| controller.tcp.annotations | object | `{}` | Annotations to be added to the tcp config configmap |
-| controller.udp.configMapNamespace | string | `""` | Allows customization of the udp-services-configmap; defaults to $(POD_NAMESPACE) |
-| controller.udp.annotations | object | `{}` | Annotations to be added to the udp config configmap |
-| controller.maxmindLicenseKey | string | `""` | Maxmind license key to download GeoLite2 Databases. # https://blog.maxmind.com/2019/12/18/significant-changes-to-accessing-and-using-geolite2-databases |
-| controller.extraArgs | object | `{}` | Additional command line arguments to pass to Ingress-Nginx Controller E.g. to specify the default SSL certificate you can use |
-| controller.extraEnvs | list | `[]` | Additional environment variables to set |
-| controller.kind | string | `"Deployment"` | Use a `DaemonSet` or `Deployment` |
-| controller.annotations | object | `{}` | Annotations to be added to the controller Deployment or DaemonSet # |
-| controller.labels | object | `{}` | Labels to be added to the controller Deployment or DaemonSet and other resources that do not have option to specify labels # |
-| controller.updateStrategy | object | `{}` | The update strategy to apply to the Deployment or DaemonSet # |
-| controller.minReadySeconds | int | `0` | `minReadySeconds` to avoid killing pods before we are ready # |
-| controller.tolerations | list | `[]` | Node tolerations for server scheduling to nodes with taints # Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/ # |
-| controller.affinity | object | `{}` | Affinity and anti-affinity rules for server scheduling to nodes # Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity # |
-| controller.topologySpreadConstraints | list | `[]` | Topology spread constraints rely on node labels to identify the topology domain(s) that each Node is in. # Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/ # |
-| controller.terminationGracePeriodSeconds | int | `300` | `terminationGracePeriodSeconds` to avoid killing pods before we are ready # wait up to five minutes for the drain of connections # |
-| controller.nodeSelector | object | `{"kubernetes.io/os":"linux"}` | Node labels for controller pod assignment # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/ # |
-| controller.livenessProbe.httpGet.path | string | `"/healthz"` |  |
-| controller.livenessProbe.httpGet.port | int | `10254` |  |
-| controller.livenessProbe.httpGet.scheme | string | `"HTTP"` |  |
-| controller.livenessProbe.initialDelaySeconds | int | `10` |  |
-| controller.livenessProbe.periodSeconds | int | `10` |  |
-| controller.livenessProbe.timeoutSeconds | int | `1` |  |
-| controller.livenessProbe.successThreshold | int | `1` |  |
-| controller.livenessProbe.failureThreshold | int | `5` |  |
-| controller.readinessProbe.httpGet.path | string | `"/healthz"` |  |
-| controller.readinessProbe.httpGet.port | int | `10254` |  |
-| controller.readinessProbe.httpGet.scheme | string | `"HTTP"` |  |
-| controller.readinessProbe.initialDelaySeconds | int | `10` |  |
-| controller.readinessProbe.periodSeconds | int | `10` |  |
-| controller.readinessProbe.timeoutSeconds | int | `1` |  |
-| controller.readinessProbe.successThreshold | int | `1` |  |
-| controller.readinessProbe.failureThreshold | int | `3` |  |
-| controller.healthCheckPath | string | `"/healthz"` | Path of the health check endpoint. All requests received on the port defined by the healthz-port parameter are forwarded internally to this path. |
-| controller.healthCheckHost | string | `""` | Address to bind the health check endpoint. It is better to set this option to the internal node address if the Ingress-Nginx Controller is running in the `hostNetwork: true` mode. |
-| controller.podAnnotations | object | `{}` | Annotations to be added to controller pods # |
-| controller.replicaCount | int | `1` |  |
-| controller.minAvailable | int | `1` | Minimum available pods set in PodDisruptionBudget. Define either 'minAvailable' or 'maxUnavailable', never both. |
-| controller.resources.requests.cpu | string | `"100m"` |  |
-| controller.resources.requests.memory | string | `"90Mi"` |  |
-| controller.autoscaling.enabled | bool | `false` |  |
-| controller.autoscaling.annotations | object | `{}` |  |
-| controller.autoscaling.minReplicas | int | `1` |  |
-| controller.autoscaling.maxReplicas | int | `11` |  |
-| controller.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| controller.autoscaling.targetMemoryUtilizationPercentage | int | `50` |  |
-| controller.autoscaling.behavior | object | `{}` |  |
-| controller.autoscalingTemplate | list | `[]` |  |
-| controller.keda.apiVersion | string | `"keda.sh/v1alpha1"` |  |
-| controller.keda.enabled | bool | `false` |  |
-| controller.keda.minReplicas | int | `1` |  |
-| controller.keda.maxReplicas | int | `11` |  |
-| controller.keda.pollingInterval | int | `30` |  |
-| controller.keda.cooldownPeriod | int | `300` |  |
-| controller.keda.restoreToOriginalReplicaCount | bool | `false` |  |
-| controller.keda.scaledObject.annotations | object | `{}` |  |
-| controller.keda.triggers | list | `[]` |  |
-| controller.keda.behavior | object | `{}` |  |
-| controller.enableMimalloc | bool | `true` | Enable mimalloc as a drop-in replacement for malloc. # ref: https://github.com/microsoft/mimalloc # |
-| controller.customTemplate.configMapName | string | `""` |  |
-| controller.customTemplate.configMapKey | string | `""` |  |
-| controller.service.enabled | bool | `true` |  |
-| controller.service.appProtocol | bool | `true` | If enabled is adding an appProtocol option for Kubernetes service. An appProtocol field replacing annotations that were using for setting a backend protocol. Here is an example for AWS: service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http It allows choosing the protocol for each backend specified in the Kubernetes service. See the following GitHub issue for more details about the purpose: https://github.com/kubernetes/kubernetes/issues/40244 Will be ignored for Kubernetes versions older than 1.20 # |
-| controller.service.annotations | object | `{}` | Annotations are mandatory for the load balancer to come up. Varies with the cloud service. Values passed through helm tpl engine. |
-| controller.service.labels | object | `{}` |  |
-| controller.service.externalIPs | list | `[]` | List of IP addresses at which the controller services are available # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#external-ips # |
-| controller.service.loadBalancerIP | string | `""` | Used by cloud providers to connect the resulting `LoadBalancer` to a pre-existing static IP according to https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer |
-| controller.service.loadBalancerSourceRanges | list | `[]` |  |
-| controller.service.loadBalancerClass | string | `""` | Used by cloud providers to select a load balancer implementation other than the cloud provider default. https://kubernetes.io/docs/concepts/services-networking/service/#load-balancer-class |
-| controller.service.enableHttp | bool | `true` |  |
-| controller.service.enableHttps | bool | `true` |  |
-| controller.service.ipFamilyPolicy | string | `"SingleStack"` | Represents the dual-stack-ness requested or required by this Service. Possible values are SingleStack, PreferDualStack or RequireDualStack. The ipFamilies and clusterIPs fields depend on the value of this field. # Ref: https://kubernetes.io/docs/concepts/services-networking/dual-stack/ |
-| controller.service.ipFamilies | list | `["IPv4"]` | List of IP families (e.g. IPv4, IPv6) assigned to the service. This field is usually assigned automatically based on cluster configuration and the ipFamilyPolicy field. # Ref: https://kubernetes.io/docs/concepts/services-networking/dual-stack/ |
-| controller.service.ports.http | int | `80` |  |
-| controller.service.ports.https | int | `443` |  |
-| controller.service.targetPorts.http | string | `"http"` |  |
-| controller.service.targetPorts.https | string | `"https"` |  |
-| controller.service.type | string | `"LoadBalancer"` |  |
-| controller.service.nodePorts.http | string | `""` |  |
-| controller.service.nodePorts.https | string | `""` |  |
-| controller.service.nodePorts.tcp | object | `{}` |  |
-| controller.service.nodePorts.udp | object | `{}` |  |
-| controller.service.external.enabled | bool | `true` |  |
-| controller.service.internal.enabled | bool | `false` | Enables an additional internal load balancer (besides the external one). |
-| controller.service.internal.annotations | object | `{}` | Annotations are mandatory for the load balancer to come up. Varies with the cloud service. Values passed through helm tpl engine. |
-| controller.service.internal.loadBalancerIP | string | `""` | Used by cloud providers to connect the resulting internal LoadBalancer to a pre-existing static IP. Make sure to add to the service the needed annotation to specify the subnet which the static IP belongs to. For instance, `networking.gke.io/internal-load-balancer-subnet` for GCP and `service.beta.kubernetes.io/aws-load-balancer-subnets` for AWS. |
-| controller.service.internal.loadBalancerSourceRanges | list | `[]` | Restrict access For LoadBalancer service. Defaults to 0.0.0.0/0. |
-| controller.service.internal.ports | object | `{}` | Custom port mapping for internal service |
-| controller.service.internal.targetPorts | object | `{}` | Custom target port mapping for internal service |
-| controller.shareProcessNamespace | bool | `false` |  |
-| controller.extraContainers | list | `[]` | Additional containers to be added to the controller pod. See https://github.com/lemonldap-ng-controller/lemonldap-ng-controller as example. |
-| controller.extraVolumeMounts | list | `[]` | Additional volumeMounts to the controller main container. |
-| controller.extraVolumes | list | `[]` | Additional volumes to the controller pod. |
-| controller.extraInitContainers | list | `[]` | Containers, which are run before the app containers are started. |
-| controller.extraModules | list | `[]` | Modules, which are mounted into the core nginx image. See values.yaml for a sample to add opentelemetry module |
-| controller.opentelemetry.enabled | bool | `false` |  |
-| controller.opentelemetry.image | string | `"registry.k8s.io/ingress-nginx/opentelemetry:v20230721-3e2062ee5@sha256:13bee3f5223883d3ca62fee7309ad02d22ec00ff0d7033e3e9aca7a9f60fd472"` |  |
-| controller.opentelemetry.containerSecurityContext.allowPrivilegeEscalation | bool | `false` |  |
-| controller.opentelemetry.resources | object | `{}` |  |
-| controller.admissionWebhooks.annotations | object | `{}` |  |
-| controller.admissionWebhooks.enabled | bool | `true` |  |
-| controller.admissionWebhooks.extraEnvs | list | `[]` | Additional environment variables to set |
-| controller.admissionWebhooks.failurePolicy | string | `"Fail"` | Admission Webhook failure policy to use |
-| controller.admissionWebhooks.port | int | `8443` |  |
-| controller.admissionWebhooks.certificate | string | `"/usr/local/certificates/cert"` |  |
-| controller.admissionWebhooks.key | string | `"/usr/local/certificates/key"` |  |
-| controller.admissionWebhooks.namespaceSelector | object | `{}` |  |
-| controller.admissionWebhooks.objectSelector | object | `{}` |  |
-| controller.admissionWebhooks.labels | object | `{}` | Labels to be added to admission webhooks |
-| controller.admissionWebhooks.existingPsp | string | `""` | Use an existing PSP instead of creating one |
-| controller.admissionWebhooks.service.annotations | object | `{}` |  |
-| controller.admissionWebhooks.service.externalIPs | list | `[]` |  |
-| controller.admissionWebhooks.service.loadBalancerSourceRanges | list | `[]` |  |
-| controller.admissionWebhooks.service.servicePort | int | `443` |  |
-| controller.admissionWebhooks.service.type | string | `"ClusterIP"` |  |
-| controller.admissionWebhooks.createSecretJob.securityContext.allowPrivilegeEscalation | bool | `false` |  |
-| controller.admissionWebhooks.createSecretJob.resources | object | `{}` |  |
-| controller.admissionWebhooks.patchWebhookJob.securityContext.allowPrivilegeEscalation | bool | `false` |  |
-| controller.admissionWebhooks.patchWebhookJob.resources | object | `{}` |  |
-| controller.admissionWebhooks.patch.enabled | bool | `true` |  |
-| controller.admissionWebhooks.patch.image.registry | string | `"registry.k8s.io"` |  |
-| controller.admissionWebhooks.patch.image.image | string | `"ingress-nginx/kube-webhook-certgen"` |  |
-| controller.admissionWebhooks.patch.image.tag | string | `"v20231011-8b53cabe0"` |  |
-| controller.admissionWebhooks.patch.image.digest | string | `"sha256:a7943503b45d552785aa3b5e457f169a5661fb94d82b8a3373bcd9ebaf9aac80"` |  |
-| controller.admissionWebhooks.patch.image.pullPolicy | string | `"IfNotPresent"` |  |
-| controller.admissionWebhooks.patch.priorityClassName | string | `""` | Provide a priority class name to the webhook patching job # |
-| controller.admissionWebhooks.patch.podAnnotations | object | `{}` |  |
-| controller.admissionWebhooks.patch.nodeSelector."kubernetes.io/os" | string | `"linux"` |  |
-| controller.admissionWebhooks.patch.tolerations | list | `[]` |  |
-| controller.admissionWebhooks.patch.labels | object | `{}` | Labels to be added to patch job resources |
-| controller.admissionWebhooks.patch.securityContext.runAsNonRoot | bool | `true` |  |
-| controller.admissionWebhooks.patch.securityContext.runAsUser | int | `2000` |  |
-| controller.admissionWebhooks.patch.securityContext.fsGroup | int | `2000` |  |
-| controller.admissionWebhooks.certManager.enabled | bool | `false` |  |
-| controller.admissionWebhooks.certManager.rootCert.duration | string | `""` |  |
-| controller.admissionWebhooks.certManager.admissionCert.duration | string | `""` |  |
-| controller.metrics.port | int | `10254` |  |
-| controller.metrics.portName | string | `"metrics"` |  |
-| controller.metrics.enabled | bool | `false` |  |
-| controller.metrics.service.annotations | object | `{}` |  |
-| controller.metrics.service.labels | object | `{}` | Labels to be added to the metrics service resource |
-| controller.metrics.service.externalIPs | list | `[]` | List of IP addresses at which the stats-exporter service is available # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#external-ips # |
-| controller.metrics.service.loadBalancerSourceRanges | list | `[]` |  |
-| controller.metrics.service.servicePort | int | `10254` |  |
-| controller.metrics.service.type | string | `"ClusterIP"` |  |
-| controller.metrics.serviceMonitor.enabled | bool | `false` |  |
-| controller.metrics.serviceMonitor.additionalLabels | object | `{}` |  |
-| controller.metrics.serviceMonitor.namespace | string | `""` |  |
-| controller.metrics.serviceMonitor.namespaceSelector | object | `{}` |  |
-| controller.metrics.serviceMonitor.scrapeInterval | string | `"30s"` |  |
-| controller.metrics.serviceMonitor.targetLabels | list | `[]` |  |
-| controller.metrics.serviceMonitor.relabelings | list | `[]` |  |
-| controller.metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
-| controller.metrics.prometheusRule.enabled | bool | `false` |  |
-| controller.metrics.prometheusRule.additionalLabels | object | `{}` |  |
-| controller.metrics.prometheusRule.rules | list | `[]` |  |
-| controller.lifecycle | object | `{"preStop":{"exec":{"command":["/wait-shutdown"]}}}` | Improve connection draining when ingress controller pod is deleted using a lifecycle hook: With this new hook, we increased the default terminationGracePeriodSeconds from 30 seconds to 300, allowing the draining of connections up to five minutes. If the active connections end before that, the pod will terminate gracefully at that time. To effectively take advantage of this feature, the Configmap feature worker-shutdown-timeout new value is 240s instead of 10s. # |
-| controller.priorityClassName | string | `""` |  |
-| revisionHistoryLimit | int | `10` | Rollback limit # |
-| defaultBackend.enabled | bool | `false` |  |
-| defaultBackend.name | string | `"defaultbackend"` |  |
-| defaultBackend.image.registry | string | `"registry.k8s.io"` |  |
-| defaultBackend.image.image | string | `"defaultbackend-amd64"` |  |
-| defaultBackend.image.tag | string | `"1.5"` |  |
-| defaultBackend.image.pullPolicy | string | `"IfNotPresent"` |  |
-| defaultBackend.image.runAsUser | int | `65534` |  |
-| defaultBackend.image.runAsNonRoot | bool | `true` |  |
-| defaultBackend.image.readOnlyRootFilesystem | bool | `true` |  |
-| defaultBackend.image.allowPrivilegeEscalation | bool | `false` |  |
-| defaultBackend.existingPsp | string | `""` | Use an existing PSP instead of creating one |
-| defaultBackend.extraArgs | object | `{}` |  |
-| defaultBackend.serviceAccount.create | bool | `true` |  |
-| defaultBackend.serviceAccount.name | string | `""` |  |
-| defaultBackend.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| defaultBackend.extraEnvs | list | `[]` | Additional environment variables to set for defaultBackend pods |
-| defaultBackend.port | int | `8080` |  |
-| defaultBackend.livenessProbe.failureThreshold | int | `3` |  |
-| defaultBackend.livenessProbe.initialDelaySeconds | int | `30` |  |
-| defaultBackend.livenessProbe.periodSeconds | int | `10` |  |
-| defaultBackend.livenessProbe.successThreshold | int | `1` |  |
-| defaultBackend.livenessProbe.timeoutSeconds | int | `5` |  |
-| defaultBackend.readinessProbe.failureThreshold | int | `6` |  |
-| defaultBackend.readinessProbe.initialDelaySeconds | int | `0` |  |
-| defaultBackend.readinessProbe.periodSeconds | int | `5` |  |
-| defaultBackend.readinessProbe.successThreshold | int | `1` |  |
-| defaultBackend.readinessProbe.timeoutSeconds | int | `5` |  |
-| defaultBackend.updateStrategy | object | `{}` | The update strategy to apply to the Deployment or DaemonSet # |
-| defaultBackend.minReadySeconds | int | `0` | `minReadySeconds` to avoid killing pods before we are ready # |
-| defaultBackend.tolerations | list | `[]` | Node tolerations for server scheduling to nodes with taints # Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/ # |
-| defaultBackend.affinity | object | `{}` |  |
-| defaultBackend.podSecurityContext | object | `{}` | Security Context policies for controller pods See https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/ for notes on enabling and using sysctls # |
-| defaultBackend.containerSecurityContext | object | `{}` | Security Context policies for controller main container. See https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/ for notes on enabling and using sysctls # |
-| defaultBackend.podLabels | object | `{}` | Labels to add to the pod container metadata |
-| defaultBackend.nodeSelector | object | `{"kubernetes.io/os":"linux"}` | Node labels for default backend pod assignment # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/ # |
-| defaultBackend.podAnnotations | object | `{}` | Annotations to be added to default backend pods # |
-| defaultBackend.replicaCount | int | `1` |  |
-| defaultBackend.minAvailable | int | `1` |  |
-| defaultBackend.resources | object | `{}` |  |
-| defaultBackend.extraVolumeMounts | list | `[]` |  |
-| defaultBackend.extraVolumes | list | `[]` |  |
-| defaultBackend.autoscaling.annotations | object | `{}` |  |
-| defaultBackend.autoscaling.enabled | bool | `false` |  |
-| defaultBackend.autoscaling.minReplicas | int | `1` |  |
-| defaultBackend.autoscaling.maxReplicas | int | `2` |  |
-| defaultBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| defaultBackend.autoscaling.targetMemoryUtilizationPercentage | int | `50` |  |
-| defaultBackend.networkPolicy.enabled | bool | `false` | Enable 'networkPolicy' or not |
-| defaultBackend.service.annotations | object | `{}` |  |
-| defaultBackend.service.externalIPs | list | `[]` | List of IP addresses at which the default backend service is available # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#external-ips # |
-| defaultBackend.service.loadBalancerSourceRanges | list | `[]` |  |
-| defaultBackend.service.servicePort | int | `80` |  |
-| defaultBackend.service.type | string | `"ClusterIP"` |  |
-| defaultBackend.priorityClassName | string | `""` |  |
-| defaultBackend.labels | object | `{}` | Labels to be added to the default backend resources |
-| rbac.create | bool | `true` |  |
-| rbac.scope | bool | `false` |  |
-| podSecurityPolicy.enabled | bool | `false` |  |
-| serviceAccount.create | bool | `true` |  |
-| serviceAccount.name | string | `""` |  |
-| serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| serviceAccount.annotations | object | `{}` | Annotations for the controller service account |
-| imagePullSecrets | list | `[]` | Optional array of imagePullSecrets containing private registry credentials # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/ |
-| tcp | object | `{}` | TCP service key-value pairs # Ref: https://github.com/kubernetes/ingress-nginx/blob/main/docs/user-guide/exposing-tcp-udp-services.md # |
-| udp | object | `{}` | UDP service key-value pairs # Ref: https://github.com/kubernetes/ingress-nginx/blob/main/docs/user-guide/exposing-tcp-udp-services.md # |
-| portNamePrefix | string | `""` | Prefix for TCP and UDP ports names in ingress controller service # Some cloud providers, like Yandex Cloud may have a requirements for a port name regex to support cloud load balancer integration |
-| dhParam | string | `""` | A base64-encoded Diffie-Hellman parameter. This can be generated with: `openssl dhparam 4096 2> /dev/null | base64` # Ref: https://github.com/kubernetes/ingress-nginx/tree/main/docs/examples/customization/ssl-dh-param |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-database
-
-![Version: 1.3.6](https://img.shields.io/badge/Version-1.3.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.6](https://img.shields.io/badge/AppVersion-1.3.6-informational?style=flat-square)
-
-The Security Compass Database chart
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://sdelements.jfrog.io/artifactory/sde-helm-dev | sc-library | 1.1.4 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| global.enableNestedDependencies | bool | `false` |  |
-| global.imageRegistry | string | `"sdelements.jfrog.io"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imageSource | string | `"sde"` |  |
-| global.imagePullPolicy | string | `"Always"` |  |
-| commands | object | `{}` |  |
-| replicas | int | `1` |  |
-| resources.requests.memory | string | `"512Mi"` |  |
-| networkPolicies.database.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-database"` |  |
-| networkPolicies.database.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
-| networkPolicies.database.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
-| networkPolicies.database.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
-| networkPolicies.database.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
-| networkPolicies.database.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-reporting"` |  |
-| networkPolicies.database.ingress[0].selectors[5].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-async-worker"` |  |
-| networkPolicies.database.ingress[0].selectors[6].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
-| networkPolicies.database.ingress[0].selectors[7].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
-| networkPolicies.database.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
-| networkPolicies.database.ingress[0].selectors[9].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
-| networkPolicies.database.ingress[0].selectors[10].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
-| networkPolicies.database.ingress[0].selectors[11].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"` |  |
-| networkPolicies.database.ingress[0].selectors[12].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
-| networkPolicies.database.ingress[0].selectors[13].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"` |  |
-| networkPolicies.database.ingress[0].selectors[14].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"` |  |
-| networkPolicies.database.ingress[0].selectors[15].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"` |  |
-| networkPolicies.database.ingress[0].selectors[16].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"` |  |
-| networkPolicies.database.ingress[0].selectors[17].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"` |  |
-| networkPolicies.database.ingress[0].ports[0].port | string | `"{{ include \"database.port\" . }}"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-database
-
-![Version: 1.3.5](https://img.shields.io/badge/Version-1.3.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.5](https://img.shields.io/badge/AppVersion-1.3.5-informational?style=flat-square)
-
-The Security Compass Database chart
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://sdelements.jfrog.io/artifactory/sde-helm-dev | sc-library | 1.1.4 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| global.enableNestedDependencies | bool | `false` |  |
-| global.imageRegistry | string | `"sdelements.jfrog.io"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imageSource | string | `"sde"` |  |
-| global.imagePullPolicy | string | `"Always"` |  |
-| commands | object | `{}` |  |
-| replicas | int | `1` |  |
-| resources.requests.memory | string | `"512Mi"` |  |
-| networkPolicies.database.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-database"` |  |
-| networkPolicies.database.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
-| networkPolicies.database.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
-| networkPolicies.database.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
-| networkPolicies.database.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
-| networkPolicies.database.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-reporting"` |  |
-| networkPolicies.database.ingress[0].selectors[5].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-async-worker"` |  |
-| networkPolicies.database.ingress[0].selectors[6].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
-| networkPolicies.database.ingress[0].selectors[7].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
-| networkPolicies.database.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
-| networkPolicies.database.ingress[0].selectors[9].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
-| networkPolicies.database.ingress[0].selectors[10].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
-| networkPolicies.database.ingress[0].selectors[11].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"` |  |
-| networkPolicies.database.ingress[0].selectors[12].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
-| networkPolicies.database.ingress[0].selectors[13].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"` |  |
-| networkPolicies.database.ingress[0].selectors[14].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"` |  |
-| networkPolicies.database.ingress[0].selectors[15].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"` |  |
-| networkPolicies.database.ingress[0].selectors[16].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"` |  |
-| networkPolicies.database.ingress[0].selectors[17].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"` |  |
-| networkPolicies.database.ingress[0].ports[0].port | string | `"{{ include \"database.port\" . }}"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-library
-
-![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
-
-A Library Project
-
-**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/library>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| library.back-end | bool | `true` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# pas-plugin-worker
-
-![Version: 2.0.6](https://img.shields.io/badge/Version-2.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.6](https://img.shields.io/badge/AppVersion-2.0.6-informational?style=flat-square)
-
-SD Elements PAS Plugin Worker Service
+SD Elements Mock SDE Service
 
 **Homepage:** <https://docker.sdelements.com>
 
@@ -555,10 +20,7 @@ SD Elements PAS Plugin Worker Service
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://charts.bitnami.com/bitnami | rabbitmq | 11.14.4 |
-| https://charts.min.io/ | minio | 5.0.7 |
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-datastore | 1.0.2 |
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 0.1.1 |
 
 ## Values
 
@@ -571,600 +33,28 @@ SD Elements PAS Plugin Worker Service
 | global.imageOrganization | string | `"prod"` |  |
 | global.imageSource | string | `"sde"` |  |
 | global.imagePullPolicy | string | `"IfNotPresent"` |  |
-| global.pas.broker | object | `{}` |  |
-| global.pas.sharedStorage | object | `{}` |  |
-| global.pas.datastore | string | `nil` |  |
-| global.broker.adminVhost | string | `"rabbit"` |  |
-| global.sharedStorage | object | `{}` |  |
-| global.thirdPartyCACertificates.enabled | bool | `false` |  |
-| useBrokerSubchart | bool | `true` |  |
-| minio.enabled | bool | `false` |  |
-| datastore.enabled | bool | `false` |  |
-| resultBackend | string | `"rpc://"` |  |
-| broker | object | `{}` |  |
-| rabbitmq.nameOverride | string | `"broker"` |  |
-| rabbitmq.image.repository | string | `"sde-docker-prod/sde/rabbitmq"` |  |
-| rabbitmq.tls | object | `{}` |  |
-| rabbitmq.auth.username | string | `"rabbit"` |  |
-| rabbitmq.extraConfiguration | string | `"default_vhost = {{ .Values.global.broker.adminVhost }}"` |  |
-| rabbitmq.resources.requests.cpu | string | `"10m"` |  |
-| rabbitmq.resources.requests.memory | string | `"150Mi"` |  |
-| rabbitmq.resources.limits.cpu | int | `2` |  |
-| rabbitmq.resources.limits.memory | string | `"2048Mi"` |  |
-| sharedStorage | object | `{}` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-jitt
-
-![Version: 2024.4.3](https://img.shields.io/badge/Version-2024.4.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2024.4.3](https://img.shields.io/badge/AppVersion-2024.4.3-informational?style=flat-square)
-
-The Security Compass JITT Chart
-
-**Homepage:** <https://agra.sdelements.com/sd-elements/sde-training>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/sd-elements/sde-training>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imageSource | string | `"sde"` |  |
-| global.imagePullPolicy | string | `"IfNotPresent"` |  |
-| global.useStandalone | bool | `true` |  |
-| global.enableNestedDependencies | bool | `false` |  |
-| replicas | int | `1` |  |
-| resources.requests.memory | string | `"128Mi"` |  |
-| networkPolicies.jitt.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-jitt"` |  |
-| networkPolicies.jitt.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-web"` |  |
-| networkPolicies.jitt.ingress[0].ports[0].port | string | `"{{ index .Values \"httpsPort\" | int | default 7443 }}"` |  |
-| networkPolicies.jitt.ingress[0].ports[1].port | string | `"{{ index .Values \"httpPort\" | int | default 9080 }}"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# minio
-
-![Version: 5.0.14](https://img.shields.io/badge/Version-5.0.14-informational?style=flat-square) ![AppVersion: RELEASE.2023-09-30T07-02-29Z](https://img.shields.io/badge/AppVersion-RELEASE.2023--09--30T07--02--29Z-informational?style=flat-square)
-
-Multi-Cloud Object Storage
-
-**Homepage:** <https://min.io>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| MinIO, Inc | <dev@minio.io> |  |
-
-## Source Code
-
-* <https://github.com/minio/minio>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| nameOverride | string | `""` |  |
-| fullnameOverride | string | `""` |  |
-| clusterDomain | string | `"cluster.local"` |  |
-| image.repository | string | `"quay.io/minio/minio"` |  |
-| image.tag | string | `"RELEASE.2023-09-30T07-02-29Z"` |  |
-| image.pullPolicy | string | `"IfNotPresent"` |  |
-| imagePullSecrets | list | `[]` |  |
-| mcImage.repository | string | `"quay.io/minio/mc"` |  |
-| mcImage.tag | string | `"RELEASE.2023-09-29T16-41-22Z"` |  |
-| mcImage.pullPolicy | string | `"IfNotPresent"` |  |
-| mode | string | `"distributed"` |  |
-| additionalLabels | object | `{}` |  |
-| additionalAnnotations | object | `{}` |  |
-| ignoreChartChecksums | bool | `false` |  |
-| extraArgs | list | `[]` |  |
-| extraVolumes | list | `[]` |  |
-| extraVolumeMounts | list | `[]` |  |
-| extraContainers | list | `[]` |  |
-| minioAPIPort | string | `"9000"` |  |
-| minioConsolePort | string | `"9001"` |  |
-| deploymentUpdate.type | string | `"RollingUpdate"` |  |
-| deploymentUpdate.maxUnavailable | int | `0` |  |
-| deploymentUpdate.maxSurge | string | `"100%"` |  |
-| statefulSetUpdate.updateStrategy | string | `"RollingUpdate"` |  |
-| priorityClassName | string | `""` |  |
-| runtimeClassName | string | `""` |  |
-| rootUser | string | `""` |  |
-| rootPassword | string | `""` |  |
-| existingSecret | string | `""` |  |
-| certsPath | string | `"/etc/minio/certs/"` |  |
-| configPathmc | string | `"/etc/minio/mc/"` |  |
-| mountPath | string | `"/export"` |  |
-| bucketRoot | string | `""` |  |
-| drivesPerNode | int | `1` |  |
-| replicas | int | `16` |  |
-| pools | int | `1` |  |
-| tls.enabled | bool | `false` |  |
-| tls.certSecret | string | `""` |  |
-| tls.publicCrt | string | `"public.crt"` |  |
-| tls.privateKey | string | `"private.key"` |  |
-| trustedCertsSecret | string | `""` |  |
-| persistence.enabled | bool | `true` |  |
-| persistence.annotations | object | `{}` |  |
-| persistence.existingClaim | string | `""` |  |
-| persistence.storageClass | string | `""` |  |
-| persistence.volumeName | string | `""` |  |
-| persistence.accessMode | string | `"ReadWriteOnce"` |  |
-| persistence.size | string | `"500Gi"` |  |
-| persistence.subPath | string | `""` |  |
-| service.type | string | `"ClusterIP"` |  |
-| service.clusterIP | string | `nil` |  |
-| service.port | string | `"9000"` |  |
-| service.nodePort | int | `32000` |  |
-| service.loadBalancerIP | string | `nil` |  |
-| service.externalIPs | list | `[]` |  |
-| service.annotations | object | `{}` |  |
-| ingress.enabled | bool | `false` |  |
-| ingress.ingressClassName | string | `nil` |  |
-| ingress.labels | object | `{}` |  |
-| ingress.annotations | object | `{}` |  |
-| ingress.path | string | `"/"` |  |
-| ingress.hosts[0] | string | `"minio-example.local"` |  |
-| ingress.tls | list | `[]` |  |
-| consoleService.type | string | `"ClusterIP"` |  |
-| consoleService.clusterIP | string | `nil` |  |
-| consoleService.port | string | `"9001"` |  |
-| consoleService.nodePort | int | `32001` |  |
-| consoleService.loadBalancerIP | string | `nil` |  |
-| consoleService.externalIPs | list | `[]` |  |
-| consoleService.annotations | object | `{}` |  |
-| consoleIngress.enabled | bool | `false` |  |
-| consoleIngress.ingressClassName | string | `nil` |  |
-| consoleIngress.labels | object | `{}` |  |
-| consoleIngress.annotations | object | `{}` |  |
-| consoleIngress.path | string | `"/"` |  |
-| consoleIngress.hosts[0] | string | `"console.minio-example.local"` |  |
-| consoleIngress.tls | list | `[]` |  |
-| nodeSelector | object | `{}` |  |
-| tolerations | list | `[]` |  |
-| affinity | object | `{}` |  |
-| topologySpreadConstraints | list | `[]` |  |
-| securityContext.enabled | bool | `true` |  |
-| securityContext.runAsUser | int | `1000` |  |
-| securityContext.runAsGroup | int | `1000` |  |
-| securityContext.fsGroup | int | `1000` |  |
-| securityContext.fsGroupChangePolicy | string | `"OnRootMismatch"` |  |
-| podAnnotations | object | `{}` |  |
-| podLabels | object | `{}` |  |
-| resources.requests.memory | string | `"16Gi"` |  |
-| policies | list | `[]` |  |
-| makePolicyJob.securityContext.enabled | bool | `false` |  |
-| makePolicyJob.securityContext.runAsUser | int | `1000` |  |
-| makePolicyJob.securityContext.runAsGroup | int | `1000` |  |
-| makePolicyJob.resources.requests.memory | string | `"128Mi"` |  |
-| makePolicyJob.exitCommand | string | `""` |  |
-| users[0].accessKey | string | `"console"` |  |
-| users[0].secretKey | string | `"console123"` |  |
-| users[0].policy | string | `"consoleAdmin"` |  |
-| makeUserJob.securityContext.enabled | bool | `false` |  |
-| makeUserJob.securityContext.runAsUser | int | `1000` |  |
-| makeUserJob.securityContext.runAsGroup | int | `1000` |  |
-| makeUserJob.resources.requests.memory | string | `"128Mi"` |  |
-| makeUserJob.exitCommand | string | `""` |  |
-| svcaccts | list | `[]` |  |
-| makeServiceAccountJob.securityContext.enabled | bool | `false` |  |
-| makeServiceAccountJob.securityContext.runAsUser | int | `1000` |  |
-| makeServiceAccountJob.securityContext.runAsGroup | int | `1000` |  |
-| makeServiceAccountJob.resources.requests.memory | string | `"128Mi"` |  |
-| makeServiceAccountJob.exitCommand | string | `""` |  |
-| buckets | list | `[]` |  |
-| makeBucketJob.securityContext.enabled | bool | `false` |  |
-| makeBucketJob.securityContext.runAsUser | int | `1000` |  |
-| makeBucketJob.securityContext.runAsGroup | int | `1000` |  |
-| makeBucketJob.resources.requests.memory | string | `"128Mi"` |  |
-| makeBucketJob.exitCommand | string | `""` |  |
-| customCommands | string | `nil` |  |
-| customCommandJob.securityContext.enabled | bool | `false` |  |
-| customCommandJob.securityContext.runAsUser | int | `1000` |  |
-| customCommandJob.securityContext.runAsGroup | int | `1000` |  |
-| customCommandJob.resources.requests.memory | string | `"128Mi"` |  |
-| customCommandJob.exitCommand | string | `""` |  |
-| postJob.podAnnotations | object | `{}` |  |
-| postJob.annotations | object | `{}` |  |
-| postJob.securityContext.enabled | bool | `false` |  |
-| postJob.securityContext.runAsUser | int | `1000` |  |
-| postJob.securityContext.runAsGroup | int | `1000` |  |
-| postJob.securityContext.fsGroup | int | `1000` |  |
-| postJob.nodeSelector | object | `{}` |  |
-| postJob.tolerations | list | `[]` |  |
-| postJob.affinity | object | `{}` |  |
-| environment | string | `nil` |  |
-| extraSecret | string | `nil` |  |
-| oidc.enabled | bool | `false` |  |
-| oidc.configUrl | string | `"https://identity-provider-url/.well-known/openid-configuration"` |  |
-| oidc.clientId | string | `"minio"` |  |
-| oidc.clientSecret | string | `""` |  |
-| oidc.existingClientSecretName | string | `""` |  |
-| oidc.existingClientSecretKey | string | `""` |  |
-| oidc.claimName | string | `"policy"` |  |
-| oidc.scopes | string | `"openid,profile,email"` |  |
-| oidc.redirectUri | string | `"https://console-endpoint-url/oauth_callback"` |  |
-| oidc.claimPrefix | string | `""` |  |
-| oidc.comment | string | `""` |  |
-| networkPolicy.enabled | bool | `false` |  |
-| networkPolicy.allowExternal | bool | `true` |  |
-| podDisruptionBudget.enabled | bool | `false` |  |
-| podDisruptionBudget.maxUnavailable | int | `1` |  |
-| serviceAccount.create | bool | `true` |  |
-| serviceAccount.name | string | `"minio-sa"` |  |
-| metrics.serviceMonitor.enabled | bool | `false` |  |
-| metrics.serviceMonitor.includeNode | bool | `false` |  |
-| metrics.serviceMonitor.public | bool | `true` |  |
-| metrics.serviceMonitor.additionalLabels | object | `{}` |  |
-| metrics.serviceMonitor.annotations | object | `{}` |  |
-| metrics.serviceMonitor.relabelConfigs | object | `{}` |  |
-| metrics.serviceMonitor.relabelConfigsCluster | object | `{}` |  |
-| metrics.serviceMonitor.namespace | string | `nil` |  |
-| metrics.serviceMonitor.interval | string | `nil` |  |
-| metrics.serviceMonitor.scrapeTimeout | string | `nil` |  |
-| etcd.endpoints | list | `[]` |  |
-| etcd.pathPrefix | string | `""` |  |
-| etcd.corednsPathPrefix | string | `""` |  |
-| etcd.clientCert | string | `""` |  |
-| etcd.clientCertKey | string | `""` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-library
-
-![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
-
-A Library Project
-
-**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/library>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| library.back-end | bool | `true` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-library
-
-![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
-
-A Library Project
-
-**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/library>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| library.back-end | bool | `true` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-library
-
-![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
-
-A Library Project
-
-**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/library>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| library.back-end | bool | `true` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# common
-
-![Version: 2.22.0](https://img.shields.io/badge/Version-2.22.0-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square) ![AppVersion: 2.22.0](https://img.shields.io/badge/AppVersion-2.22.0-informational?style=flat-square)
-
-A Library Helm Chart for grouping common logic between bitnami charts. This chart is not deployable by itself.
-
-**Homepage:** <https://bitnami.com>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Broadcom, Inc. All Rights Reserved. |  | <https://github.com/bitnami/charts> |
-
-## Source Code
-
-* <https://github.com/bitnami/charts/tree/main/bitnami/common>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| exampleValue | string | `"common-chart"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# bigbang-sdelements
-
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2024.4.38](https://img.shields.io/badge/AppVersion-2024.4.38-informational?style=flat-square)
-
-BigBang compatible Helm chart for sdelements
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| sdelements.enabled | bool | `true` |  |
-| sdelements.git.repo | string | `"https://repo1.dso.mil/big-bang/product/community/sdelements"` |  |
-| sdelements.git.branch | string | `"main"` |  |
-| sdelements.git.path | string | `"chart"` |  |
-| sdelements.flux.timeout | string | `"30m"` |  |
-| sdelements.values.global.storageClass | string | `"local-path"` |  |
-| sdelements.values.global.registrySecretName | string | `"private-registry"` |  |
-| sdelements.values.global.sharedStorage.bucketName | string | `"sde-bucket"` |  |
-| sdelements.values.global.sharedStorage.s3Url | string | `"http://sdelements-minio-hl:9000/"` |  |
-| sdelements.values.global.sharedStorage.s3AccessKey | string | `"accesskey"` |  |
-| sdelements.values.global.sharedStorage.s3SecretKey | string | `"secretkey"` |  |
-| sdelements.values.global.imagePullSecrets[0] | string | `"private-registry"` |  |
-| sdelements.values.sde.fqdn | string | `"sdelements.dev.bigbang.mil"` |  |
-| sdelements.values.sde.jwtSecret | string | `"default"` |  |
-| sdelements.values.sde.secretKey | string | `"default"` |  |
-| sdelements.values.sde.superuserPassword | string | `"default"` |  |
-| sdelements.values.sde.enableJITT | bool | `false` |  |
-| sdelements.values.sde.systemAdminEmail | string | `"default@example.com"` |  |
-| sdelements.values.sc-datastore.clientPassword | string | `"default"` |  |
-| sdelements.values.postgresql.auth.password | string | `"default"` |  |
-| sdelements.values.postgresql.auth.postgressPassword | string | `"default"` |  |
-| sdelements.values.rabbitmq.auth.password | string | `"default"` |  |
-| sdelements.values.rabbitmq.auth.erlangCookie | string | `"default"` |  |
-| sdelements.values.minio.enabled | bool | `false` |  |
-| sdelements.values.minio.rootUser | string | `"admin"` |  |
-| sdelements.values.minio.rootPassword | string | `"password"` |  |
-| sdelements.values.minio.tls.enabled | bool | `false` |  |
-| sdelements.values.minio.buckets[0].name | string | `"sde-bucket"` |  |
-| sdelements.values.minio.buckets[0].policy | string | `"none"` |  |
-| sdelements.values.minio.buckets[0].purge | bool | `false` |  |
-| sdelements.values.minio.users[0].accessKey | string | `"accesskey"` |  |
-| sdelements.values.minio.users[0].secretKey | string | `"secretkey"` |  |
-| sdelements.values.minio.users[0].policy | string | `"readwrite"` |  |
-| sdelements.values.minio-tenant.enabled | bool | `true` |  |
-| sdelements.values.minio-tenant.tenant.imagePullSecret.name | string | `"private-registry"` |  |
-| sdelements.values.minio-tenant.tenant.env[0].name | string | `"MINIO_BROWSER"` |  |
-| sdelements.values.minio-tenant.tenant.env[0].value | string | `"off"` |  |
-| sdelements.values.minio-tenant.tenant.pools[0].servers | int | `1` |  |
-| sdelements.values.minio-tenant.tenant.pools[0].name | string | `"pool-0"` |  |
-| sdelements.values.minio-tenant.tenant.pools[0].volumesPerServer | int | `4` |  |
-| sdelements.values.minio-tenant.tenant.pools[0].size | string | `"10Gi"` |  |
-| sdelements.values.minio-tenant.secrets.accessKey | string | `"accesskey"` |  |
-| sdelements.values.minio-tenant.secrets.secretKey | string | `"secretkey"` |  |
-| sdelements.values.istio.enabled | bool | `true` |  |
-| sdelements.values.istio.gateways[0] | string | `"istio-system/public"` |  |
-| sdelements.values.istio.host | string | `"sdelements.dev.bigbang.mil"` |  |
-| sdelements.values.bbtests.enabled | bool | `false` |  |
-| kyverno.enabled | bool | `false` |  |
-| kyvernoPolicies.enabled | bool | `false` |  |
-| kyvernoReporter.enabled | bool | `false` |  |
-| networkPolicies.enabled | bool | `false` |  |
-| gatekeeper.enabled | bool | `false` |  |
-| eckOperator | string | `nil` |  |
-| networkPolicies.enabled | bool | `false` |  |
-| gatekeeper.enabled | bool | `false` |  |
-| eckOperator.enabled | bool | `false` |  |
-| elasticsearchKibana.enabled | bool | `false` |  |
-| fluentbit.enabled | bool | `false` |  |
-| promtail.enabled | bool | `false` |  |
-| loki.enabled | bool | `false` |  |
-| monitoring.enabled | bool | `false` |  |
-| grafana.enabled | bool | `false` |  |
-| bbctl.enabled | bool | `false` |  |
-| kiali.enabled | bool | `false` |  |
-| twistlock.enabled | bool | `false` |  |
-| tempo.enabled | bool | `false` |  |
-| neuvector.enabled | bool | `false` |  |
-| addons.minioOperator.enabled | bool | `true` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-library
-
-![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
-
-A Library Project
-
-**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/library>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| library.back-end | bool | `true` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-library
-
-![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
-
-A Library Project
-
-**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/library>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| library.back-end | bool | `true` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-mail
-
-![Version: 0.1.18](https://img.shields.io/badge/Version-0.1.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.18](https://img.shields.io/badge/AppVersion-0.1.18-informational?style=flat-square)
-
-The Security Compass SMTP mail relay (Exim)
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/mail>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| global.enableNestedDependencies | bool | `false` |  |
-| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imageSource | string | `"sde"` |  |
-| global.imagePullPolicy | string | `"IfNotPresent"` |  |
-| replicas | int | `1` |  |
-| config.tls | object | `{}` |  |
-| config.mailFrom | string | `"noreply@securitycompass.com"` |  |
-| service.type | string | `"ClusterIP"` |  |
-| service.port | int | `25` |  |
-| createServiceAccount | bool | `true` |  |
-| podSecurityContext | object | `{}` |  |
-| securityContext | object | `{}` |  |
-| nodeSelector | object | `{}` |  |
-| networkPolicies.mailer.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-mailer"` |  |
-| networkPolicies.mailer.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
-| networkPolicies.mailer.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
-| networkPolicies.mailer.ingress[0].selectors[2].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
-| networkPolicies.mailer.ingress[0].selectors[3].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-license-count-report"` |  |
-| networkPolicies.mailer.ingress[0].ports[0].port | string | `"{{ index .Values \"localPort\" | int | default 8025 }}"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-library
-
-![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
-
-A Library Project
-
-**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/library>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| library.back-end | bool | `true` |  |
+| secretKey | string | `"s3cr3tk3y"` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 # rabbitmq
 
-![Version: 14.7.0](https://img.shields.io/badge/Version-14.7.0-informational?style=flat-square) ![AppVersion: 3.13.7](https://img.shields.io/badge/AppVersion-3.13.7-informational?style=flat-square)
+![Version: 11.14.4](https://img.shields.io/badge/Version-11.14.4-informational?style=flat-square) ![AppVersion: 3.11.15](https://img.shields.io/badge/AppVersion-3.11.15-informational?style=flat-square)
 
 RabbitMQ is an open source general-purpose message broker that is designed for consistent, highly-available messaging scenarios (both synchronous and asynchronous).
 
-**Homepage:** <https://bitnami.com>
+**Homepage:** <https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq>
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| Broadcom, Inc. All Rights Reserved. |  | <https://github.com/bitnami/charts> |
+| Bitnami |  | <https://github.com/bitnami/charts> |
 
 ## Source Code
 
-* <https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq>
+* <https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq>
+* <https://www.rabbitmq.com>
 
 ## Requirements
 
@@ -1178,12 +68,10 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 |-----|------|---------|-------------|
 | global.imageRegistry | string | `""` |  |
 | global.imagePullSecrets | list | `[]` |  |
-| global.defaultStorageClass | string | `""` |  |
 | global.storageClass | string | `""` |  |
-| global.compatibility.openshift.adaptSecurityContext | string | `"auto"` |  |
 | image.registry | string | `"docker.io"` |  |
 | image.repository | string | `"bitnami/rabbitmq"` |  |
-| image.tag | string | `"3.13.7-debian-12-r2"` |  |
+| image.tag | string | `"3.11.15-debian-11-r0"` |  |
 | image.digest | string | `""` |  |
 | image.debug | bool | `false` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
@@ -1198,11 +86,9 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 | servicenameOverride | string | `""` |  |
 | commonLabels | object | `{}` |  |
 | serviceBindings.enabled | bool | `false` |  |
-| enableServiceLinks | bool | `true` |  |
 | diagnosticMode.enabled | bool | `false` |  |
 | diagnosticMode.command[0] | string | `"sleep"` |  |
 | diagnosticMode.args[0] | string | `"infinity"` |  |
-| automountServiceAccountToken | bool | `false` |  |
 | hostAliases | list | `[]` |  |
 | dnsPolicy | string | `""` |  |
 | dnsConfig | object | `{}` |  |
@@ -1210,11 +96,9 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 | auth.password | string | `""` |  |
 | auth.securePassword | bool | `true` |  |
 | auth.existingPasswordSecret | string | `""` |  |
-| auth.existingSecretPasswordKey | string | `""` |  |
 | auth.enableLoopbackUser | bool | `false` |  |
 | auth.erlangCookie | string | `""` |  |
 | auth.existingErlangSecret | string | `""` |  |
-| auth.existingSecretErlangKey | string | `""` |  |
 | auth.tls.enabled | bool | `false` |  |
 | auth.tls.autoGenerated | bool | `false` |  |
 | auth.tls.failIfNoPeerCert | bool | `true` |  |
@@ -1230,18 +114,16 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 | auth.tls.existingSecretFullChain | bool | `false` |  |
 | auth.tls.overrideCaCertificate | string | `""` |  |
 | logs | string | `"-"` |  |
-| ulimitNofiles | string | `"65535"` |  |
+| ulimitNofiles | string | `"65536"` |  |
 | maxAvailableSchedulers | string | `""` |  |
 | onlineSchedulers | string | `""` |  |
 | memoryHighWatermark.enabled | bool | `false` |  |
 | memoryHighWatermark.type | string | `"relative"` |  |
 | memoryHighWatermark.value | float | `0.4` |  |
 | plugins | string | `"rabbitmq_management rabbitmq_peer_discovery_k8s"` |  |
-| queue_master_locator | string | `"min-masters"` |  |
 | communityPlugins | string | `""` |  |
 | extraPlugins | string | `"rabbitmq_auth_backend_ldap"` |  |
 | clustering.enabled | bool | `true` |  |
-| clustering.name | string | `""` |  |
 | clustering.addressType | string | `"hostname"` |  |
 | clustering.rebalance | bool | `false` |  |
 | clustering.forceBoot | bool | `false` |  |
@@ -1271,7 +153,7 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 | tcpListenOptions.linger.lingerOn | bool | `true` |  |
 | tcpListenOptions.linger.timeout | int | `0` |  |
 | tcpListenOptions.keepalive | bool | `false` |  |
-| configuration | string | `"## Username and password\ndefault_user = {{ .Values.auth.username }}\n{{- if and (not .Values.auth.securePassword) .Values.auth.password }}\ndefault_pass = {{ .Values.auth.password }}\n{{- end }}\n{{- if .Values.clustering.enabled }}\n## Clustering\n##\ncluster_name = {{ default (include \"common.names.fullname\" .) .Values.clustering.name }}\ncluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s\ncluster_formation.k8s.host = kubernetes.default\ncluster_formation.k8s.address_type = {{ .Values.clustering.addressType }}\n{{- $svcName := printf \"%s-%s\" (include \"common.names.fullname\" .) (default \"headless\" .Values.servicenameOverride) }}\ncluster_formation.k8s.service_name = {{ $svcName }}\ncluster_formation.k8s.hostname_suffix = .{{ $svcName }}.{{ include \"common.names.namespace\" . }}.svc.{{ .Values.clusterDomain }}\ncluster_formation.node_cleanup.interval = 10\ncluster_formation.node_cleanup.only_log_warning = true\ncluster_partition_handling = {{ .Values.clustering.partitionHandling }}\n{{- end }}\n{{ if and .Values.clustering.enabled .Values.loadDefinition.enabled }}\ncluster_formation.target_cluster_size_hint = {{ .Values.replicaCount }}\n{{ end }}\n{{- if .Values.loadDefinition.enabled }}\nload_definitions = {{ .Values.loadDefinition.file }}\n{{- end }}\n# queue master locator\nqueue_master_locator = {{ .Values.queue_master_locator }}\n# enable loopback user\n{{- if not (empty .Values.auth.username) }}\nloopback_users.{{ .Values.auth.username }} = {{ .Values.auth.enableLoopbackUser }}\n{{- else}}\nloopback_users.guest = {{ .Values.auth.enableLoopbackUser }}\n{{- end }}\n{{ template \"rabbitmq.extraConfiguration\" . }}\n{{- if .Values.auth.tls.enabled }}\nssl_options.verify = {{ .Values.auth.tls.sslOptionsVerify }}\nlisteners.ssl.default = {{ .Values.service.ports.amqpTls }}\nssl_options.fail_if_no_peer_cert = {{ .Values.auth.tls.failIfNoPeerCert }}\nssl_options.cacertfile = /opt/bitnami/rabbitmq/certs/ca_certificate.pem\nssl_options.certfile = /opt/bitnami/rabbitmq/certs/server_certificate.pem\nssl_options.keyfile = /opt/bitnami/rabbitmq/certs/server_key.pem\n{{- if .Values.auth.tls.sslOptionsPassword.enabled }}\nssl_options.password = {{ template \"rabbitmq.tlsSslOptionsPassword\" . }}\n{{- end }}\n{{- end }}\n{{- if .Values.ldap.enabled }}\nauth_backends.1.authn = ldap\nauth_backends.1.authz = {{ ternary \"ldap\" \"internal\" .Values.ldap.authorisationEnabled }}\nauth_backends.2 = internal\n{{- $host :=  list }}\n{{- $port :=  ternary 636 389 .Values.ldap.tls.enabled }}\n{{- if .Values.ldap.uri }}\n{{- $hostPort := get (urlParse .Values.ldap.uri) \"host\" }}\n{{- $host = list (index (splitList \":\" $hostPort) 0) -}}\n{{- if (contains \":\" $hostPort) }}\n{{- $port = index (splitList \":\" $hostPort) 1 -}}\n{{- end }}\n{{- end }}\n{{- range $index, $server := concat $host .Values.ldap.servers }}\nauth_ldap.servers.{{ add $index 1 }} = {{ $server }}\n{{- end }}\nauth_ldap.port = {{ coalesce .Values.ldap.port $port }}\n{{- if or .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\nauth_ldap.user_dn_pattern = {{ coalesce .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\n{{- end }}\n{{- if .Values.ldap.basedn }}\nauth_ldap.dn_lookup_base = {{ .Values.ldap.basedn }}\n{{- end }}\n{{- if .Values.ldap.uidField }}\nauth_ldap.dn_lookup_attribute = {{ .Values.ldap.uidField }}\n{{- end }}\n{{- if .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.user_dn = {{ .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.password = {{ required \"'ldap.bindpw' is required when 'ldap.binddn' is defined\" .Values.ldap.bindpw }}\n{{- end }}\n{{- if .Values.ldap.tls.enabled }}\nauth_ldap.use_ssl = {{ not .Values.ldap.tls.startTls }}\nauth_ldap.use_starttls = {{ .Values.ldap.tls.startTls }}\n{{- if .Values.ldap.tls.CAFilename }}\nauth_ldap.ssl_options.cacertfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.CAFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.certfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.keyfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ required \"'ldap.tls.certKeyFilename' is required when 'ldap.tls.certFilename' is defined\" .Values.ldap.tls.certKeyFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.skipVerify }}\nauth_ldap.ssl_options.verify = verify_none\nauth_ldap.ssl_options.fail_if_no_peer_cert = false\n{{- else if .Values.ldap.tls.verify }}\nauth_ldap.ssl_options.verify = {{ .Values.ldap.tls.verify }}\n{{- end }}\n{{- end }}\n{{- end }}\n## Prometheus metrics\n##\nprometheus.tcp.port = {{ .Values.containerPorts.metrics }}\n{{- if .Values.memoryHighWatermark.enabled }}\n## Memory Threshold\n##\ntotal_memory_available_override_value = {{ include \"rabbitmq.toBytes\" (dig \"limits\" \"memory\" \"\" .Values.resources) }}\n{{- if (eq .Values.memoryHighWatermark.type \"absolute\") }}\nvm_memory_high_watermark.{{ .Values.memoryHighWatermark.type }} = {{ include \"rabbitmq.toBytes\" .Values.memoryHighWatermark.value }}\n{{- else if (eq .Values.memoryHighWatermark.type \"relative\") }}\nvm_memory_high_watermark.{{ .Values.memoryHighWatermark.type }} = {{ .Values.memoryHighWatermark.value }}\n{{- end }}\n## TCP Listen Options\n##\ntcp_listen_options.backlog = {{ .Values.tcpListenOptions.backlog }}\ntcp_listen_options.nodelay = {{ .Values.tcpListenOptions.nodelay }}\ntcp_listen_options.linger.on      = {{ .Values.tcpListenOptions.linger.lingerOn }}\ntcp_listen_options.linger.timeout = {{ .Values.tcpListenOptions.linger.timeout }}\ntcp_listen_options.keepalive = {{ .Values.tcpListenOptions.keepalive }}\n{{- end }}"` |  |
+| configuration | string | `"## Username and password\n##\ndefault_user = {{ .Values.auth.username }}\n{{- if and (not .Values.auth.securePassword) .Values.auth.password }}\ndefault_pass = {{ .Values.auth.password }}\n{{- end }}\n{{- if .Values.clustering.enabled }}\n## Clustering\n##\ncluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s\ncluster_formation.k8s.host = kubernetes.default\ncluster_formation.node_cleanup.interval = 10\ncluster_formation.node_cleanup.only_log_warning = true\ncluster_partition_handling = {{ .Values.clustering.partitionHandling }}\n{{- end }}\n{{ if and .Values.clustering.enabled .Values.loadDefinition.enabled }}\ncluster_formation.target_cluster_size_hint = {{ .Values.replicaCount }}\n{{ end }}\n{{- if .Values.loadDefinition.enabled }}\nload_definitions = {{ .Values.loadDefinition.file }}\n{{- end }}\n# queue master locator\nqueue_master_locator = min-masters\n# enable loopback user\n{{- if not (empty .Values.auth.username) }}\nloopback_users.{{ .Values.auth.username }} = {{ .Values.auth.enableLoopbackUser }}\n{{- else}}\nloopback_users.guest = {{ .Values.auth.enableLoopbackUser }}\n{{- end }}\n{{ template \"rabbitmq.extraConfiguration\" . }}\n{{- if .Values.auth.tls.enabled }}\nssl_options.verify = {{ .Values.auth.tls.sslOptionsVerify }}\nlisteners.ssl.default = {{ .Values.service.ports.amqpTls }}\nssl_options.fail_if_no_peer_cert = {{ .Values.auth.tls.failIfNoPeerCert }}\nssl_options.cacertfile = /opt/bitnami/rabbitmq/certs/ca_certificate.pem\nssl_options.certfile = /opt/bitnami/rabbitmq/certs/server_certificate.pem\nssl_options.keyfile = /opt/bitnami/rabbitmq/certs/server_key.pem\n{{- if .Values.auth.tls.sslOptionsPassword.enabled }}\nssl_options.password = {{ template \"rabbitmq.tlsSslOptionsPassword\" . }}\n{{- end }}\n{{- end }}\n{{- if .Values.ldap.enabled }}\nauth_backends.1.authn = ldap\nauth_backends.1.authz = {{ ternary \"ldap\" \"internal\" .Values.ldap.authorisationEnabled }}\nauth_backends.2 = internal\n{{- $host :=  list }}\n{{- $port :=  ternary 636 389 .Values.ldap.tls.enabled }}\n{{- if .Values.ldap.uri }}\n{{- $hostPort := get (urlParse .Values.ldap.uri) \"host\" }}\n{{- $host = list (index (splitList \":\" $hostPort) 0) -}}\n{{- if (contains \":\" $hostPort) }}\n{{- $port = index (splitList \":\" $hostPort) 1 -}}\n{{- end }}\n{{- end }}\n{{- range $index, $server := concat $host .Values.ldap.servers }}\nauth_ldap.servers.{{ add $index 1 }} = {{ $server }}\n{{- end }}\nauth_ldap.port = {{ coalesce .Values.ldap.port $port }}\n{{- if or .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\nauth_ldap.user_dn_pattern = {{ coalesce .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\n{{- end }}\n{{- if .Values.ldap.basedn }}\nauth_ldap.dn_lookup_base = {{ .Values.ldap.basedn }}\n{{- end }}\n{{- if .Values.ldap.uidField }}\nauth_ldap.dn_lookup_attribute = {{ .Values.ldap.uidField }}\n{{- end }}\n{{- if .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.user_dn = {{ .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.password = {{ required \"'ldap.bindpw' is required when 'ldap.binddn' is defined\" .Values.ldap.bindpw }}\n{{- end }}\n{{- if .Values.ldap.tls.enabled }}\nauth_ldap.use_ssl = {{ not .Values.ldap.tls.startTls }}\nauth_ldap.use_starttls = {{ .Values.ldap.tls.startTls }}\n{{- if .Values.ldap.tls.CAFilename }}\nauth_ldap.ssl_options.cacertfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.CAFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.certfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.keyfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ required \"'ldap.tls.certKeyFilename' is required when 'ldap.tls.certFilename' is defined\" .Values.ldap.tls.certKeyFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.skipVerify }}\nauth_ldap.ssl_options.verify = verify_none\nauth_ldap.ssl_options.fail_if_no_peer_cert = false\n{{- else if .Values.ldap.tls.verify }}\nauth_ldap.ssl_options.verify = {{ .Values.ldap.tls.verify }}\n{{- end }}\n{{- end }}\n{{- end }}\n{{- if .Values.metrics.enabled }}\n## Prometheus metrics\n##\nprometheus.tcp.port = {{ .Values.containerPorts.metrics }}\n{{- end }}\n{{- if .Values.memoryHighWatermark.enabled }}\n## Memory Threshold\n##\ntotal_memory_available_override_value = {{ include \"rabbitmq.toBytes\" .Values.resources.limits.memory }}\nvm_memory_high_watermark.{{ .Values.memoryHighWatermark.type }} = {{ .Values.memoryHighWatermark.value }}\n## TCP Listen Options\n##\ntcp_listen_options.backlog = {{ .Values.tcpListenOptions.backlog }}\ntcp_listen_options.nodelay = {{ .Values.tcpListenOptions.nodelay }}\ntcp_listen_options.linger.on      = {{ .Values.tcpListenOptions.linger.lingerOn }}\ntcp_listen_options.linger.timeout = {{ .Values.tcpListenOptions.linger.timeout }}\ntcp_listen_options.keepalive = {{ .Values.tcpListenOptions.keepalive }}\n{{- end }}"` |  |
 | configurationExistingSecret | string | `""` |  |
 | extraConfiguration | string | `"#default_vhost = {{ .Release.Namespace }}-vhost\n#disk_free_limit.absolute = 50MB"` |  |
 | extraConfigurationExistingSecret | string | `""` |  |
@@ -1320,21 +202,12 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 | tolerations | list | `[]` |  |
 | topologySpreadConstraints | list | `[]` |  |
 | podSecurityContext.enabled | bool | `true` |  |
-| podSecurityContext.fsGroupChangePolicy | string | `"Always"` |  |
-| podSecurityContext.sysctls | list | `[]` |  |
-| podSecurityContext.supplementalGroups | list | `[]` |  |
 | podSecurityContext.fsGroup | int | `1001` |  |
 | containerSecurityContext.enabled | bool | `true` |  |
-| containerSecurityContext.seLinuxOptions | string | `nil` |  |
 | containerSecurityContext.runAsUser | int | `1001` |  |
-| containerSecurityContext.runAsGroup | int | `1001` |  |
 | containerSecurityContext.runAsNonRoot | bool | `true` |  |
-| containerSecurityContext.allowPrivilegeEscalation | bool | `false` |  |
-| containerSecurityContext.readOnlyRootFilesystem | bool | `true` |  |
-| containerSecurityContext.capabilities.drop[0] | string | `"ALL"` |  |
-| containerSecurityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
-| resourcesPreset | string | `"micro"` |  |
-| resources | object | `{}` |  |
+| resources.limits | object | `{}` |  |
+| resources.requests | object | `{}` |  |
 | livenessProbe.enabled | bool | `true` |  |
 | livenessProbe.initialDelaySeconds | int | `120` |  |
 | livenessProbe.timeoutSeconds | int | `20` |  |
@@ -1358,28 +231,24 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 | customStartupProbe | object | `{}` |  |
 | initContainers | list | `[]` |  |
 | sidecars | list | `[]` |  |
-| pdb.create | bool | `true` |  |
-| pdb.minAvailable | string | `""` |  |
+| pdb.create | bool | `false` |  |
+| pdb.minAvailable | int | `1` |  |
 | pdb.maxUnavailable | string | `""` |  |
 | serviceAccount.create | bool | `true` |  |
 | serviceAccount.name | string | `""` |  |
-| serviceAccount.automountServiceAccountToken | bool | `false` |  |
+| serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | serviceAccount.annotations | object | `{}` |  |
 | rbac.create | bool | `true` |  |
-| rbac.rules | list | `[]` |  |
 | persistence.enabled | bool | `true` |  |
 | persistence.storageClass | string | `""` |  |
 | persistence.selector | object | `{}` |  |
 | persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
 | persistence.existingClaim | string | `""` |  |
-| persistence.mountPath | string | `"/opt/bitnami/rabbitmq/.rabbitmq/mnesia"` |  |
+| persistence.mountPath | string | `"/bitnami/rabbitmq/mnesia"` |  |
 | persistence.subPath | string | `""` |  |
 | persistence.size | string | `"8Gi"` |  |
 | persistence.annotations | object | `{}` |  |
 | persistence.labels | object | `{}` |  |
-| persistentVolumeClaimRetentionPolicy.enabled | bool | `false` |  |
-| persistentVolumeClaimRetentionPolicy.whenScaled | string | `"Retain"` |  |
-| persistentVolumeClaimRetentionPolicy.whenDeleted | string | `"Retain"` |  |
 | service.type | string | `"ClusterIP"` |  |
 | service.portEnabled | bool | `true` |  |
 | service.distPortEnabled | bool | `true` |  |
@@ -1392,7 +261,7 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 | service.ports.metrics | int | `9419` |  |
 | service.ports.epmd | int | `4369` |  |
 | service.portNames.amqp | string | `"amqp"` |  |
-| service.portNames.amqpTls | string | `"amqp-tls"` |  |
+| service.portNames.amqpTls | string | `"amqp-ssl"` |  |
 | service.portNames.dist | string | `"dist"` |  |
 | service.portNames.manager | string | `"http-stats"` |  |
 | service.portNames.metrics | string | `"metrics"` |  |
@@ -1404,12 +273,9 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 | service.nodePorts.epmd | string | `""` |  |
 | service.nodePorts.metrics | string | `""` |  |
 | service.extraPorts | list | `[]` |  |
-| service.extraPortsHeadless | list | `[]` |  |
 | service.loadBalancerSourceRanges | list | `[]` |  |
-| service.allocateLoadBalancerNodePorts | bool | `true` |  |
 | service.externalIPs | list | `[]` |  |
 | service.externalTrafficPolicy | string | `"Cluster"` |  |
-| service.loadBalancerClass | string | `""` |  |
 | service.loadBalancerIP | string | `""` |  |
 | service.clusterIP | string | `""` |  |
 | service.labels | object | `{}` |  |
@@ -1432,132 +298,41 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 | ingress.secrets | list | `[]` |  |
 | ingress.ingressClassName | string | `""` |  |
 | ingress.existingSecret | string | `""` |  |
-| networkPolicy.enabled | bool | `true` |  |
-| networkPolicy.kubeAPIServerPorts[0] | int | `443` |  |
-| networkPolicy.kubeAPIServerPorts[1] | int | `6443` |  |
-| networkPolicy.kubeAPIServerPorts[2] | int | `8443` |  |
+| networkPolicy.enabled | bool | `false` |  |
 | networkPolicy.allowExternal | bool | `true` |  |
-| networkPolicy.allowExternalEgress | bool | `true` |  |
-| networkPolicy.addExternalClientAccess | bool | `true` |  |
-| networkPolicy.extraIngress | list | `[]` |  |
-| networkPolicy.extraEgress | list | `[]` |  |
-| networkPolicy.ingressPodMatchLabels | object | `{}` |  |
-| networkPolicy.ingressNSMatchLabels | object | `{}` |  |
-| networkPolicy.ingressNSPodMatchLabels | object | `{}` |  |
+| networkPolicy.additionalRules | list | `[]` |  |
 | metrics.enabled | bool | `false` |  |
 | metrics.plugins | string | `"rabbitmq_prometheus"` |  |
 | metrics.podAnnotations."prometheus.io/scrape" | string | `"true"` |  |
 | metrics.podAnnotations."prometheus.io/port" | string | `"{{ .Values.service.ports.metrics }}"` |  |
-| metrics.serviceMonitor.namespace | string | `""` |  |
-| metrics.serviceMonitor.jobLabel | string | `""` |  |
-| metrics.serviceMonitor.targetLabels | object | `{}` |  |
-| metrics.serviceMonitor.podTargetLabels | object | `{}` |  |
-| metrics.serviceMonitor.selector | object | `{}` |  |
-| metrics.serviceMonitor.labels | object | `{}` |  |
-| metrics.serviceMonitor.annotations | object | `{}` |  |
-| metrics.serviceMonitor.default.enabled | bool | `false` |  |
-| metrics.serviceMonitor.default.interval | string | `"30s"` |  |
-| metrics.serviceMonitor.default.scrapeTimeout | string | `""` |  |
-| metrics.serviceMonitor.default.relabelings | list | `[]` |  |
-| metrics.serviceMonitor.default.metricRelabelings | list | `[]` |  |
-| metrics.serviceMonitor.default.honorLabels | bool | `false` |  |
-| metrics.serviceMonitor.perObject.enabled | bool | `false` |  |
-| metrics.serviceMonitor.perObject.interval | string | `"30s"` |  |
-| metrics.serviceMonitor.perObject.scrapeTimeout | string | `""` |  |
-| metrics.serviceMonitor.perObject.relabelings | list | `[]` |  |
-| metrics.serviceMonitor.perObject.metricRelabelings | list | `[]` |  |
-| metrics.serviceMonitor.perObject.honorLabels | bool | `false` |  |
-| metrics.serviceMonitor.detailed.enabled | bool | `false` |  |
-| metrics.serviceMonitor.detailed.family | list | `[]` |  |
-| metrics.serviceMonitor.detailed.vhost | list | `[]` |  |
-| metrics.serviceMonitor.detailed.interval | string | `"30s"` |  |
-| metrics.serviceMonitor.detailed.scrapeTimeout | string | `""` |  |
-| metrics.serviceMonitor.detailed.relabelings | list | `[]` |  |
-| metrics.serviceMonitor.detailed.metricRelabelings | list | `[]` |  |
-| metrics.serviceMonitor.detailed.honorLabels | bool | `false` |  |
 | metrics.serviceMonitor.enabled | bool | `false` |  |
+| metrics.serviceMonitor.namespace | string | `""` |  |
 | metrics.serviceMonitor.interval | string | `"30s"` |  |
 | metrics.serviceMonitor.scrapeTimeout | string | `""` |  |
+| metrics.serviceMonitor.jobLabel | string | `""` |  |
 | metrics.serviceMonitor.relabelings | list | `[]` |  |
 | metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
 | metrics.serviceMonitor.honorLabels | bool | `false` |  |
+| metrics.serviceMonitor.targetLabels | object | `{}` |  |
+| metrics.serviceMonitor.podTargetLabels | object | `{}` |  |
 | metrics.serviceMonitor.path | string | `""` |  |
-| metrics.serviceMonitor.params | object | `{}` |  |
+| metrics.serviceMonitor.selector | object | `{}` |  |
+| metrics.serviceMonitor.labels | object | `{}` |  |
+| metrics.serviceMonitor.annotations | object | `{}` |  |
 | metrics.prometheusRule.enabled | bool | `false` |  |
 | metrics.prometheusRule.additionalLabels | object | `{}` |  |
 | metrics.prometheusRule.namespace | string | `""` |  |
 | metrics.prometheusRule.rules | list | `[]` |  |
 | volumePermissions.enabled | bool | `false` |  |
 | volumePermissions.image.registry | string | `"docker.io"` |  |
-| volumePermissions.image.repository | string | `"bitnami/os-shell"` |  |
-| volumePermissions.image.tag | string | `"12-debian-12-r28"` |  |
+| volumePermissions.image.repository | string | `"bitnami/bitnami-shell"` |  |
+| volumePermissions.image.tag | string | `"11-debian-11-r111"` |  |
 | volumePermissions.image.digest | string | `""` |  |
 | volumePermissions.image.pullPolicy | string | `"IfNotPresent"` |  |
 | volumePermissions.image.pullSecrets | list | `[]` |  |
-| volumePermissions.resourcesPreset | string | `"nano"` |  |
-| volumePermissions.resources | object | `{}` |  |
-| volumePermissions.containerSecurityContext.seLinuxOptions | string | `nil` |  |
+| volumePermissions.resources.limits | object | `{}` |  |
+| volumePermissions.resources.requests | object | `{}` |  |
 | volumePermissions.containerSecurityContext.runAsUser | int | `0` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-datastore
-
-![Version: 1.0.3](https://img.shields.io/badge/Version-1.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.3](https://img.shields.io/badge/AppVersion-1.0.3-informational?style=flat-square)
-
-The Security Compass datastore (Redis)
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/datastore>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://sdelements.jfrog.io/artifactory/sde-helm-dev | sc-library | 1.1.4 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| global.enableNestedDependencies | bool | `false` |  |
-| global.imageRegistry | string | `"sdelements.jfrog.io"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imageSource | string | `"sde"` |  |
-| global.imagePullPolicy | string | `"IfNotPresent"` |  |
-| replicas | int | `1` |  |
-| resources | object | `{}` |  |
-| networkPolicies.datastore.podSelector.matchLabels.name | string | `"{{ include \"datastore.deploymentName\" . }}"` |  |
-| networkPolicies.datastore.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
-| networkPolicies.datastore.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-async-worker"` |  |
-| networkPolicies.datastore.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-plugin-worker"` |  |
-| networkPolicies.datastore.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
-| networkPolicies.datastore.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
-| networkPolicies.datastore.ingress[0].selectors[5].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
-| networkPolicies.datastore.ingress[0].selectors[6].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
-| networkPolicies.datastore.ingress[0].selectors[7].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-reporting"` |  |
-| networkPolicies.datastore.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
-| networkPolicies.datastore.ingress[0].selectors[9].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
-| networkPolicies.datastore.ingress[0].selectors[10].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
-| networkPolicies.datastore.ingress[0].selectors[11].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
-| networkPolicies.datastore.ingress[0].selectors[12].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"` |  |
-| networkPolicies.datastore.ingress[0].selectors[13].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
-| networkPolicies.datastore.ingress[0].selectors[14].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"` |  |
-| networkPolicies.datastore.ingress[0].selectors[15].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"` |  |
-| networkPolicies.datastore.ingress[0].selectors[16].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"` |  |
-| networkPolicies.datastore.ingress[0].selectors[17].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"` |  |
-| networkPolicies.datastore.ingress[0].selectors[18].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"` |  |
-| networkPolicies.datastore.ingress[0].selectors[18].namespaceSelector.matchLabels."kubernetes.io/metadata.name" | string | `"{{ .Release.Namespace }}"` |  |
-| networkPolicies.datastore.ingress[0].ports[0].port | string | `"{{ include \"datastore.port\" . }}"` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
@@ -1585,179 +360,6 @@ A Library Project
 |-----|------|---------|-------------|
 | global.enabled | bool | `true` |  |
 | library.back-end | bool | `true` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# minio
-
-![Version: 5.0.7](https://img.shields.io/badge/Version-5.0.7-informational?style=flat-square) ![AppVersion: RELEASE.2023-02-10T18-48-39Z](https://img.shields.io/badge/AppVersion-RELEASE.2023--02--10T18--48--39Z-informational?style=flat-square)
-
-Multi-Cloud Object Storage
-
-**Homepage:** <https://min.io>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| MinIO, Inc | <dev@minio.io> |  |
-
-## Source Code
-
-* <https://github.com/minio/minio>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| nameOverride | string | `""` |  |
-| fullnameOverride | string | `""` |  |
-| clusterDomain | string | `"cluster.local"` |  |
-| image.repository | string | `"quay.io/minio/minio"` |  |
-| image.tag | string | `"RELEASE.2023-02-10T18-48-39Z"` |  |
-| image.pullPolicy | string | `"IfNotPresent"` |  |
-| imagePullSecrets | list | `[]` |  |
-| mcImage.repository | string | `"quay.io/minio/mc"` |  |
-| mcImage.tag | string | `"RELEASE.2023-01-28T20-29-38Z"` |  |
-| mcImage.pullPolicy | string | `"IfNotPresent"` |  |
-| mode | string | `"distributed"` |  |
-| additionalLabels | object | `{}` |  |
-| additionalAnnotations | object | `{}` |  |
-| ignoreChartChecksums | bool | `false` |  |
-| extraArgs | list | `[]` |  |
-| extraVolumes | list | `[]` |  |
-| extraVolumeMounts | list | `[]` |  |
-| extraContainers | list | `[]` |  |
-| minioAPIPort | string | `"9000"` |  |
-| minioConsolePort | string | `"9001"` |  |
-| DeploymentUpdate.type | string | `"RollingUpdate"` |  |
-| DeploymentUpdate.maxUnavailable | int | `0` |  |
-| DeploymentUpdate.maxSurge | string | `"100%"` |  |
-| StatefulSetUpdate.updateStrategy | string | `"RollingUpdate"` |  |
-| priorityClassName | string | `""` |  |
-| runtimeClassName | string | `""` |  |
-| rootUser | string | `""` |  |
-| rootPassword | string | `""` |  |
-| existingSecret | string | `""` |  |
-| certsPath | string | `"/etc/minio/certs/"` |  |
-| configPathmc | string | `"/etc/minio/mc/"` |  |
-| mountPath | string | `"/export"` |  |
-| bucketRoot | string | `""` |  |
-| drivesPerNode | int | `1` |  |
-| replicas | int | `16` |  |
-| pools | int | `1` |  |
-| tls.enabled | bool | `false` |  |
-| tls.certSecret | string | `""` |  |
-| tls.publicCrt | string | `"public.crt"` |  |
-| tls.privateKey | string | `"private.key"` |  |
-| trustedCertsSecret | string | `""` |  |
-| persistence.enabled | bool | `true` |  |
-| persistence.annotations | object | `{}` |  |
-| persistence.existingClaim | string | `""` |  |
-| persistence.storageClass | string | `""` |  |
-| persistence.VolumeName | string | `""` |  |
-| persistence.accessMode | string | `"ReadWriteOnce"` |  |
-| persistence.size | string | `"500Gi"` |  |
-| persistence.subPath | string | `""` |  |
-| service.type | string | `"ClusterIP"` |  |
-| service.clusterIP | string | `nil` |  |
-| service.port | string | `"9000"` |  |
-| service.nodePort | int | `32000` |  |
-| ingress.enabled | bool | `false` |  |
-| ingress.labels | object | `{}` |  |
-| ingress.annotations | object | `{}` |  |
-| ingress.path | string | `"/"` |  |
-| ingress.hosts[0] | string | `"minio-example.local"` |  |
-| ingress.tls | list | `[]` |  |
-| consoleService.type | string | `"ClusterIP"` |  |
-| consoleService.clusterIP | string | `nil` |  |
-| consoleService.port | string | `"9001"` |  |
-| consoleService.nodePort | int | `32001` |  |
-| consoleIngress.enabled | bool | `false` |  |
-| consoleIngress.labels | object | `{}` |  |
-| consoleIngress.annotations | object | `{}` |  |
-| consoleIngress.path | string | `"/"` |  |
-| consoleIngress.hosts[0] | string | `"console.minio-example.local"` |  |
-| consoleIngress.tls | list | `[]` |  |
-| nodeSelector | object | `{}` |  |
-| tolerations | list | `[]` |  |
-| affinity | object | `{}` |  |
-| topologySpreadConstraints | list | `[]` |  |
-| securityContext.enabled | bool | `true` |  |
-| securityContext.runAsUser | int | `1000` |  |
-| securityContext.runAsGroup | int | `1000` |  |
-| securityContext.fsGroup | int | `1000` |  |
-| securityContext.fsGroupChangePolicy | string | `"OnRootMismatch"` |  |
-| podAnnotations | object | `{}` |  |
-| podLabels | object | `{}` |  |
-| resources.requests.memory | string | `"16Gi"` |  |
-| policies | list | `[]` |  |
-| makePolicyJob.securityContext.enabled | bool | `false` |  |
-| makePolicyJob.securityContext.runAsUser | int | `1000` |  |
-| makePolicyJob.securityContext.runAsGroup | int | `1000` |  |
-| makePolicyJob.resources.requests.memory | string | `"128Mi"` |  |
-| makePolicyJob.exitCommand | string | `""` |  |
-| users[0].accessKey | string | `"console"` |  |
-| users[0].secretKey | string | `"console123"` |  |
-| users[0].policy | string | `"consoleAdmin"` |  |
-| makeUserJob.securityContext.enabled | bool | `false` |  |
-| makeUserJob.securityContext.runAsUser | int | `1000` |  |
-| makeUserJob.securityContext.runAsGroup | int | `1000` |  |
-| makeUserJob.resources.requests.memory | string | `"128Mi"` |  |
-| makeUserJob.exitCommand | string | `""` |  |
-| makeServiceAccountJob.securityContext.enabled | bool | `false` |  |
-| makeServiceAccountJob.securityContext.runAsUser | int | `1000` |  |
-| makeServiceAccountJob.securityContext.runAsGroup | int | `1000` |  |
-| makeServiceAccountJob.resources.requests.memory | string | `"128Mi"` |  |
-| makeServiceAccountJob.exitCommand | string | `""` |  |
-| buckets | string | `nil` |  |
-| makeBucketJob.securityContext.enabled | bool | `false` |  |
-| makeBucketJob.securityContext.runAsUser | int | `1000` |  |
-| makeBucketJob.securityContext.runAsGroup | int | `1000` |  |
-| makeBucketJob.resources.requests.memory | string | `"128Mi"` |  |
-| makeBucketJob.exitCommand | string | `""` |  |
-| customCommands | string | `nil` |  |
-| customCommandJob.securityContext.enabled | bool | `false` |  |
-| customCommandJob.securityContext.runAsUser | int | `1000` |  |
-| customCommandJob.securityContext.runAsGroup | int | `1000` |  |
-| customCommandJob.resources.requests.memory | string | `"128Mi"` |  |
-| customCommandJob.exitCommand | string | `""` |  |
-| postJob.podAnnotations | object | `{}` |  |
-| postJob.annotations | object | `{}` |  |
-| postJob.securityContext.enabled | bool | `false` |  |
-| postJob.securityContext.runAsUser | int | `1000` |  |
-| postJob.securityContext.runAsGroup | int | `1000` |  |
-| postJob.securityContext.fsGroup | int | `1000` |  |
-| postJob.nodeSelector | object | `{}` |  |
-| postJob.tolerations | list | `[]` |  |
-| postJob.affinity | object | `{}` |  |
-| environment | string | `nil` |  |
-| oidc.enabled | bool | `false` |  |
-| oidc.configUrl | string | `"https://identity-provider-url/.well-known/openid-configuration"` |  |
-| oidc.clientId | string | `"minio"` |  |
-| oidc.clientSecret | string | `""` |  |
-| oidc.claimName | string | `"policy"` |  |
-| oidc.scopes | string | `"openid,profile,email"` |  |
-| oidc.redirectUri | string | `"https://console-endpoint-url/oauth_callback"` |  |
-| oidc.claimPrefix | string | `""` |  |
-| oidc.comment | string | `""` |  |
-| networkPolicy.enabled | bool | `false` |  |
-| networkPolicy.allowExternal | bool | `true` |  |
-| podDisruptionBudget.enabled | bool | `false` |  |
-| podDisruptionBudget.maxUnavailable | int | `1` |  |
-| serviceAccount.create | bool | `true` |  |
-| serviceAccount.name | string | `"minio-sa"` |  |
-| metrics.serviceMonitor.enabled | bool | `false` |  |
-| metrics.serviceMonitor.includeNode | bool | `false` |  |
-| metrics.serviceMonitor.public | bool | `true` |  |
-| metrics.serviceMonitor.additionalLabels | object | `{}` |  |
-| metrics.serviceMonitor.relabelConfigs | object | `{}` |  |
-| metrics.serviceMonitor.relabelConfigsCluster | object | `{}` |  |
-| etcd.endpoints | list | `[]` |  |
-| etcd.pathPrefix | string | `""` |  |
-| etcd.corednsPathPrefix | string | `""` |  |
-| etcd.clientCert | string | `""` |  |
-| etcd.clientCertKey | string | `""` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
@@ -2270,6 +872,386 @@ PostgreSQL (Postgres) is an open source object-relational database known for rel
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# rabbitmq
+
+![Version: 14.7.0](https://img.shields.io/badge/Version-14.7.0-informational?style=flat-square) ![AppVersion: 3.13.7](https://img.shields.io/badge/AppVersion-3.13.7-informational?style=flat-square)
+
+RabbitMQ is an open source general-purpose message broker that is designed for consistent, highly-available messaging scenarios (both synchronous and asynchronous).
+
+**Homepage:** <https://bitnami.com>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Broadcom, Inc. All Rights Reserved. |  | <https://github.com/bitnami/charts> |
+
+## Source Code
+
+* <https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| oci://registry-1.docker.io/bitnamicharts | common | 2.x.x |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.imageRegistry | string | `""` |  |
+| global.imagePullSecrets | list | `[]` |  |
+| global.defaultStorageClass | string | `""` |  |
+| global.storageClass | string | `""` |  |
+| global.compatibility.openshift.adaptSecurityContext | string | `"auto"` |  |
+| image.registry | string | `"docker.io"` |  |
+| image.repository | string | `"bitnami/rabbitmq"` |  |
+| image.tag | string | `"3.13.7-debian-12-r2"` |  |
+| image.digest | string | `""` |  |
+| image.debug | bool | `false` |  |
+| image.pullPolicy | string | `"IfNotPresent"` |  |
+| image.pullSecrets | list | `[]` |  |
+| nameOverride | string | `""` |  |
+| fullnameOverride | string | `""` |  |
+| namespaceOverride | string | `""` |  |
+| kubeVersion | string | `""` |  |
+| clusterDomain | string | `"cluster.local"` |  |
+| extraDeploy | list | `[]` |  |
+| commonAnnotations | object | `{}` |  |
+| servicenameOverride | string | `""` |  |
+| commonLabels | object | `{}` |  |
+| serviceBindings.enabled | bool | `false` |  |
+| enableServiceLinks | bool | `true` |  |
+| diagnosticMode.enabled | bool | `false` |  |
+| diagnosticMode.command[0] | string | `"sleep"` |  |
+| diagnosticMode.args[0] | string | `"infinity"` |  |
+| automountServiceAccountToken | bool | `false` |  |
+| hostAliases | list | `[]` |  |
+| dnsPolicy | string | `""` |  |
+| dnsConfig | object | `{}` |  |
+| auth.username | string | `"user"` |  |
+| auth.password | string | `""` |  |
+| auth.securePassword | bool | `true` |  |
+| auth.existingPasswordSecret | string | `""` |  |
+| auth.existingSecretPasswordKey | string | `""` |  |
+| auth.enableLoopbackUser | bool | `false` |  |
+| auth.erlangCookie | string | `""` |  |
+| auth.existingErlangSecret | string | `""` |  |
+| auth.existingSecretErlangKey | string | `""` |  |
+| auth.tls.enabled | bool | `false` |  |
+| auth.tls.autoGenerated | bool | `false` |  |
+| auth.tls.failIfNoPeerCert | bool | `true` |  |
+| auth.tls.sslOptionsVerify | string | `"verify_peer"` |  |
+| auth.tls.sslOptionsPassword.enabled | bool | `false` |  |
+| auth.tls.sslOptionsPassword.existingSecret | string | `""` |  |
+| auth.tls.sslOptionsPassword.key | string | `""` |  |
+| auth.tls.sslOptionsPassword.password | string | `""` |  |
+| auth.tls.caCertificate | string | `""` |  |
+| auth.tls.serverCertificate | string | `""` |  |
+| auth.tls.serverKey | string | `""` |  |
+| auth.tls.existingSecret | string | `""` |  |
+| auth.tls.existingSecretFullChain | bool | `false` |  |
+| auth.tls.overrideCaCertificate | string | `""` |  |
+| logs | string | `"-"` |  |
+| ulimitNofiles | string | `"65535"` |  |
+| maxAvailableSchedulers | string | `""` |  |
+| onlineSchedulers | string | `""` |  |
+| memoryHighWatermark.enabled | bool | `false` |  |
+| memoryHighWatermark.type | string | `"relative"` |  |
+| memoryHighWatermark.value | float | `0.4` |  |
+| plugins | string | `"rabbitmq_management rabbitmq_peer_discovery_k8s"` |  |
+| queue_master_locator | string | `"min-masters"` |  |
+| communityPlugins | string | `""` |  |
+| extraPlugins | string | `"rabbitmq_auth_backend_ldap"` |  |
+| clustering.enabled | bool | `true` |  |
+| clustering.name | string | `""` |  |
+| clustering.addressType | string | `"hostname"` |  |
+| clustering.rebalance | bool | `false` |  |
+| clustering.forceBoot | bool | `false` |  |
+| clustering.partitionHandling | string | `"autoheal"` |  |
+| loadDefinition.enabled | bool | `false` |  |
+| loadDefinition.file | string | `"/app/load_definition.json"` |  |
+| loadDefinition.existingSecret | string | `""` |  |
+| command | list | `[]` |  |
+| args | list | `[]` |  |
+| lifecycleHooks | object | `{}` |  |
+| terminationGracePeriodSeconds | int | `120` |  |
+| extraEnvVars | list | `[]` |  |
+| extraEnvVarsCM | string | `""` |  |
+| extraEnvVarsSecret | string | `""` |  |
+| containerPorts.amqp | int | `5672` |  |
+| containerPorts.amqpTls | int | `5671` |  |
+| containerPorts.dist | int | `25672` |  |
+| containerPorts.manager | int | `15672` |  |
+| containerPorts.epmd | int | `4369` |  |
+| containerPorts.metrics | int | `9419` |  |
+| initScripts | object | `{}` |  |
+| initScriptsCM | string | `""` |  |
+| initScriptsSecret | string | `""` |  |
+| extraContainerPorts | list | `[]` |  |
+| tcpListenOptions.backlog | int | `128` |  |
+| tcpListenOptions.nodelay | bool | `true` |  |
+| tcpListenOptions.linger.lingerOn | bool | `true` |  |
+| tcpListenOptions.linger.timeout | int | `0` |  |
+| tcpListenOptions.keepalive | bool | `false` |  |
+| configuration | string | `"## Username and password\ndefault_user = {{ .Values.auth.username }}\n{{- if and (not .Values.auth.securePassword) .Values.auth.password }}\ndefault_pass = {{ .Values.auth.password }}\n{{- end }}\n{{- if .Values.clustering.enabled }}\n## Clustering\n##\ncluster_name = {{ default (include \"common.names.fullname\" .) .Values.clustering.name }}\ncluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s\ncluster_formation.k8s.host = kubernetes.default\ncluster_formation.k8s.address_type = {{ .Values.clustering.addressType }}\n{{- $svcName := printf \"%s-%s\" (include \"common.names.fullname\" .) (default \"headless\" .Values.servicenameOverride) }}\ncluster_formation.k8s.service_name = {{ $svcName }}\ncluster_formation.k8s.hostname_suffix = .{{ $svcName }}.{{ include \"common.names.namespace\" . }}.svc.{{ .Values.clusterDomain }}\ncluster_formation.node_cleanup.interval = 10\ncluster_formation.node_cleanup.only_log_warning = true\ncluster_partition_handling = {{ .Values.clustering.partitionHandling }}\n{{- end }}\n{{ if and .Values.clustering.enabled .Values.loadDefinition.enabled }}\ncluster_formation.target_cluster_size_hint = {{ .Values.replicaCount }}\n{{ end }}\n{{- if .Values.loadDefinition.enabled }}\nload_definitions = {{ .Values.loadDefinition.file }}\n{{- end }}\n# queue master locator\nqueue_master_locator = {{ .Values.queue_master_locator }}\n# enable loopback user\n{{- if not (empty .Values.auth.username) }}\nloopback_users.{{ .Values.auth.username }} = {{ .Values.auth.enableLoopbackUser }}\n{{- else}}\nloopback_users.guest = {{ .Values.auth.enableLoopbackUser }}\n{{- end }}\n{{ template \"rabbitmq.extraConfiguration\" . }}\n{{- if .Values.auth.tls.enabled }}\nssl_options.verify = {{ .Values.auth.tls.sslOptionsVerify }}\nlisteners.ssl.default = {{ .Values.service.ports.amqpTls }}\nssl_options.fail_if_no_peer_cert = {{ .Values.auth.tls.failIfNoPeerCert }}\nssl_options.cacertfile = /opt/bitnami/rabbitmq/certs/ca_certificate.pem\nssl_options.certfile = /opt/bitnami/rabbitmq/certs/server_certificate.pem\nssl_options.keyfile = /opt/bitnami/rabbitmq/certs/server_key.pem\n{{- if .Values.auth.tls.sslOptionsPassword.enabled }}\nssl_options.password = {{ template \"rabbitmq.tlsSslOptionsPassword\" . }}\n{{- end }}\n{{- end }}\n{{- if .Values.ldap.enabled }}\nauth_backends.1.authn = ldap\nauth_backends.1.authz = {{ ternary \"ldap\" \"internal\" .Values.ldap.authorisationEnabled }}\nauth_backends.2 = internal\n{{- $host :=  list }}\n{{- $port :=  ternary 636 389 .Values.ldap.tls.enabled }}\n{{- if .Values.ldap.uri }}\n{{- $hostPort := get (urlParse .Values.ldap.uri) \"host\" }}\n{{- $host = list (index (splitList \":\" $hostPort) 0) -}}\n{{- if (contains \":\" $hostPort) }}\n{{- $port = index (splitList \":\" $hostPort) 1 -}}\n{{- end }}\n{{- end }}\n{{- range $index, $server := concat $host .Values.ldap.servers }}\nauth_ldap.servers.{{ add $index 1 }} = {{ $server }}\n{{- end }}\nauth_ldap.port = {{ coalesce .Values.ldap.port $port }}\n{{- if or .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\nauth_ldap.user_dn_pattern = {{ coalesce .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\n{{- end }}\n{{- if .Values.ldap.basedn }}\nauth_ldap.dn_lookup_base = {{ .Values.ldap.basedn }}\n{{- end }}\n{{- if .Values.ldap.uidField }}\nauth_ldap.dn_lookup_attribute = {{ .Values.ldap.uidField }}\n{{- end }}\n{{- if .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.user_dn = {{ .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.password = {{ required \"'ldap.bindpw' is required when 'ldap.binddn' is defined\" .Values.ldap.bindpw }}\n{{- end }}\n{{- if .Values.ldap.tls.enabled }}\nauth_ldap.use_ssl = {{ not .Values.ldap.tls.startTls }}\nauth_ldap.use_starttls = {{ .Values.ldap.tls.startTls }}\n{{- if .Values.ldap.tls.CAFilename }}\nauth_ldap.ssl_options.cacertfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.CAFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.certfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.keyfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ required \"'ldap.tls.certKeyFilename' is required when 'ldap.tls.certFilename' is defined\" .Values.ldap.tls.certKeyFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.skipVerify }}\nauth_ldap.ssl_options.verify = verify_none\nauth_ldap.ssl_options.fail_if_no_peer_cert = false\n{{- else if .Values.ldap.tls.verify }}\nauth_ldap.ssl_options.verify = {{ .Values.ldap.tls.verify }}\n{{- end }}\n{{- end }}\n{{- end }}\n## Prometheus metrics\n##\nprometheus.tcp.port = {{ .Values.containerPorts.metrics }}\n{{- if .Values.memoryHighWatermark.enabled }}\n## Memory Threshold\n##\ntotal_memory_available_override_value = {{ include \"rabbitmq.toBytes\" (dig \"limits\" \"memory\" \"\" .Values.resources) }}\n{{- if (eq .Values.memoryHighWatermark.type \"absolute\") }}\nvm_memory_high_watermark.{{ .Values.memoryHighWatermark.type }} = {{ include \"rabbitmq.toBytes\" .Values.memoryHighWatermark.value }}\n{{- else if (eq .Values.memoryHighWatermark.type \"relative\") }}\nvm_memory_high_watermark.{{ .Values.memoryHighWatermark.type }} = {{ .Values.memoryHighWatermark.value }}\n{{- end }}\n## TCP Listen Options\n##\ntcp_listen_options.backlog = {{ .Values.tcpListenOptions.backlog }}\ntcp_listen_options.nodelay = {{ .Values.tcpListenOptions.nodelay }}\ntcp_listen_options.linger.on      = {{ .Values.tcpListenOptions.linger.lingerOn }}\ntcp_listen_options.linger.timeout = {{ .Values.tcpListenOptions.linger.timeout }}\ntcp_listen_options.keepalive = {{ .Values.tcpListenOptions.keepalive }}\n{{- end }}"` |  |
+| configurationExistingSecret | string | `""` |  |
+| extraConfiguration | string | `"#default_vhost = {{ .Release.Namespace }}-vhost\n#disk_free_limit.absolute = 50MB"` |  |
+| extraConfigurationExistingSecret | string | `""` |  |
+| advancedConfiguration | string | `""` |  |
+| advancedConfigurationExistingSecret | string | `""` |  |
+| featureFlags | string | `""` |  |
+| ldap.enabled | bool | `false` |  |
+| ldap.uri | string | `""` |  |
+| ldap.servers | list | `[]` |  |
+| ldap.port | string | `""` |  |
+| ldap.userDnPattern | string | `""` |  |
+| ldap.binddn | string | `""` |  |
+| ldap.bindpw | string | `""` |  |
+| ldap.basedn | string | `""` |  |
+| ldap.uidField | string | `""` |  |
+| ldap.authorisationEnabled | bool | `false` |  |
+| ldap.tls.enabled | bool | `false` |  |
+| ldap.tls.startTls | bool | `false` |  |
+| ldap.tls.skipVerify | bool | `false` |  |
+| ldap.tls.verify | string | `"verify_peer"` |  |
+| ldap.tls.certificatesMountPath | string | `"/opt/bitnami/rabbitmq/ldap/certs"` |  |
+| ldap.tls.certificatesSecret | string | `""` |  |
+| ldap.tls.CAFilename | string | `""` |  |
+| ldap.tls.certFilename | string | `""` |  |
+| ldap.tls.certKeyFilename | string | `""` |  |
+| extraVolumeMounts | list | `[]` |  |
+| extraVolumes | list | `[]` |  |
+| extraSecrets | object | `{}` |  |
+| extraSecretsPrependReleaseName | bool | `false` |  |
+| replicaCount | int | `1` |  |
+| schedulerName | string | `""` |  |
+| podManagementPolicy | string | `"OrderedReady"` |  |
+| podLabels | object | `{}` |  |
+| podAnnotations | object | `{}` |  |
+| updateStrategy.type | string | `"RollingUpdate"` |  |
+| statefulsetLabels | object | `{}` |  |
+| statefulsetAnnotations | object | `{}` |  |
+| priorityClassName | string | `""` |  |
+| podAffinityPreset | string | `""` |  |
+| podAntiAffinityPreset | string | `"soft"` |  |
+| nodeAffinityPreset.type | string | `""` |  |
+| nodeAffinityPreset.key | string | `""` |  |
+| nodeAffinityPreset.values | list | `[]` |  |
+| affinity | object | `{}` |  |
+| nodeSelector | object | `{}` |  |
+| tolerations | list | `[]` |  |
+| topologySpreadConstraints | list | `[]` |  |
+| podSecurityContext.enabled | bool | `true` |  |
+| podSecurityContext.fsGroupChangePolicy | string | `"Always"` |  |
+| podSecurityContext.sysctls | list | `[]` |  |
+| podSecurityContext.supplementalGroups | list | `[]` |  |
+| podSecurityContext.fsGroup | int | `1001` |  |
+| containerSecurityContext.enabled | bool | `true` |  |
+| containerSecurityContext.seLinuxOptions | string | `nil` |  |
+| containerSecurityContext.runAsUser | int | `1001` |  |
+| containerSecurityContext.runAsGroup | int | `1001` |  |
+| containerSecurityContext.runAsNonRoot | bool | `true` |  |
+| containerSecurityContext.allowPrivilegeEscalation | bool | `false` |  |
+| containerSecurityContext.readOnlyRootFilesystem | bool | `true` |  |
+| containerSecurityContext.capabilities.drop[0] | string | `"ALL"` |  |
+| containerSecurityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
+| resourcesPreset | string | `"micro"` |  |
+| resources | object | `{}` |  |
+| livenessProbe.enabled | bool | `true` |  |
+| livenessProbe.initialDelaySeconds | int | `120` |  |
+| livenessProbe.timeoutSeconds | int | `20` |  |
+| livenessProbe.periodSeconds | int | `30` |  |
+| livenessProbe.failureThreshold | int | `6` |  |
+| livenessProbe.successThreshold | int | `1` |  |
+| readinessProbe.enabled | bool | `true` |  |
+| readinessProbe.initialDelaySeconds | int | `10` |  |
+| readinessProbe.timeoutSeconds | int | `20` |  |
+| readinessProbe.periodSeconds | int | `30` |  |
+| readinessProbe.failureThreshold | int | `3` |  |
+| readinessProbe.successThreshold | int | `1` |  |
+| startupProbe.enabled | bool | `false` |  |
+| startupProbe.initialDelaySeconds | int | `10` |  |
+| startupProbe.timeoutSeconds | int | `20` |  |
+| startupProbe.periodSeconds | int | `30` |  |
+| startupProbe.failureThreshold | int | `3` |  |
+| startupProbe.successThreshold | int | `1` |  |
+| customLivenessProbe | object | `{}` |  |
+| customReadinessProbe | object | `{}` |  |
+| customStartupProbe | object | `{}` |  |
+| initContainers | list | `[]` |  |
+| sidecars | list | `[]` |  |
+| pdb.create | bool | `true` |  |
+| pdb.minAvailable | string | `""` |  |
+| pdb.maxUnavailable | string | `""` |  |
+| serviceAccount.create | bool | `true` |  |
+| serviceAccount.name | string | `""` |  |
+| serviceAccount.automountServiceAccountToken | bool | `false` |  |
+| serviceAccount.annotations | object | `{}` |  |
+| rbac.create | bool | `true` |  |
+| rbac.rules | list | `[]` |  |
+| persistence.enabled | bool | `true` |  |
+| persistence.storageClass | string | `""` |  |
+| persistence.selector | object | `{}` |  |
+| persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| persistence.existingClaim | string | `""` |  |
+| persistence.mountPath | string | `"/opt/bitnami/rabbitmq/.rabbitmq/mnesia"` |  |
+| persistence.subPath | string | `""` |  |
+| persistence.size | string | `"8Gi"` |  |
+| persistence.annotations | object | `{}` |  |
+| persistence.labels | object | `{}` |  |
+| persistentVolumeClaimRetentionPolicy.enabled | bool | `false` |  |
+| persistentVolumeClaimRetentionPolicy.whenScaled | string | `"Retain"` |  |
+| persistentVolumeClaimRetentionPolicy.whenDeleted | string | `"Retain"` |  |
+| service.type | string | `"ClusterIP"` |  |
+| service.portEnabled | bool | `true` |  |
+| service.distPortEnabled | bool | `true` |  |
+| service.managerPortEnabled | bool | `true` |  |
+| service.epmdPortEnabled | bool | `true` |  |
+| service.ports.amqp | int | `5672` |  |
+| service.ports.amqpTls | int | `5671` |  |
+| service.ports.dist | int | `25672` |  |
+| service.ports.manager | int | `15672` |  |
+| service.ports.metrics | int | `9419` |  |
+| service.ports.epmd | int | `4369` |  |
+| service.portNames.amqp | string | `"amqp"` |  |
+| service.portNames.amqpTls | string | `"amqp-tls"` |  |
+| service.portNames.dist | string | `"dist"` |  |
+| service.portNames.manager | string | `"http-stats"` |  |
+| service.portNames.metrics | string | `"metrics"` |  |
+| service.portNames.epmd | string | `"epmd"` |  |
+| service.nodePorts.amqp | string | `""` |  |
+| service.nodePorts.amqpTls | string | `""` |  |
+| service.nodePorts.dist | string | `""` |  |
+| service.nodePorts.manager | string | `""` |  |
+| service.nodePorts.epmd | string | `""` |  |
+| service.nodePorts.metrics | string | `""` |  |
+| service.extraPorts | list | `[]` |  |
+| service.extraPortsHeadless | list | `[]` |  |
+| service.loadBalancerSourceRanges | list | `[]` |  |
+| service.allocateLoadBalancerNodePorts | bool | `true` |  |
+| service.externalIPs | list | `[]` |  |
+| service.externalTrafficPolicy | string | `"Cluster"` |  |
+| service.loadBalancerClass | string | `""` |  |
+| service.loadBalancerIP | string | `""` |  |
+| service.clusterIP | string | `""` |  |
+| service.labels | object | `{}` |  |
+| service.annotations | object | `{}` |  |
+| service.annotationsHeadless | object | `{}` |  |
+| service.headless.annotations | object | `{}` |  |
+| service.sessionAffinity | string | `"None"` |  |
+| service.sessionAffinityConfig | object | `{}` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.path | string | `"/"` |  |
+| ingress.pathType | string | `"ImplementationSpecific"` |  |
+| ingress.hostname | string | `"rabbitmq.local"` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.tls | bool | `false` |  |
+| ingress.selfSigned | bool | `false` |  |
+| ingress.extraHosts | list | `[]` |  |
+| ingress.extraPaths | list | `[]` |  |
+| ingress.extraRules | list | `[]` |  |
+| ingress.extraTls | list | `[]` |  |
+| ingress.secrets | list | `[]` |  |
+| ingress.ingressClassName | string | `""` |  |
+| ingress.existingSecret | string | `""` |  |
+| networkPolicy.enabled | bool | `true` |  |
+| networkPolicy.kubeAPIServerPorts[0] | int | `443` |  |
+| networkPolicy.kubeAPIServerPorts[1] | int | `6443` |  |
+| networkPolicy.kubeAPIServerPorts[2] | int | `8443` |  |
+| networkPolicy.allowExternal | bool | `true` |  |
+| networkPolicy.allowExternalEgress | bool | `true` |  |
+| networkPolicy.addExternalClientAccess | bool | `true` |  |
+| networkPolicy.extraIngress | list | `[]` |  |
+| networkPolicy.extraEgress | list | `[]` |  |
+| networkPolicy.ingressPodMatchLabels | object | `{}` |  |
+| networkPolicy.ingressNSMatchLabels | object | `{}` |  |
+| networkPolicy.ingressNSPodMatchLabels | object | `{}` |  |
+| metrics.enabled | bool | `false` |  |
+| metrics.plugins | string | `"rabbitmq_prometheus"` |  |
+| metrics.podAnnotations."prometheus.io/scrape" | string | `"true"` |  |
+| metrics.podAnnotations."prometheus.io/port" | string | `"{{ .Values.service.ports.metrics }}"` |  |
+| metrics.serviceMonitor.namespace | string | `""` |  |
+| metrics.serviceMonitor.jobLabel | string | `""` |  |
+| metrics.serviceMonitor.targetLabels | object | `{}` |  |
+| metrics.serviceMonitor.podTargetLabels | object | `{}` |  |
+| metrics.serviceMonitor.selector | object | `{}` |  |
+| metrics.serviceMonitor.labels | object | `{}` |  |
+| metrics.serviceMonitor.annotations | object | `{}` |  |
+| metrics.serviceMonitor.default.enabled | bool | `false` |  |
+| metrics.serviceMonitor.default.interval | string | `"30s"` |  |
+| metrics.serviceMonitor.default.scrapeTimeout | string | `""` |  |
+| metrics.serviceMonitor.default.relabelings | list | `[]` |  |
+| metrics.serviceMonitor.default.metricRelabelings | list | `[]` |  |
+| metrics.serviceMonitor.default.honorLabels | bool | `false` |  |
+| metrics.serviceMonitor.perObject.enabled | bool | `false` |  |
+| metrics.serviceMonitor.perObject.interval | string | `"30s"` |  |
+| metrics.serviceMonitor.perObject.scrapeTimeout | string | `""` |  |
+| metrics.serviceMonitor.perObject.relabelings | list | `[]` |  |
+| metrics.serviceMonitor.perObject.metricRelabelings | list | `[]` |  |
+| metrics.serviceMonitor.perObject.honorLabels | bool | `false` |  |
+| metrics.serviceMonitor.detailed.enabled | bool | `false` |  |
+| metrics.serviceMonitor.detailed.family | list | `[]` |  |
+| metrics.serviceMonitor.detailed.vhost | list | `[]` |  |
+| metrics.serviceMonitor.detailed.interval | string | `"30s"` |  |
+| metrics.serviceMonitor.detailed.scrapeTimeout | string | `""` |  |
+| metrics.serviceMonitor.detailed.relabelings | list | `[]` |  |
+| metrics.serviceMonitor.detailed.metricRelabelings | list | `[]` |  |
+| metrics.serviceMonitor.detailed.honorLabels | bool | `false` |  |
+| metrics.serviceMonitor.enabled | bool | `false` |  |
+| metrics.serviceMonitor.interval | string | `"30s"` |  |
+| metrics.serviceMonitor.scrapeTimeout | string | `""` |  |
+| metrics.serviceMonitor.relabelings | list | `[]` |  |
+| metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
+| metrics.serviceMonitor.honorLabels | bool | `false` |  |
+| metrics.serviceMonitor.path | string | `""` |  |
+| metrics.serviceMonitor.params | object | `{}` |  |
+| metrics.prometheusRule.enabled | bool | `false` |  |
+| metrics.prometheusRule.additionalLabels | object | `{}` |  |
+| metrics.prometheusRule.namespace | string | `""` |  |
+| metrics.prometheusRule.rules | list | `[]` |  |
+| volumePermissions.enabled | bool | `false` |  |
+| volumePermissions.image.registry | string | `"docker.io"` |  |
+| volumePermissions.image.repository | string | `"bitnami/os-shell"` |  |
+| volumePermissions.image.tag | string | `"12-debian-12-r28"` |  |
+| volumePermissions.image.digest | string | `""` |  |
+| volumePermissions.image.pullPolicy | string | `"IfNotPresent"` |  |
+| volumePermissions.image.pullSecrets | list | `[]` |  |
+| volumePermissions.resourcesPreset | string | `"nano"` |  |
+| volumePermissions.resources | object | `{}` |  |
+| volumePermissions.containerSecurityContext.seLinuxOptions | string | `nil` |  |
+| volumePermissions.containerSecurityContext.runAsUser | int | `0` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-library
+
+![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
+
+A Library Project
+
+**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/library>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| library.back-end | bool | `true` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 # tenant
 
 ![Version: 5.0.12](https://img.shields.io/badge/Version-5.0.12-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v5.0.12](https://img.shields.io/badge/AppVersion-v5.0.12-informational?style=flat-square)
@@ -2368,354 +1350,9 @@ A Helm chart for MinIO Operator
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# pas-api
-
-![Version: 2.0.6](https://img.shields.io/badge/Version-2.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.6](https://img.shields.io/badge/AppVersion-2.0.6-informational?style=flat-square)
-
-SD Elements PAS API Service
-
-**Homepage:** <https://docker.sdelements.com>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <sdesupport@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/sd-elements/management_command_system>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://charts.bitnami.com/bitnami | rabbitmq | 11.14.4 |
-| https://charts.min.io/ | minio | 5.0.14 |
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-database | 1.3.6 |
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-datastore | 1.0.3 |
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageRegistryUsername | string | `"acmecorp"` |  |
-| global.imageRegistryPassword | string | `"SuperSecretPassword"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imageSource | string | `"sde"` |  |
-| global.imagePullPolicy | string | `"IfNotPresent"` |  |
-| global.useSubcharts | bool | `false` |  |
-| global.pas.broker | object | `{}` |  |
-| global.pas.database | object | `{}` |  |
-| global.pas.sharedStorage | object | `{}` |  |
-| global.pas.datastore | object | `{}` |  |
-| global.database | object | `{}` |  |
-| global.broker.adminVhost | string | `"rabbit"` |  |
-| global.sharedStorage | object | `{}` |  |
-| global.datastore | object | `{}` |  |
-| global.thirdPartyCACertificates.enabled | bool | `false` |  |
-| sc-database | object | `{}` |  |
-| broker | object | `{}` |  |
-| rabbitmq.nameOverride | string | `"broker"` |  |
-| rabbitmq.image.repository | string | `"sde-docker-prod/sde/rabbitmq"` |  |
-| rabbitmq.auth.username | string | `"rabbit"` |  |
-| rabbitmq.extraConfiguration | string | `"default_vhost = {{ .Values.global.broker.adminVhost }}"` |  |
-| rabbitmq.resources.requests.cpu | string | `"10m"` |  |
-| rabbitmq.resources.requests.memory | string | `"150Mi"` |  |
-| rabbitmq.resources.limits.cpu | int | `2` |  |
-| rabbitmq.resources.limits.memory | string | `"2048Mi"` |  |
-| minio.enabled | bool | `false` |  |
-| minio.mode | string | `"standalone"` |  |
-| minio.persistence.size | string | `"8Gi"` |  |
-| minio.resources.requests.memory | string | `"256Mi"` |  |
-| minio.buckets[0].name | string | `"plugin"` |  |
-| minio.buckets[0].policy | string | `"none"` |  |
-| minio.buckets[0].purge | bool | `false` |  |
-| minio.serviceAccount.create | bool | `true` |  |
-| minio.serviceAccount.name | string | `"minio-sa"` |  |
-| useDatabaseSubchart | bool | `true` |  |
-| useBrokerSubchart | bool | `true` |  |
-| useDatastoreSubchart | bool | `true` |  |
-| includeSDESecret | bool | `true` |  |
-| useLocalDevDbConfig | bool | `true` |  |
-| sdeAPIServiceMethod | string | `"http"` |  |
-| admin.database | object | `{}` |  |
-| admin.broker | object | `{}` |  |
-| database | object | `{}` |  |
-| sde.broker | object | `{}` |  |
-| sharedStorage | object | `{}` |  |
-| networkPolicies.pas-api.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
-| networkPolicies.pas-api.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-frontend"` |  |
-| networkPolicies.pas-api.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
-| networkPolicies.pas-api.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
-| networkPolicies.pas-api.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
-| networkPolicies.pas-api.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
-| networkPolicies.pas-api.ingress[0].selectors[5].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
-| networkPolicies.pas-api.ingress[0].selectors[6].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
-| networkPolicies.pas-api.ingress[0].selectors[7].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
-| networkPolicies.pas-api.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
-| networkPolicies.pas-api.ingress[0].ports[0].port | string | `"{{ index .Values \"port\" | default 8000 }}"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# pas-async-worker
-
-![Version: 2.0.6](https://img.shields.io/badge/Version-2.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.6](https://img.shields.io/badge/AppVersion-2.0.6-informational?style=flat-square)
-
-SD Elements PAS Async Worker Service
-
-**Homepage:** <https://docker.sdelements.com>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <sdesupport@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/sd-elements/management_command_system>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://charts.bitnami.com/bitnami | rabbitmq | 11.14.4 |
-| https://charts.min.io/ | minio | 5.0.7 |
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-database | 1.3.5 |
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-datastore | 1.0.2 |
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageRegistryUsername | string | `"acmecorp"` |  |
-| global.imageRegistryPassword | string | `"SuperSecretPassword"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imageSource | string | `"sde"` |  |
-| global.imagePullPolicy | string | `"IfNotPresent"` |  |
-| global.pas.broker | object | `{}` |  |
-| global.pas.database | object | `{}` |  |
-| global.pas.sharedStorage | object | `{}` |  |
-| global.pas.datastore | object | `{}` |  |
-| global.database.adminClientUser | string | `"sde"` |  |
-| global.broker.adminVhost | string | `"sde"` |  |
-| global.sharedStorage | object | `{}` |  |
-| global.datastore | object | `{}` |  |
-| global.thirdPartyCACertificates.enabled | bool | `false` |  |
-| useBrokerSubchart | bool | `true` |  |
-| useDatabaseSubchart | bool | `true` |  |
-| minio.enabled | bool | `false` |  |
-| datastore.enabled | bool | `false` |  |
-| useLocalDevDbConfig | bool | `true` |  |
-| resultBackend | string | `"rpc://"` |  |
-| rabbitmq.nameOverride | string | `"broker"` |  |
-| rabbitmq.image.repository | string | `"sde-docker-prod/sde/rabbitmq"` |  |
-| rabbitmq.tls | object | `{}` |  |
-| rabbitmq.auth.username | string | `"rabbit"` |  |
-| rabbitmq.extraConfiguration | string | `"default_vhost = {{ .Values.global.broker.adminVhost }}"` |  |
-| rabbitmq.resources.requests.cpu | string | `"10m"` |  |
-| rabbitmq.resources.requests.memory | string | `"150Mi"` |  |
-| rabbitmq.resources.limits.cpu | int | `2` |  |
-| rabbitmq.resources.limits.memory | string | `"2048Mi"` |  |
-| database | object | `{}` |  |
-| broker | object | `{}` |  |
-| sharedStorage | object | `{}` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# pas-frontend
-
-![Version: 2.0.6](https://img.shields.io/badge/Version-2.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.6](https://img.shields.io/badge/AppVersion-2.0.6-informational?style=flat-square)
-
-PAS frontend nginx container
-
-**Homepage:** <https://docker.sdelements.com>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <sdesupport@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/sd-elements/management_command_system>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageRegistryUsername | string | `"acmecorp"` |  |
-| global.imageRegistryPassword | string | `"SuperSecretPassword"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imagePullPolicy | string | `"IfNotPresent"` |  |
-| global.imageSource | string | `"sde/pas"` |  |
-| global.pas | object | `{}` |  |
-| networkPolicies.pas-frontend.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-frontend"` |  |
-| networkPolicies.pas-frontend.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-web"` |  |
-| networkPolicies.pas-frontend.ingress[0].ports[0].port | string | `"{{ index .Values \"port\" | int | default 8081 }}"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# common
-
-![Version: 2.2.4](https://img.shields.io/badge/Version-2.2.4-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square) ![AppVersion: 2.2.4](https://img.shields.io/badge/AppVersion-2.2.4-informational?style=flat-square)
-
-A Library Helm Chart for grouping common logic between bitnami charts. This chart is not deployable by itself.
-
-**Homepage:** <https://github.com/bitnami/charts/tree/main/bitnami/common>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Bitnami |  | <https://github.com/bitnami/charts> |
-
-## Source Code
-
-* <https://github.com/bitnami/charts>
-* <https://www.bitnami.com/>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| exampleValue | string | `"common-chart"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-datastore
-
-![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.2](https://img.shields.io/badge/AppVersion-1.0.2-informational?style=flat-square)
-
-The Security Compass datastore (Redis)
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/datastore>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://sdelements.jfrog.io/artifactory/sde-helm-dev | sc-library | 1.1.4 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| global.enableNestedDependencies | bool | `false` |  |
-| global.imageRegistry | string | `"sdelements.jfrog.io"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imageSource | string | `"sde"` |  |
-| global.imagePullPolicy | string | `"IfNotPresent"` |  |
-| replicas | int | `1` |  |
-| resources | object | `{}` |  |
-| networkPolicies.datastore.podSelector.matchLabels.name | string | `"{{ include \"datastore.deploymentName\" . }}"` |  |
-| networkPolicies.datastore.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
-| networkPolicies.datastore.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-async-worker"` |  |
-| networkPolicies.datastore.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-plugin-worker"` |  |
-| networkPolicies.datastore.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
-| networkPolicies.datastore.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
-| networkPolicies.datastore.ingress[0].selectors[5].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
-| networkPolicies.datastore.ingress[0].selectors[6].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
-| networkPolicies.datastore.ingress[0].selectors[7].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-reporting"` |  |
-| networkPolicies.datastore.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
-| networkPolicies.datastore.ingress[0].selectors[9].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
-| networkPolicies.datastore.ingress[0].selectors[10].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
-| networkPolicies.datastore.ingress[0].selectors[11].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
-| networkPolicies.datastore.ingress[0].selectors[12].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"` |  |
-| networkPolicies.datastore.ingress[0].selectors[13].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
-| networkPolicies.datastore.ingress[0].selectors[14].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"` |  |
-| networkPolicies.datastore.ingress[0].selectors[15].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"` |  |
-| networkPolicies.datastore.ingress[0].selectors[16].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"` |  |
-| networkPolicies.datastore.ingress[0].selectors[17].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"` |  |
-| networkPolicies.datastore.ingress[0].selectors[18].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"` |  |
-| networkPolicies.datastore.ingress[0].selectors[18].namespaceSelector.matchLabels."kubernetes.io/metadata.name" | string | `"{{ .Release.Namespace }}"` |  |
-| networkPolicies.datastore.ingress[0].ports[0].port | string | `"{{ include \"datastore.port\" . }}"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# common
-
-![Version: 2.22.0](https://img.shields.io/badge/Version-2.22.0-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square) ![AppVersion: 2.22.0](https://img.shields.io/badge/AppVersion-2.22.0-informational?style=flat-square)
-
-A Library Helm Chart for grouping common logic between bitnami charts. This chart is not deployable by itself.
-
-**Homepage:** <https://bitnami.com>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Broadcom, Inc. All Rights Reserved. |  | <https://github.com/bitnami/charts> |
-
-## Source Code
-
-* <https://github.com/bitnami/charts/tree/main/bitnami/common>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| exampleValue | string | `"common-chart"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# sc-library
-
-![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
-
-A Library Project
-
-**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/deployment/containers/library>
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.enabled | bool | `true` |  |
-| library.back-end | bool | `true` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 # sde
 
-![Version: 2024.4.38-bb.2](https://img.shields.io/badge/Version-2024.4.38--bb.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2024.4.38](https://img.shields.io/badge/AppVersion-2024.4.38-informational?style=flat-square)
+![Version: 2024.4.38-bb.3](https://img.shields.io/badge/Version-2024.4.38--bb.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2024.4.38](https://img.shields.io/badge/AppVersion-2024.4.38-informational?style=flat-square)
 
 SDElements by Security Compass Ltd.
 
@@ -3194,52 +1831,13 @@ SDElements by Security Compass Ltd.
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# mock-sde
+# common
 
-![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.1](https://img.shields.io/badge/AppVersion-0.0.1-informational?style=flat-square)
+![Version: 2.2.4](https://img.shields.io/badge/Version-2.2.4-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square) ![AppVersion: 2.2.4](https://img.shields.io/badge/AppVersion-2.2.4-informational?style=flat-square)
 
-SD Elements Mock SDE Service
+A Library Helm Chart for grouping common logic between bitnami charts. This chart is not deployable by itself.
 
-**Homepage:** <https://docker.sdelements.com>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Security Compass Technologies Ltd. | <sdesupport@securitycompass.com> | <https://www.securitycompass.com/> |
-
-## Source Code
-
-* <https://agra.sdelements.com/sd-elements/management_command_system>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 0.1.1 |
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
-| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
-| global.imageRegistryUsername | string | `"acmecorp"` |  |
-| global.imageRegistryPassword | string | `"SuperSecretPassword"` |  |
-| global.imageOrganization | string | `"prod"` |  |
-| global.imageSource | string | `"sde"` |  |
-| global.imagePullPolicy | string | `"IfNotPresent"` |  |
-| secretKey | string | `"s3cr3tk3y"` |  |
-
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# rabbitmq
-
-![Version: 11.14.4](https://img.shields.io/badge/Version-11.14.4-informational?style=flat-square) ![AppVersion: 3.11.15](https://img.shields.io/badge/AppVersion-3.11.15-informational?style=flat-square)
-
-RabbitMQ is an open source general-purpose message broker that is designed for consistent, highly-available messaging scenarios (both synchronous and asynchronous).
-
-**Homepage:** <https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq>
+**Homepage:** <https://github.com/bitnami/charts/tree/main/bitnami/common>
 
 ## Maintainers
 
@@ -3249,591 +1847,219 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 
 ## Source Code
 
-* <https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq>
-* <https://www.rabbitmq.com>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| oci://registry-1.docker.io/bitnamicharts | common | 2.x.x |
+* <https://github.com/bitnami/charts>
+* <https://www.bitnami.com/>
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| global.imageRegistry | string | `""` |  |
-| global.imagePullSecrets | list | `[]` |  |
-| global.storageClass | string | `""` |  |
-| image.registry | string | `"docker.io"` |  |
-| image.repository | string | `"bitnami/rabbitmq"` |  |
-| image.tag | string | `"3.11.15-debian-11-r0"` |  |
-| image.digest | string | `""` |  |
-| image.debug | bool | `false` |  |
-| image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.pullSecrets | list | `[]` |  |
-| nameOverride | string | `""` |  |
-| fullnameOverride | string | `""` |  |
-| namespaceOverride | string | `""` |  |
-| kubeVersion | string | `""` |  |
-| clusterDomain | string | `"cluster.local"` |  |
-| extraDeploy | list | `[]` |  |
-| commonAnnotations | object | `{}` |  |
-| servicenameOverride | string | `""` |  |
-| commonLabels | object | `{}` |  |
-| serviceBindings.enabled | bool | `false` |  |
-| diagnosticMode.enabled | bool | `false` |  |
-| diagnosticMode.command[0] | string | `"sleep"` |  |
-| diagnosticMode.args[0] | string | `"infinity"` |  |
-| hostAliases | list | `[]` |  |
-| dnsPolicy | string | `""` |  |
-| dnsConfig | object | `{}` |  |
-| auth.username | string | `"user"` |  |
-| auth.password | string | `""` |  |
-| auth.securePassword | bool | `true` |  |
-| auth.existingPasswordSecret | string | `""` |  |
-| auth.enableLoopbackUser | bool | `false` |  |
-| auth.erlangCookie | string | `""` |  |
-| auth.existingErlangSecret | string | `""` |  |
-| auth.tls.enabled | bool | `false` |  |
-| auth.tls.autoGenerated | bool | `false` |  |
-| auth.tls.failIfNoPeerCert | bool | `true` |  |
-| auth.tls.sslOptionsVerify | string | `"verify_peer"` |  |
-| auth.tls.sslOptionsPassword.enabled | bool | `false` |  |
-| auth.tls.sslOptionsPassword.existingSecret | string | `""` |  |
-| auth.tls.sslOptionsPassword.key | string | `""` |  |
-| auth.tls.sslOptionsPassword.password | string | `""` |  |
-| auth.tls.caCertificate | string | `""` |  |
-| auth.tls.serverCertificate | string | `""` |  |
-| auth.tls.serverKey | string | `""` |  |
-| auth.tls.existingSecret | string | `""` |  |
-| auth.tls.existingSecretFullChain | bool | `false` |  |
-| auth.tls.overrideCaCertificate | string | `""` |  |
-| logs | string | `"-"` |  |
-| ulimitNofiles | string | `"65536"` |  |
-| maxAvailableSchedulers | string | `""` |  |
-| onlineSchedulers | string | `""` |  |
-| memoryHighWatermark.enabled | bool | `false` |  |
-| memoryHighWatermark.type | string | `"relative"` |  |
-| memoryHighWatermark.value | float | `0.4` |  |
-| plugins | string | `"rabbitmq_management rabbitmq_peer_discovery_k8s"` |  |
-| communityPlugins | string | `""` |  |
-| extraPlugins | string | `"rabbitmq_auth_backend_ldap"` |  |
-| clustering.enabled | bool | `true` |  |
-| clustering.addressType | string | `"hostname"` |  |
-| clustering.rebalance | bool | `false` |  |
-| clustering.forceBoot | bool | `false` |  |
-| clustering.partitionHandling | string | `"autoheal"` |  |
-| loadDefinition.enabled | bool | `false` |  |
-| loadDefinition.file | string | `"/app/load_definition.json"` |  |
-| loadDefinition.existingSecret | string | `""` |  |
-| command | list | `[]` |  |
-| args | list | `[]` |  |
-| lifecycleHooks | object | `{}` |  |
-| terminationGracePeriodSeconds | int | `120` |  |
-| extraEnvVars | list | `[]` |  |
-| extraEnvVarsCM | string | `""` |  |
-| extraEnvVarsSecret | string | `""` |  |
-| containerPorts.amqp | int | `5672` |  |
-| containerPorts.amqpTls | int | `5671` |  |
-| containerPorts.dist | int | `25672` |  |
-| containerPorts.manager | int | `15672` |  |
-| containerPorts.epmd | int | `4369` |  |
-| containerPorts.metrics | int | `9419` |  |
-| initScripts | object | `{}` |  |
-| initScriptsCM | string | `""` |  |
-| initScriptsSecret | string | `""` |  |
-| extraContainerPorts | list | `[]` |  |
-| tcpListenOptions.backlog | int | `128` |  |
-| tcpListenOptions.nodelay | bool | `true` |  |
-| tcpListenOptions.linger.lingerOn | bool | `true` |  |
-| tcpListenOptions.linger.timeout | int | `0` |  |
-| tcpListenOptions.keepalive | bool | `false` |  |
-| configuration | string | `"## Username and password\n##\ndefault_user = {{ .Values.auth.username }}\n{{- if and (not .Values.auth.securePassword) .Values.auth.password }}\ndefault_pass = {{ .Values.auth.password }}\n{{- end }}\n{{- if .Values.clustering.enabled }}\n## Clustering\n##\ncluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s\ncluster_formation.k8s.host = kubernetes.default\ncluster_formation.node_cleanup.interval = 10\ncluster_formation.node_cleanup.only_log_warning = true\ncluster_partition_handling = {{ .Values.clustering.partitionHandling }}\n{{- end }}\n{{ if and .Values.clustering.enabled .Values.loadDefinition.enabled }}\ncluster_formation.target_cluster_size_hint = {{ .Values.replicaCount }}\n{{ end }}\n{{- if .Values.loadDefinition.enabled }}\nload_definitions = {{ .Values.loadDefinition.file }}\n{{- end }}\n# queue master locator\nqueue_master_locator = min-masters\n# enable loopback user\n{{- if not (empty .Values.auth.username) }}\nloopback_users.{{ .Values.auth.username }} = {{ .Values.auth.enableLoopbackUser }}\n{{- else}}\nloopback_users.guest = {{ .Values.auth.enableLoopbackUser }}\n{{- end }}\n{{ template \"rabbitmq.extraConfiguration\" . }}\n{{- if .Values.auth.tls.enabled }}\nssl_options.verify = {{ .Values.auth.tls.sslOptionsVerify }}\nlisteners.ssl.default = {{ .Values.service.ports.amqpTls }}\nssl_options.fail_if_no_peer_cert = {{ .Values.auth.tls.failIfNoPeerCert }}\nssl_options.cacertfile = /opt/bitnami/rabbitmq/certs/ca_certificate.pem\nssl_options.certfile = /opt/bitnami/rabbitmq/certs/server_certificate.pem\nssl_options.keyfile = /opt/bitnami/rabbitmq/certs/server_key.pem\n{{- if .Values.auth.tls.sslOptionsPassword.enabled }}\nssl_options.password = {{ template \"rabbitmq.tlsSslOptionsPassword\" . }}\n{{- end }}\n{{- end }}\n{{- if .Values.ldap.enabled }}\nauth_backends.1.authn = ldap\nauth_backends.1.authz = {{ ternary \"ldap\" \"internal\" .Values.ldap.authorisationEnabled }}\nauth_backends.2 = internal\n{{- $host :=  list }}\n{{- $port :=  ternary 636 389 .Values.ldap.tls.enabled }}\n{{- if .Values.ldap.uri }}\n{{- $hostPort := get (urlParse .Values.ldap.uri) \"host\" }}\n{{- $host = list (index (splitList \":\" $hostPort) 0) -}}\n{{- if (contains \":\" $hostPort) }}\n{{- $port = index (splitList \":\" $hostPort) 1 -}}\n{{- end }}\n{{- end }}\n{{- range $index, $server := concat $host .Values.ldap.servers }}\nauth_ldap.servers.{{ add $index 1 }} = {{ $server }}\n{{- end }}\nauth_ldap.port = {{ coalesce .Values.ldap.port $port }}\n{{- if or .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\nauth_ldap.user_dn_pattern = {{ coalesce .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\n{{- end }}\n{{- if .Values.ldap.basedn }}\nauth_ldap.dn_lookup_base = {{ .Values.ldap.basedn }}\n{{- end }}\n{{- if .Values.ldap.uidField }}\nauth_ldap.dn_lookup_attribute = {{ .Values.ldap.uidField }}\n{{- end }}\n{{- if .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.user_dn = {{ .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.password = {{ required \"'ldap.bindpw' is required when 'ldap.binddn' is defined\" .Values.ldap.bindpw }}\n{{- end }}\n{{- if .Values.ldap.tls.enabled }}\nauth_ldap.use_ssl = {{ not .Values.ldap.tls.startTls }}\nauth_ldap.use_starttls = {{ .Values.ldap.tls.startTls }}\n{{- if .Values.ldap.tls.CAFilename }}\nauth_ldap.ssl_options.cacertfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.CAFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.certfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.keyfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ required \"'ldap.tls.certKeyFilename' is required when 'ldap.tls.certFilename' is defined\" .Values.ldap.tls.certKeyFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.skipVerify }}\nauth_ldap.ssl_options.verify = verify_none\nauth_ldap.ssl_options.fail_if_no_peer_cert = false\n{{- else if .Values.ldap.tls.verify }}\nauth_ldap.ssl_options.verify = {{ .Values.ldap.tls.verify }}\n{{- end }}\n{{- end }}\n{{- end }}\n{{- if .Values.metrics.enabled }}\n## Prometheus metrics\n##\nprometheus.tcp.port = {{ .Values.containerPorts.metrics }}\n{{- end }}\n{{- if .Values.memoryHighWatermark.enabled }}\n## Memory Threshold\n##\ntotal_memory_available_override_value = {{ include \"rabbitmq.toBytes\" .Values.resources.limits.memory }}\nvm_memory_high_watermark.{{ .Values.memoryHighWatermark.type }} = {{ .Values.memoryHighWatermark.value }}\n## TCP Listen Options\n##\ntcp_listen_options.backlog = {{ .Values.tcpListenOptions.backlog }}\ntcp_listen_options.nodelay = {{ .Values.tcpListenOptions.nodelay }}\ntcp_listen_options.linger.on      = {{ .Values.tcpListenOptions.linger.lingerOn }}\ntcp_listen_options.linger.timeout = {{ .Values.tcpListenOptions.linger.timeout }}\ntcp_listen_options.keepalive = {{ .Values.tcpListenOptions.keepalive }}\n{{- end }}"` |  |
-| configurationExistingSecret | string | `""` |  |
-| extraConfiguration | string | `"#default_vhost = {{ .Release.Namespace }}-vhost\n#disk_free_limit.absolute = 50MB"` |  |
-| extraConfigurationExistingSecret | string | `""` |  |
-| advancedConfiguration | string | `""` |  |
-| advancedConfigurationExistingSecret | string | `""` |  |
-| featureFlags | string | `""` |  |
-| ldap.enabled | bool | `false` |  |
-| ldap.uri | string | `""` |  |
-| ldap.servers | list | `[]` |  |
-| ldap.port | string | `""` |  |
-| ldap.userDnPattern | string | `""` |  |
-| ldap.binddn | string | `""` |  |
-| ldap.bindpw | string | `""` |  |
-| ldap.basedn | string | `""` |  |
-| ldap.uidField | string | `""` |  |
-| ldap.authorisationEnabled | bool | `false` |  |
-| ldap.tls.enabled | bool | `false` |  |
-| ldap.tls.startTls | bool | `false` |  |
-| ldap.tls.skipVerify | bool | `false` |  |
-| ldap.tls.verify | string | `"verify_peer"` |  |
-| ldap.tls.certificatesMountPath | string | `"/opt/bitnami/rabbitmq/ldap/certs"` |  |
-| ldap.tls.certificatesSecret | string | `""` |  |
-| ldap.tls.CAFilename | string | `""` |  |
-| ldap.tls.certFilename | string | `""` |  |
-| ldap.tls.certKeyFilename | string | `""` |  |
-| extraVolumeMounts | list | `[]` |  |
-| extraVolumes | list | `[]` |  |
-| extraSecrets | object | `{}` |  |
-| extraSecretsPrependReleaseName | bool | `false` |  |
-| replicaCount | int | `1` |  |
-| schedulerName | string | `""` |  |
-| podManagementPolicy | string | `"OrderedReady"` |  |
-| podLabels | object | `{}` |  |
-| podAnnotations | object | `{}` |  |
-| updateStrategy.type | string | `"RollingUpdate"` |  |
-| statefulsetLabels | object | `{}` |  |
-| statefulsetAnnotations | object | `{}` |  |
-| priorityClassName | string | `""` |  |
-| podAffinityPreset | string | `""` |  |
-| podAntiAffinityPreset | string | `"soft"` |  |
-| nodeAffinityPreset.type | string | `""` |  |
-| nodeAffinityPreset.key | string | `""` |  |
-| nodeAffinityPreset.values | list | `[]` |  |
-| affinity | object | `{}` |  |
-| nodeSelector | object | `{}` |  |
-| tolerations | list | `[]` |  |
-| topologySpreadConstraints | list | `[]` |  |
-| podSecurityContext.enabled | bool | `true` |  |
-| podSecurityContext.fsGroup | int | `1001` |  |
-| containerSecurityContext.enabled | bool | `true` |  |
-| containerSecurityContext.runAsUser | int | `1001` |  |
-| containerSecurityContext.runAsNonRoot | bool | `true` |  |
-| resources.limits | object | `{}` |  |
-| resources.requests | object | `{}` |  |
-| livenessProbe.enabled | bool | `true` |  |
-| livenessProbe.initialDelaySeconds | int | `120` |  |
-| livenessProbe.timeoutSeconds | int | `20` |  |
-| livenessProbe.periodSeconds | int | `30` |  |
-| livenessProbe.failureThreshold | int | `6` |  |
-| livenessProbe.successThreshold | int | `1` |  |
-| readinessProbe.enabled | bool | `true` |  |
-| readinessProbe.initialDelaySeconds | int | `10` |  |
-| readinessProbe.timeoutSeconds | int | `20` |  |
-| readinessProbe.periodSeconds | int | `30` |  |
-| readinessProbe.failureThreshold | int | `3` |  |
-| readinessProbe.successThreshold | int | `1` |  |
-| startupProbe.enabled | bool | `false` |  |
-| startupProbe.initialDelaySeconds | int | `10` |  |
-| startupProbe.timeoutSeconds | int | `20` |  |
-| startupProbe.periodSeconds | int | `30` |  |
-| startupProbe.failureThreshold | int | `3` |  |
-| startupProbe.successThreshold | int | `1` |  |
-| customLivenessProbe | object | `{}` |  |
-| customReadinessProbe | object | `{}` |  |
-| customStartupProbe | object | `{}` |  |
-| initContainers | list | `[]` |  |
-| sidecars | list | `[]` |  |
-| pdb.create | bool | `false` |  |
-| pdb.minAvailable | int | `1` |  |
-| pdb.maxUnavailable | string | `""` |  |
-| serviceAccount.create | bool | `true` |  |
-| serviceAccount.name | string | `""` |  |
-| serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| serviceAccount.annotations | object | `{}` |  |
-| rbac.create | bool | `true` |  |
-| persistence.enabled | bool | `true` |  |
-| persistence.storageClass | string | `""` |  |
-| persistence.selector | object | `{}` |  |
-| persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
-| persistence.existingClaim | string | `""` |  |
-| persistence.mountPath | string | `"/bitnami/rabbitmq/mnesia"` |  |
-| persistence.subPath | string | `""` |  |
-| persistence.size | string | `"8Gi"` |  |
-| persistence.annotations | object | `{}` |  |
-| persistence.labels | object | `{}` |  |
-| service.type | string | `"ClusterIP"` |  |
-| service.portEnabled | bool | `true` |  |
-| service.distPortEnabled | bool | `true` |  |
-| service.managerPortEnabled | bool | `true` |  |
-| service.epmdPortEnabled | bool | `true` |  |
-| service.ports.amqp | int | `5672` |  |
-| service.ports.amqpTls | int | `5671` |  |
-| service.ports.dist | int | `25672` |  |
-| service.ports.manager | int | `15672` |  |
-| service.ports.metrics | int | `9419` |  |
-| service.ports.epmd | int | `4369` |  |
-| service.portNames.amqp | string | `"amqp"` |  |
-| service.portNames.amqpTls | string | `"amqp-ssl"` |  |
-| service.portNames.dist | string | `"dist"` |  |
-| service.portNames.manager | string | `"http-stats"` |  |
-| service.portNames.metrics | string | `"metrics"` |  |
-| service.portNames.epmd | string | `"epmd"` |  |
-| service.nodePorts.amqp | string | `""` |  |
-| service.nodePorts.amqpTls | string | `""` |  |
-| service.nodePorts.dist | string | `""` |  |
-| service.nodePorts.manager | string | `""` |  |
-| service.nodePorts.epmd | string | `""` |  |
-| service.nodePorts.metrics | string | `""` |  |
-| service.extraPorts | list | `[]` |  |
-| service.loadBalancerSourceRanges | list | `[]` |  |
-| service.externalIPs | list | `[]` |  |
-| service.externalTrafficPolicy | string | `"Cluster"` |  |
-| service.loadBalancerIP | string | `""` |  |
-| service.clusterIP | string | `""` |  |
-| service.labels | object | `{}` |  |
-| service.annotations | object | `{}` |  |
-| service.annotationsHeadless | object | `{}` |  |
-| service.headless.annotations | object | `{}` |  |
-| service.sessionAffinity | string | `"None"` |  |
-| service.sessionAffinityConfig | object | `{}` |  |
-| ingress.enabled | bool | `false` |  |
-| ingress.path | string | `"/"` |  |
-| ingress.pathType | string | `"ImplementationSpecific"` |  |
-| ingress.hostname | string | `"rabbitmq.local"` |  |
-| ingress.annotations | object | `{}` |  |
-| ingress.tls | bool | `false` |  |
-| ingress.selfSigned | bool | `false` |  |
-| ingress.extraHosts | list | `[]` |  |
-| ingress.extraPaths | list | `[]` |  |
-| ingress.extraRules | list | `[]` |  |
-| ingress.extraTls | list | `[]` |  |
-| ingress.secrets | list | `[]` |  |
-| ingress.ingressClassName | string | `""` |  |
-| ingress.existingSecret | string | `""` |  |
-| networkPolicy.enabled | bool | `false` |  |
-| networkPolicy.allowExternal | bool | `true` |  |
-| networkPolicy.additionalRules | list | `[]` |  |
-| metrics.enabled | bool | `false` |  |
-| metrics.plugins | string | `"rabbitmq_prometheus"` |  |
-| metrics.podAnnotations."prometheus.io/scrape" | string | `"true"` |  |
-| metrics.podAnnotations."prometheus.io/port" | string | `"{{ .Values.service.ports.metrics }}"` |  |
-| metrics.serviceMonitor.enabled | bool | `false` |  |
-| metrics.serviceMonitor.namespace | string | `""` |  |
-| metrics.serviceMonitor.interval | string | `"30s"` |  |
-| metrics.serviceMonitor.scrapeTimeout | string | `""` |  |
-| metrics.serviceMonitor.jobLabel | string | `""` |  |
-| metrics.serviceMonitor.relabelings | list | `[]` |  |
-| metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
-| metrics.serviceMonitor.honorLabels | bool | `false` |  |
-| metrics.serviceMonitor.targetLabels | object | `{}` |  |
-| metrics.serviceMonitor.podTargetLabels | object | `{}` |  |
-| metrics.serviceMonitor.path | string | `""` |  |
-| metrics.serviceMonitor.selector | object | `{}` |  |
-| metrics.serviceMonitor.labels | object | `{}` |  |
-| metrics.serviceMonitor.annotations | object | `{}` |  |
-| metrics.prometheusRule.enabled | bool | `false` |  |
-| metrics.prometheusRule.additionalLabels | object | `{}` |  |
-| metrics.prometheusRule.namespace | string | `""` |  |
-| metrics.prometheusRule.rules | list | `[]` |  |
-| volumePermissions.enabled | bool | `false` |  |
-| volumePermissions.image.registry | string | `"docker.io"` |  |
-| volumePermissions.image.repository | string | `"bitnami/bitnami-shell"` |  |
-| volumePermissions.image.tag | string | `"11-debian-11-r111"` |  |
-| volumePermissions.image.digest | string | `""` |  |
-| volumePermissions.image.pullPolicy | string | `"IfNotPresent"` |  |
-| volumePermissions.image.pullSecrets | list | `[]` |  |
-| volumePermissions.resources.limits | object | `{}` |  |
-| volumePermissions.resources.requests | object | `{}` |  |
-| volumePermissions.containerSecurityContext.runAsUser | int | `0` |  |
+| exampleValue | string | `"common-chart"` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# rabbitmq
+# minio
 
-![Version: 11.14.4](https://img.shields.io/badge/Version-11.14.4-informational?style=flat-square) ![AppVersion: 3.11.15](https://img.shields.io/badge/AppVersion-3.11.15-informational?style=flat-square)
+![Version: 5.0.7](https://img.shields.io/badge/Version-5.0.7-informational?style=flat-square) ![AppVersion: RELEASE.2023-02-10T18-48-39Z](https://img.shields.io/badge/AppVersion-RELEASE.2023--02--10T18--48--39Z-informational?style=flat-square)
 
-RabbitMQ is an open source general-purpose message broker that is designed for consistent, highly-available messaging scenarios (both synchronous and asynchronous).
+Multi-Cloud Object Storage
 
-**Homepage:** <https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq>
+**Homepage:** <https://min.io>
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| Bitnami |  | <https://github.com/bitnami/charts> |
+| MinIO, Inc | <dev@minio.io> |  |
 
 ## Source Code
 
-* <https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq>
-* <https://www.rabbitmq.com>
-
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| oci://registry-1.docker.io/bitnamicharts | common | 2.x.x |
+* <https://github.com/minio/minio>
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| global.imageRegistry | string | `""` |  |
-| global.imagePullSecrets | list | `[]` |  |
-| global.storageClass | string | `""` |  |
-| image.registry | string | `"docker.io"` |  |
-| image.repository | string | `"bitnami/rabbitmq"` |  |
-| image.tag | string | `"3.11.15-debian-11-r0"` |  |
-| image.digest | string | `""` |  |
-| image.debug | bool | `false` |  |
-| image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.pullSecrets | list | `[]` |  |
 | nameOverride | string | `""` |  |
 | fullnameOverride | string | `""` |  |
-| namespaceOverride | string | `""` |  |
-| kubeVersion | string | `""` |  |
 | clusterDomain | string | `"cluster.local"` |  |
-| extraDeploy | list | `[]` |  |
-| commonAnnotations | object | `{}` |  |
-| servicenameOverride | string | `""` |  |
-| commonLabels | object | `{}` |  |
-| serviceBindings.enabled | bool | `false` |  |
-| diagnosticMode.enabled | bool | `false` |  |
-| diagnosticMode.command[0] | string | `"sleep"` |  |
-| diagnosticMode.args[0] | string | `"infinity"` |  |
-| hostAliases | list | `[]` |  |
-| dnsPolicy | string | `""` |  |
-| dnsConfig | object | `{}` |  |
-| auth.username | string | `"user"` |  |
-| auth.password | string | `""` |  |
-| auth.securePassword | bool | `true` |  |
-| auth.existingPasswordSecret | string | `""` |  |
-| auth.enableLoopbackUser | bool | `false` |  |
-| auth.erlangCookie | string | `""` |  |
-| auth.existingErlangSecret | string | `""` |  |
-| auth.tls.enabled | bool | `false` |  |
-| auth.tls.autoGenerated | bool | `false` |  |
-| auth.tls.failIfNoPeerCert | bool | `true` |  |
-| auth.tls.sslOptionsVerify | string | `"verify_peer"` |  |
-| auth.tls.sslOptionsPassword.enabled | bool | `false` |  |
-| auth.tls.sslOptionsPassword.existingSecret | string | `""` |  |
-| auth.tls.sslOptionsPassword.key | string | `""` |  |
-| auth.tls.sslOptionsPassword.password | string | `""` |  |
-| auth.tls.caCertificate | string | `""` |  |
-| auth.tls.serverCertificate | string | `""` |  |
-| auth.tls.serverKey | string | `""` |  |
-| auth.tls.existingSecret | string | `""` |  |
-| auth.tls.existingSecretFullChain | bool | `false` |  |
-| auth.tls.overrideCaCertificate | string | `""` |  |
-| logs | string | `"-"` |  |
-| ulimitNofiles | string | `"65536"` |  |
-| maxAvailableSchedulers | string | `""` |  |
-| onlineSchedulers | string | `""` |  |
-| memoryHighWatermark.enabled | bool | `false` |  |
-| memoryHighWatermark.type | string | `"relative"` |  |
-| memoryHighWatermark.value | float | `0.4` |  |
-| plugins | string | `"rabbitmq_management rabbitmq_peer_discovery_k8s"` |  |
-| communityPlugins | string | `""` |  |
-| extraPlugins | string | `"rabbitmq_auth_backend_ldap"` |  |
-| clustering.enabled | bool | `true` |  |
-| clustering.addressType | string | `"hostname"` |  |
-| clustering.rebalance | bool | `false` |  |
-| clustering.forceBoot | bool | `false` |  |
-| clustering.partitionHandling | string | `"autoheal"` |  |
-| loadDefinition.enabled | bool | `false` |  |
-| loadDefinition.file | string | `"/app/load_definition.json"` |  |
-| loadDefinition.existingSecret | string | `""` |  |
-| command | list | `[]` |  |
-| args | list | `[]` |  |
-| lifecycleHooks | object | `{}` |  |
-| terminationGracePeriodSeconds | int | `120` |  |
-| extraEnvVars | list | `[]` |  |
-| extraEnvVarsCM | string | `""` |  |
-| extraEnvVarsSecret | string | `""` |  |
-| containerPorts.amqp | int | `5672` |  |
-| containerPorts.amqpTls | int | `5671` |  |
-| containerPorts.dist | int | `25672` |  |
-| containerPorts.manager | int | `15672` |  |
-| containerPorts.epmd | int | `4369` |  |
-| containerPorts.metrics | int | `9419` |  |
-| initScripts | object | `{}` |  |
-| initScriptsCM | string | `""` |  |
-| initScriptsSecret | string | `""` |  |
-| extraContainerPorts | list | `[]` |  |
-| tcpListenOptions.backlog | int | `128` |  |
-| tcpListenOptions.nodelay | bool | `true` |  |
-| tcpListenOptions.linger.lingerOn | bool | `true` |  |
-| tcpListenOptions.linger.timeout | int | `0` |  |
-| tcpListenOptions.keepalive | bool | `false` |  |
-| configuration | string | `"## Username and password\n##\ndefault_user = {{ .Values.auth.username }}\n{{- if and (not .Values.auth.securePassword) .Values.auth.password }}\ndefault_pass = {{ .Values.auth.password }}\n{{- end }}\n{{- if .Values.clustering.enabled }}\n## Clustering\n##\ncluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s\ncluster_formation.k8s.host = kubernetes.default\ncluster_formation.node_cleanup.interval = 10\ncluster_formation.node_cleanup.only_log_warning = true\ncluster_partition_handling = {{ .Values.clustering.partitionHandling }}\n{{- end }}\n{{ if and .Values.clustering.enabled .Values.loadDefinition.enabled }}\ncluster_formation.target_cluster_size_hint = {{ .Values.replicaCount }}\n{{ end }}\n{{- if .Values.loadDefinition.enabled }}\nload_definitions = {{ .Values.loadDefinition.file }}\n{{- end }}\n# queue master locator\nqueue_master_locator = min-masters\n# enable loopback user\n{{- if not (empty .Values.auth.username) }}\nloopback_users.{{ .Values.auth.username }} = {{ .Values.auth.enableLoopbackUser }}\n{{- else}}\nloopback_users.guest = {{ .Values.auth.enableLoopbackUser }}\n{{- end }}\n{{ template \"rabbitmq.extraConfiguration\" . }}\n{{- if .Values.auth.tls.enabled }}\nssl_options.verify = {{ .Values.auth.tls.sslOptionsVerify }}\nlisteners.ssl.default = {{ .Values.service.ports.amqpTls }}\nssl_options.fail_if_no_peer_cert = {{ .Values.auth.tls.failIfNoPeerCert }}\nssl_options.cacertfile = /opt/bitnami/rabbitmq/certs/ca_certificate.pem\nssl_options.certfile = /opt/bitnami/rabbitmq/certs/server_certificate.pem\nssl_options.keyfile = /opt/bitnami/rabbitmq/certs/server_key.pem\n{{- if .Values.auth.tls.sslOptionsPassword.enabled }}\nssl_options.password = {{ template \"rabbitmq.tlsSslOptionsPassword\" . }}\n{{- end }}\n{{- end }}\n{{- if .Values.ldap.enabled }}\nauth_backends.1.authn = ldap\nauth_backends.1.authz = {{ ternary \"ldap\" \"internal\" .Values.ldap.authorisationEnabled }}\nauth_backends.2 = internal\n{{- $host :=  list }}\n{{- $port :=  ternary 636 389 .Values.ldap.tls.enabled }}\n{{- if .Values.ldap.uri }}\n{{- $hostPort := get (urlParse .Values.ldap.uri) \"host\" }}\n{{- $host = list (index (splitList \":\" $hostPort) 0) -}}\n{{- if (contains \":\" $hostPort) }}\n{{- $port = index (splitList \":\" $hostPort) 1 -}}\n{{- end }}\n{{- end }}\n{{- range $index, $server := concat $host .Values.ldap.servers }}\nauth_ldap.servers.{{ add $index 1 }} = {{ $server }}\n{{- end }}\nauth_ldap.port = {{ coalesce .Values.ldap.port $port }}\n{{- if or .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\nauth_ldap.user_dn_pattern = {{ coalesce .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\n{{- end }}\n{{- if .Values.ldap.basedn }}\nauth_ldap.dn_lookup_base = {{ .Values.ldap.basedn }}\n{{- end }}\n{{- if .Values.ldap.uidField }}\nauth_ldap.dn_lookup_attribute = {{ .Values.ldap.uidField }}\n{{- end }}\n{{- if .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.user_dn = {{ .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.password = {{ required \"'ldap.bindpw' is required when 'ldap.binddn' is defined\" .Values.ldap.bindpw }}\n{{- end }}\n{{- if .Values.ldap.tls.enabled }}\nauth_ldap.use_ssl = {{ not .Values.ldap.tls.startTls }}\nauth_ldap.use_starttls = {{ .Values.ldap.tls.startTls }}\n{{- if .Values.ldap.tls.CAFilename }}\nauth_ldap.ssl_options.cacertfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.CAFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.certfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.keyfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ required \"'ldap.tls.certKeyFilename' is required when 'ldap.tls.certFilename' is defined\" .Values.ldap.tls.certKeyFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.skipVerify }}\nauth_ldap.ssl_options.verify = verify_none\nauth_ldap.ssl_options.fail_if_no_peer_cert = false\n{{- else if .Values.ldap.tls.verify }}\nauth_ldap.ssl_options.verify = {{ .Values.ldap.tls.verify }}\n{{- end }}\n{{- end }}\n{{- end }}\n{{- if .Values.metrics.enabled }}\n## Prometheus metrics\n##\nprometheus.tcp.port = {{ .Values.containerPorts.metrics }}\n{{- end }}\n{{- if .Values.memoryHighWatermark.enabled }}\n## Memory Threshold\n##\ntotal_memory_available_override_value = {{ include \"rabbitmq.toBytes\" .Values.resources.limits.memory }}\nvm_memory_high_watermark.{{ .Values.memoryHighWatermark.type }} = {{ .Values.memoryHighWatermark.value }}\n## TCP Listen Options\n##\ntcp_listen_options.backlog = {{ .Values.tcpListenOptions.backlog }}\ntcp_listen_options.nodelay = {{ .Values.tcpListenOptions.nodelay }}\ntcp_listen_options.linger.on      = {{ .Values.tcpListenOptions.linger.lingerOn }}\ntcp_listen_options.linger.timeout = {{ .Values.tcpListenOptions.linger.timeout }}\ntcp_listen_options.keepalive = {{ .Values.tcpListenOptions.keepalive }}\n{{- end }}"` |  |
-| configurationExistingSecret | string | `""` |  |
-| extraConfiguration | string | `"#default_vhost = {{ .Release.Namespace }}-vhost\n#disk_free_limit.absolute = 50MB"` |  |
-| extraConfigurationExistingSecret | string | `""` |  |
-| advancedConfiguration | string | `""` |  |
-| advancedConfigurationExistingSecret | string | `""` |  |
-| featureFlags | string | `""` |  |
-| ldap.enabled | bool | `false` |  |
-| ldap.uri | string | `""` |  |
-| ldap.servers | list | `[]` |  |
-| ldap.port | string | `""` |  |
-| ldap.userDnPattern | string | `""` |  |
-| ldap.binddn | string | `""` |  |
-| ldap.bindpw | string | `""` |  |
-| ldap.basedn | string | `""` |  |
-| ldap.uidField | string | `""` |  |
-| ldap.authorisationEnabled | bool | `false` |  |
-| ldap.tls.enabled | bool | `false` |  |
-| ldap.tls.startTls | bool | `false` |  |
-| ldap.tls.skipVerify | bool | `false` |  |
-| ldap.tls.verify | string | `"verify_peer"` |  |
-| ldap.tls.certificatesMountPath | string | `"/opt/bitnami/rabbitmq/ldap/certs"` |  |
-| ldap.tls.certificatesSecret | string | `""` |  |
-| ldap.tls.CAFilename | string | `""` |  |
-| ldap.tls.certFilename | string | `""` |  |
-| ldap.tls.certKeyFilename | string | `""` |  |
-| extraVolumeMounts | list | `[]` |  |
+| image.repository | string | `"quay.io/minio/minio"` |  |
+| image.tag | string | `"RELEASE.2023-02-10T18-48-39Z"` |  |
+| image.pullPolicy | string | `"IfNotPresent"` |  |
+| imagePullSecrets | list | `[]` |  |
+| mcImage.repository | string | `"quay.io/minio/mc"` |  |
+| mcImage.tag | string | `"RELEASE.2023-01-28T20-29-38Z"` |  |
+| mcImage.pullPolicy | string | `"IfNotPresent"` |  |
+| mode | string | `"distributed"` |  |
+| additionalLabels | object | `{}` |  |
+| additionalAnnotations | object | `{}` |  |
+| ignoreChartChecksums | bool | `false` |  |
+| extraArgs | list | `[]` |  |
 | extraVolumes | list | `[]` |  |
-| extraSecrets | object | `{}` |  |
-| extraSecretsPrependReleaseName | bool | `false` |  |
-| replicaCount | int | `1` |  |
-| schedulerName | string | `""` |  |
-| podManagementPolicy | string | `"OrderedReady"` |  |
-| podLabels | object | `{}` |  |
-| podAnnotations | object | `{}` |  |
-| updateStrategy.type | string | `"RollingUpdate"` |  |
-| statefulsetLabels | object | `{}` |  |
-| statefulsetAnnotations | object | `{}` |  |
+| extraVolumeMounts | list | `[]` |  |
+| extraContainers | list | `[]` |  |
+| minioAPIPort | string | `"9000"` |  |
+| minioConsolePort | string | `"9001"` |  |
+| DeploymentUpdate.type | string | `"RollingUpdate"` |  |
+| DeploymentUpdate.maxUnavailable | int | `0` |  |
+| DeploymentUpdate.maxSurge | string | `"100%"` |  |
+| StatefulSetUpdate.updateStrategy | string | `"RollingUpdate"` |  |
 | priorityClassName | string | `""` |  |
-| podAffinityPreset | string | `""` |  |
-| podAntiAffinityPreset | string | `"soft"` |  |
-| nodeAffinityPreset.type | string | `""` |  |
-| nodeAffinityPreset.key | string | `""` |  |
-| nodeAffinityPreset.values | list | `[]` |  |
-| affinity | object | `{}` |  |
+| runtimeClassName | string | `""` |  |
+| rootUser | string | `""` |  |
+| rootPassword | string | `""` |  |
+| existingSecret | string | `""` |  |
+| certsPath | string | `"/etc/minio/certs/"` |  |
+| configPathmc | string | `"/etc/minio/mc/"` |  |
+| mountPath | string | `"/export"` |  |
+| bucketRoot | string | `""` |  |
+| drivesPerNode | int | `1` |  |
+| replicas | int | `16` |  |
+| pools | int | `1` |  |
+| tls.enabled | bool | `false` |  |
+| tls.certSecret | string | `""` |  |
+| tls.publicCrt | string | `"public.crt"` |  |
+| tls.privateKey | string | `"private.key"` |  |
+| trustedCertsSecret | string | `""` |  |
+| persistence.enabled | bool | `true` |  |
+| persistence.annotations | object | `{}` |  |
+| persistence.existingClaim | string | `""` |  |
+| persistence.storageClass | string | `""` |  |
+| persistence.VolumeName | string | `""` |  |
+| persistence.accessMode | string | `"ReadWriteOnce"` |  |
+| persistence.size | string | `"500Gi"` |  |
+| persistence.subPath | string | `""` |  |
+| service.type | string | `"ClusterIP"` |  |
+| service.clusterIP | string | `nil` |  |
+| service.port | string | `"9000"` |  |
+| service.nodePort | int | `32000` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.labels | object | `{}` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.path | string | `"/"` |  |
+| ingress.hosts[0] | string | `"minio-example.local"` |  |
+| ingress.tls | list | `[]` |  |
+| consoleService.type | string | `"ClusterIP"` |  |
+| consoleService.clusterIP | string | `nil` |  |
+| consoleService.port | string | `"9001"` |  |
+| consoleService.nodePort | int | `32001` |  |
+| consoleIngress.enabled | bool | `false` |  |
+| consoleIngress.labels | object | `{}` |  |
+| consoleIngress.annotations | object | `{}` |  |
+| consoleIngress.path | string | `"/"` |  |
+| consoleIngress.hosts[0] | string | `"console.minio-example.local"` |  |
+| consoleIngress.tls | list | `[]` |  |
 | nodeSelector | object | `{}` |  |
 | tolerations | list | `[]` |  |
+| affinity | object | `{}` |  |
 | topologySpreadConstraints | list | `[]` |  |
-| podSecurityContext.enabled | bool | `true` |  |
-| podSecurityContext.fsGroup | int | `1001` |  |
-| containerSecurityContext.enabled | bool | `true` |  |
-| containerSecurityContext.runAsUser | int | `1001` |  |
-| containerSecurityContext.runAsNonRoot | bool | `true` |  |
-| resources.limits | object | `{}` |  |
-| resources.requests | object | `{}` |  |
-| livenessProbe.enabled | bool | `true` |  |
-| livenessProbe.initialDelaySeconds | int | `120` |  |
-| livenessProbe.timeoutSeconds | int | `20` |  |
-| livenessProbe.periodSeconds | int | `30` |  |
-| livenessProbe.failureThreshold | int | `6` |  |
-| livenessProbe.successThreshold | int | `1` |  |
-| readinessProbe.enabled | bool | `true` |  |
-| readinessProbe.initialDelaySeconds | int | `10` |  |
-| readinessProbe.timeoutSeconds | int | `20` |  |
-| readinessProbe.periodSeconds | int | `30` |  |
-| readinessProbe.failureThreshold | int | `3` |  |
-| readinessProbe.successThreshold | int | `1` |  |
-| startupProbe.enabled | bool | `false` |  |
-| startupProbe.initialDelaySeconds | int | `10` |  |
-| startupProbe.timeoutSeconds | int | `20` |  |
-| startupProbe.periodSeconds | int | `30` |  |
-| startupProbe.failureThreshold | int | `3` |  |
-| startupProbe.successThreshold | int | `1` |  |
-| customLivenessProbe | object | `{}` |  |
-| customReadinessProbe | object | `{}` |  |
-| customStartupProbe | object | `{}` |  |
-| initContainers | list | `[]` |  |
-| sidecars | list | `[]` |  |
-| pdb.create | bool | `false` |  |
-| pdb.minAvailable | int | `1` |  |
-| pdb.maxUnavailable | string | `""` |  |
-| serviceAccount.create | bool | `true` |  |
-| serviceAccount.name | string | `""` |  |
-| serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| serviceAccount.annotations | object | `{}` |  |
-| rbac.create | bool | `true` |  |
-| persistence.enabled | bool | `true` |  |
-| persistence.storageClass | string | `""` |  |
-| persistence.selector | object | `{}` |  |
-| persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
-| persistence.existingClaim | string | `""` |  |
-| persistence.mountPath | string | `"/bitnami/rabbitmq/mnesia"` |  |
-| persistence.subPath | string | `""` |  |
-| persistence.size | string | `"8Gi"` |  |
-| persistence.annotations | object | `{}` |  |
-| persistence.labels | object | `{}` |  |
-| service.type | string | `"ClusterIP"` |  |
-| service.portEnabled | bool | `true` |  |
-| service.distPortEnabled | bool | `true` |  |
-| service.managerPortEnabled | bool | `true` |  |
-| service.epmdPortEnabled | bool | `true` |  |
-| service.ports.amqp | int | `5672` |  |
-| service.ports.amqpTls | int | `5671` |  |
-| service.ports.dist | int | `25672` |  |
-| service.ports.manager | int | `15672` |  |
-| service.ports.metrics | int | `9419` |  |
-| service.ports.epmd | int | `4369` |  |
-| service.portNames.amqp | string | `"amqp"` |  |
-| service.portNames.amqpTls | string | `"amqp-ssl"` |  |
-| service.portNames.dist | string | `"dist"` |  |
-| service.portNames.manager | string | `"http-stats"` |  |
-| service.portNames.metrics | string | `"metrics"` |  |
-| service.portNames.epmd | string | `"epmd"` |  |
-| service.nodePorts.amqp | string | `""` |  |
-| service.nodePorts.amqpTls | string | `""` |  |
-| service.nodePorts.dist | string | `""` |  |
-| service.nodePorts.manager | string | `""` |  |
-| service.nodePorts.epmd | string | `""` |  |
-| service.nodePorts.metrics | string | `""` |  |
-| service.extraPorts | list | `[]` |  |
-| service.loadBalancerSourceRanges | list | `[]` |  |
-| service.externalIPs | list | `[]` |  |
-| service.externalTrafficPolicy | string | `"Cluster"` |  |
-| service.loadBalancerIP | string | `""` |  |
-| service.clusterIP | string | `""` |  |
-| service.labels | object | `{}` |  |
-| service.annotations | object | `{}` |  |
-| service.annotationsHeadless | object | `{}` |  |
-| service.headless.annotations | object | `{}` |  |
-| service.sessionAffinity | string | `"None"` |  |
-| service.sessionAffinityConfig | object | `{}` |  |
-| ingress.enabled | bool | `false` |  |
-| ingress.path | string | `"/"` |  |
-| ingress.pathType | string | `"ImplementationSpecific"` |  |
-| ingress.hostname | string | `"rabbitmq.local"` |  |
-| ingress.annotations | object | `{}` |  |
-| ingress.tls | bool | `false` |  |
-| ingress.selfSigned | bool | `false` |  |
-| ingress.extraHosts | list | `[]` |  |
-| ingress.extraPaths | list | `[]` |  |
-| ingress.extraRules | list | `[]` |  |
-| ingress.extraTls | list | `[]` |  |
-| ingress.secrets | list | `[]` |  |
-| ingress.ingressClassName | string | `""` |  |
-| ingress.existingSecret | string | `""` |  |
+| securityContext.enabled | bool | `true` |  |
+| securityContext.runAsUser | int | `1000` |  |
+| securityContext.runAsGroup | int | `1000` |  |
+| securityContext.fsGroup | int | `1000` |  |
+| securityContext.fsGroupChangePolicy | string | `"OnRootMismatch"` |  |
+| podAnnotations | object | `{}` |  |
+| podLabels | object | `{}` |  |
+| resources.requests.memory | string | `"16Gi"` |  |
+| policies | list | `[]` |  |
+| makePolicyJob.securityContext.enabled | bool | `false` |  |
+| makePolicyJob.securityContext.runAsUser | int | `1000` |  |
+| makePolicyJob.securityContext.runAsGroup | int | `1000` |  |
+| makePolicyJob.resources.requests.memory | string | `"128Mi"` |  |
+| makePolicyJob.exitCommand | string | `""` |  |
+| users[0].accessKey | string | `"console"` |  |
+| users[0].secretKey | string | `"console123"` |  |
+| users[0].policy | string | `"consoleAdmin"` |  |
+| makeUserJob.securityContext.enabled | bool | `false` |  |
+| makeUserJob.securityContext.runAsUser | int | `1000` |  |
+| makeUserJob.securityContext.runAsGroup | int | `1000` |  |
+| makeUserJob.resources.requests.memory | string | `"128Mi"` |  |
+| makeUserJob.exitCommand | string | `""` |  |
+| makeServiceAccountJob.securityContext.enabled | bool | `false` |  |
+| makeServiceAccountJob.securityContext.runAsUser | int | `1000` |  |
+| makeServiceAccountJob.securityContext.runAsGroup | int | `1000` |  |
+| makeServiceAccountJob.resources.requests.memory | string | `"128Mi"` |  |
+| makeServiceAccountJob.exitCommand | string | `""` |  |
+| buckets | string | `nil` |  |
+| makeBucketJob.securityContext.enabled | bool | `false` |  |
+| makeBucketJob.securityContext.runAsUser | int | `1000` |  |
+| makeBucketJob.securityContext.runAsGroup | int | `1000` |  |
+| makeBucketJob.resources.requests.memory | string | `"128Mi"` |  |
+| makeBucketJob.exitCommand | string | `""` |  |
+| customCommands | string | `nil` |  |
+| customCommandJob.securityContext.enabled | bool | `false` |  |
+| customCommandJob.securityContext.runAsUser | int | `1000` |  |
+| customCommandJob.securityContext.runAsGroup | int | `1000` |  |
+| customCommandJob.resources.requests.memory | string | `"128Mi"` |  |
+| customCommandJob.exitCommand | string | `""` |  |
+| postJob.podAnnotations | object | `{}` |  |
+| postJob.annotations | object | `{}` |  |
+| postJob.securityContext.enabled | bool | `false` |  |
+| postJob.securityContext.runAsUser | int | `1000` |  |
+| postJob.securityContext.runAsGroup | int | `1000` |  |
+| postJob.securityContext.fsGroup | int | `1000` |  |
+| postJob.nodeSelector | object | `{}` |  |
+| postJob.tolerations | list | `[]` |  |
+| postJob.affinity | object | `{}` |  |
+| environment | string | `nil` |  |
+| oidc.enabled | bool | `false` |  |
+| oidc.configUrl | string | `"https://identity-provider-url/.well-known/openid-configuration"` |  |
+| oidc.clientId | string | `"minio"` |  |
+| oidc.clientSecret | string | `""` |  |
+| oidc.claimName | string | `"policy"` |  |
+| oidc.scopes | string | `"openid,profile,email"` |  |
+| oidc.redirectUri | string | `"https://console-endpoint-url/oauth_callback"` |  |
+| oidc.claimPrefix | string | `""` |  |
+| oidc.comment | string | `""` |  |
 | networkPolicy.enabled | bool | `false` |  |
 | networkPolicy.allowExternal | bool | `true` |  |
-| networkPolicy.additionalRules | list | `[]` |  |
-| metrics.enabled | bool | `false` |  |
-| metrics.plugins | string | `"rabbitmq_prometheus"` |  |
-| metrics.podAnnotations."prometheus.io/scrape" | string | `"true"` |  |
-| metrics.podAnnotations."prometheus.io/port" | string | `"{{ .Values.service.ports.metrics }}"` |  |
+| podDisruptionBudget.enabled | bool | `false` |  |
+| podDisruptionBudget.maxUnavailable | int | `1` |  |
+| serviceAccount.create | bool | `true` |  |
+| serviceAccount.name | string | `"minio-sa"` |  |
 | metrics.serviceMonitor.enabled | bool | `false` |  |
-| metrics.serviceMonitor.namespace | string | `""` |  |
-| metrics.serviceMonitor.interval | string | `"30s"` |  |
-| metrics.serviceMonitor.scrapeTimeout | string | `""` |  |
-| metrics.serviceMonitor.jobLabel | string | `""` |  |
-| metrics.serviceMonitor.relabelings | list | `[]` |  |
-| metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
-| metrics.serviceMonitor.honorLabels | bool | `false` |  |
-| metrics.serviceMonitor.targetLabels | object | `{}` |  |
-| metrics.serviceMonitor.podTargetLabels | object | `{}` |  |
-| metrics.serviceMonitor.path | string | `""` |  |
-| metrics.serviceMonitor.selector | object | `{}` |  |
-| metrics.serviceMonitor.labels | object | `{}` |  |
-| metrics.serviceMonitor.annotations | object | `{}` |  |
-| metrics.prometheusRule.enabled | bool | `false` |  |
-| metrics.prometheusRule.additionalLabels | object | `{}` |  |
-| metrics.prometheusRule.namespace | string | `""` |  |
-| metrics.prometheusRule.rules | list | `[]` |  |
-| volumePermissions.enabled | bool | `false` |  |
-| volumePermissions.image.registry | string | `"docker.io"` |  |
-| volumePermissions.image.repository | string | `"bitnami/bitnami-shell"` |  |
-| volumePermissions.image.tag | string | `"11-debian-11-r111"` |  |
-| volumePermissions.image.digest | string | `""` |  |
-| volumePermissions.image.pullPolicy | string | `"IfNotPresent"` |  |
-| volumePermissions.image.pullSecrets | list | `[]` |  |
-| volumePermissions.resources.limits | object | `{}` |  |
-| volumePermissions.resources.requests | object | `{}` |  |
-| volumePermissions.containerSecurityContext.runAsUser | int | `0` |  |
+| metrics.serviceMonitor.includeNode | bool | `false` |  |
+| metrics.serviceMonitor.public | bool | `true` |  |
+| metrics.serviceMonitor.additionalLabels | object | `{}` |  |
+| metrics.serviceMonitor.relabelConfigs | object | `{}` |  |
+| metrics.serviceMonitor.relabelConfigsCluster | object | `{}` |  |
+| etcd.endpoints | list | `[]` |  |
+| etcd.pathPrefix | string | `""` |  |
+| etcd.corednsPathPrefix | string | `""` |  |
+| etcd.clientCert | string | `""` |  |
+| etcd.clientCertKey | string | `""` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# common
+
+![Version: 2.22.0](https://img.shields.io/badge/Version-2.22.0-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square) ![AppVersion: 2.22.0](https://img.shields.io/badge/AppVersion-2.22.0-informational?style=flat-square)
+
+A Library Helm Chart for grouping common logic between bitnami charts. This chart is not deployable by itself.
+
+**Homepage:** <https://bitnami.com>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Broadcom, Inc. All Rights Reserved. |  | <https://github.com/bitnami/charts> |
+
+## Source Code
+
+* <https://github.com/bitnami/charts/tree/main/bitnami/common>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| exampleValue | string | `"common-chart"` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 # sc-library
 
-![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
+![Version: 1.1.5](https://img.shields.io/badge/Version-1.1.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.5](https://img.shields.io/badge/AppVersion-1.1.5-informational?style=flat-square)
 
 A Library Project
 
@@ -3855,6 +2081,87 @@ A Library Project
 |-----|------|---------|-------------|
 | global.enabled | bool | `true` |  |
 | library.back-end | bool | `true` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# bigbang-sdelements
+
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2024.4.38](https://img.shields.io/badge/AppVersion-2024.4.38-informational?style=flat-square)
+
+BigBang compatible Helm chart for sdelements
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sdelements.enabled | bool | `true` |  |
+| sdelements.git.repo | string | `"https://repo1.dso.mil/big-bang/product/community/sdelements"` |  |
+| sdelements.git.branch | string | `"main"` |  |
+| sdelements.git.path | string | `"chart"` |  |
+| sdelements.flux.timeout | string | `"30m"` |  |
+| sdelements.values.global.storageClass | string | `"local-path"` |  |
+| sdelements.values.global.registrySecretName | string | `"private-registry"` |  |
+| sdelements.values.global.sharedStorage.bucketName | string | `"sde-bucket"` |  |
+| sdelements.values.global.sharedStorage.s3Url | string | `"http://sdelements-minio-hl:9000/"` |  |
+| sdelements.values.global.sharedStorage.s3AccessKey | string | `"accesskey"` |  |
+| sdelements.values.global.sharedStorage.s3SecretKey | string | `"secretkey"` |  |
+| sdelements.values.global.imagePullSecrets[0] | string | `"private-registry"` |  |
+| sdelements.values.sde.fqdn | string | `"sdelements.dev.bigbang.mil"` |  |
+| sdelements.values.sde.jwtSecret | string | `"default"` |  |
+| sdelements.values.sde.secretKey | string | `"default"` |  |
+| sdelements.values.sde.superuserPassword | string | `"default"` |  |
+| sdelements.values.sde.enableJITT | bool | `false` |  |
+| sdelements.values.sde.systemAdminEmail | string | `"default@example.com"` |  |
+| sdelements.values.sc-datastore.clientPassword | string | `"default"` |  |
+| sdelements.values.postgresql.auth.password | string | `"default"` |  |
+| sdelements.values.postgresql.auth.postgressPassword | string | `"default"` |  |
+| sdelements.values.rabbitmq.auth.password | string | `"default"` |  |
+| sdelements.values.rabbitmq.auth.erlangCookie | string | `"default"` |  |
+| sdelements.values.minio.enabled | bool | `false` |  |
+| sdelements.values.minio.rootUser | string | `"admin"` |  |
+| sdelements.values.minio.rootPassword | string | `"password"` |  |
+| sdelements.values.minio.tls.enabled | bool | `false` |  |
+| sdelements.values.minio.buckets[0].name | string | `"sde-bucket"` |  |
+| sdelements.values.minio.buckets[0].policy | string | `"none"` |  |
+| sdelements.values.minio.buckets[0].purge | bool | `false` |  |
+| sdelements.values.minio.users[0].accessKey | string | `"accesskey"` |  |
+| sdelements.values.minio.users[0].secretKey | string | `"secretkey"` |  |
+| sdelements.values.minio.users[0].policy | string | `"readwrite"` |  |
+| sdelements.values.minio-tenant.enabled | bool | `true` |  |
+| sdelements.values.minio-tenant.tenant.imagePullSecret.name | string | `"private-registry"` |  |
+| sdelements.values.minio-tenant.tenant.env[0].name | string | `"MINIO_BROWSER"` |  |
+| sdelements.values.minio-tenant.tenant.env[0].value | string | `"off"` |  |
+| sdelements.values.minio-tenant.tenant.pools[0].servers | int | `1` |  |
+| sdelements.values.minio-tenant.tenant.pools[0].name | string | `"pool-0"` |  |
+| sdelements.values.minio-tenant.tenant.pools[0].volumesPerServer | int | `4` |  |
+| sdelements.values.minio-tenant.tenant.pools[0].size | string | `"10Gi"` |  |
+| sdelements.values.minio-tenant.secrets.accessKey | string | `"accesskey"` |  |
+| sdelements.values.minio-tenant.secrets.secretKey | string | `"secretkey"` |  |
+| sdelements.values.istio.enabled | bool | `true` |  |
+| sdelements.values.istio.gateways[0] | string | `"istio-system/public"` |  |
+| sdelements.values.istio.host | string | `"sdelements.dev.bigbang.mil"` |  |
+| sdelements.values.bbtests.enabled | bool | `false` |  |
+| kyverno.enabled | bool | `false` |  |
+| kyvernoPolicies.enabled | bool | `false` |  |
+| kyvernoReporter.enabled | bool | `false` |  |
+| networkPolicies.enabled | bool | `false` |  |
+| gatekeeper.enabled | bool | `false` |  |
+| eckOperator | string | `nil` |  |
+| networkPolicies.enabled | bool | `false` |  |
+| gatekeeper.enabled | bool | `false` |  |
+| eckOperator.enabled | bool | `false` |  |
+| elasticsearchKibana.enabled | bool | `false` |  |
+| fluentbit.enabled | bool | `false` |  |
+| promtail.enabled | bool | `false` |  |
+| loki.enabled | bool | `false` |  |
+| monitoring.enabled | bool | `false` |  |
+| grafana.enabled | bool | `false` |  |
+| bbctl.enabled | bool | `false` |  |
+| kiali.enabled | bool | `false` |  |
+| twistlock.enabled | bool | `false` |  |
+| tempo.enabled | bool | `false` |  |
+| neuvector.enabled | bool | `false` |  |
+| addons.minioOperator.enabled | bool | `true` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
@@ -4056,36 +2363,102 @@ High Performance Object Storage
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# common
+# pas-api
 
-![Version: 2.2.4](https://img.shields.io/badge/Version-2.2.4-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square) ![AppVersion: 2.2.4](https://img.shields.io/badge/AppVersion-2.2.4-informational?style=flat-square)
+![Version: 2.0.6](https://img.shields.io/badge/Version-2.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.6](https://img.shields.io/badge/AppVersion-2.0.6-informational?style=flat-square)
 
-A Library Helm Chart for grouping common logic between bitnami charts. This chart is not deployable by itself.
+SD Elements PAS API Service
 
-**Homepage:** <https://github.com/bitnami/charts/tree/main/bitnami/common>
+**Homepage:** <https://docker.sdelements.com>
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| Bitnami |  | <https://github.com/bitnami/charts> |
+| Security Compass Technologies Ltd. | <sdesupport@securitycompass.com> | <https://www.securitycompass.com/> |
 
 ## Source Code
 
-* <https://github.com/bitnami/charts>
-* <https://www.bitnami.com/>
+* <https://agra.sdelements.com/sd-elements/management_command_system>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://charts.bitnami.com/bitnami | rabbitmq | 11.14.4 |
+| https://charts.min.io/ | minio | 5.0.14 |
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-database | 1.3.6 |
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-datastore | 1.0.3 |
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| exampleValue | string | `"common-chart"` |  |
+| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageRegistryUsername | string | `"acmecorp"` |  |
+| global.imageRegistryPassword | string | `"SuperSecretPassword"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imageSource | string | `"sde"` |  |
+| global.imagePullPolicy | string | `"IfNotPresent"` |  |
+| global.useSubcharts | bool | `false` |  |
+| global.pas.broker | object | `{}` |  |
+| global.pas.database | object | `{}` |  |
+| global.pas.sharedStorage | object | `{}` |  |
+| global.pas.datastore | object | `{}` |  |
+| global.database | object | `{}` |  |
+| global.broker.adminVhost | string | `"rabbit"` |  |
+| global.sharedStorage | object | `{}` |  |
+| global.datastore | object | `{}` |  |
+| global.thirdPartyCACertificates.enabled | bool | `false` |  |
+| sc-database | object | `{}` |  |
+| broker | object | `{}` |  |
+| rabbitmq.nameOverride | string | `"broker"` |  |
+| rabbitmq.image.repository | string | `"sde-docker-prod/sde/rabbitmq"` |  |
+| rabbitmq.auth.username | string | `"rabbit"` |  |
+| rabbitmq.extraConfiguration | string | `"default_vhost = {{ .Values.global.broker.adminVhost }}"` |  |
+| rabbitmq.resources.requests.cpu | string | `"10m"` |  |
+| rabbitmq.resources.requests.memory | string | `"150Mi"` |  |
+| rabbitmq.resources.limits.cpu | int | `2` |  |
+| rabbitmq.resources.limits.memory | string | `"2048Mi"` |  |
+| minio.enabled | bool | `false` |  |
+| minio.mode | string | `"standalone"` |  |
+| minio.persistence.size | string | `"8Gi"` |  |
+| minio.resources.requests.memory | string | `"256Mi"` |  |
+| minio.buckets[0].name | string | `"plugin"` |  |
+| minio.buckets[0].policy | string | `"none"` |  |
+| minio.buckets[0].purge | bool | `false` |  |
+| minio.serviceAccount.create | bool | `true` |  |
+| minio.serviceAccount.name | string | `"minio-sa"` |  |
+| useDatabaseSubchart | bool | `true` |  |
+| useBrokerSubchart | bool | `true` |  |
+| useDatastoreSubchart | bool | `true` |  |
+| includeSDESecret | bool | `true` |  |
+| useLocalDevDbConfig | bool | `true` |  |
+| sdeAPIServiceMethod | string | `"http"` |  |
+| admin.database | object | `{}` |  |
+| admin.broker | object | `{}` |  |
+| database | object | `{}` |  |
+| sde.broker | object | `{}` |  |
+| sharedStorage | object | `{}` |  |
+| networkPolicies.pas-api.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
+| networkPolicies.pas-api.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-frontend"` |  |
+| networkPolicies.pas-api.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
+| networkPolicies.pas-api.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
+| networkPolicies.pas-api.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
+| networkPolicies.pas-api.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
+| networkPolicies.pas-api.ingress[0].selectors[5].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
+| networkPolicies.pas-api.ingress[0].selectors[6].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
+| networkPolicies.pas-api.ingress[0].selectors[7].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
+| networkPolicies.pas-api.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
+| networkPolicies.pas-api.ingress[0].ports[0].port | string | `"{{ index .Values \"port\" | default 8000 }}"` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 # sc-datastore
 
-![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.2](https://img.shields.io/badge/AppVersion-1.0.2-informational?style=flat-square)
+![Version: 1.0.3](https://img.shields.io/badge/Version-1.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.3](https://img.shields.io/badge/AppVersion-1.0.3-informational?style=flat-square)
 
 The Security Compass datastore (Redis)
 
@@ -4143,176 +2516,30 @@ The Security Compass datastore (Redis)
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-# minio
+# sc-library
 
-![Version: 5.0.7](https://img.shields.io/badge/Version-5.0.7-informational?style=flat-square) ![AppVersion: RELEASE.2023-02-10T18-48-39Z](https://img.shields.io/badge/AppVersion-RELEASE.2023--02--10T18--48--39Z-informational?style=flat-square)
+![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
 
-Multi-Cloud Object Storage
+A Library Project
 
-**Homepage:** <https://min.io>
+**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| MinIO, Inc | <dev@minio.io> |  |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
 
 ## Source Code
 
-* <https://github.com/minio/minio>
+* <https://agra.sdelements.com/deployment/containers/library>
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| nameOverride | string | `""` |  |
-| fullnameOverride | string | `""` |  |
-| clusterDomain | string | `"cluster.local"` |  |
-| image.repository | string | `"quay.io/minio/minio"` |  |
-| image.tag | string | `"RELEASE.2023-02-10T18-48-39Z"` |  |
-| image.pullPolicy | string | `"IfNotPresent"` |  |
-| imagePullSecrets | list | `[]` |  |
-| mcImage.repository | string | `"quay.io/minio/mc"` |  |
-| mcImage.tag | string | `"RELEASE.2023-01-28T20-29-38Z"` |  |
-| mcImage.pullPolicy | string | `"IfNotPresent"` |  |
-| mode | string | `"distributed"` |  |
-| additionalLabels | object | `{}` |  |
-| additionalAnnotations | object | `{}` |  |
-| ignoreChartChecksums | bool | `false` |  |
-| extraArgs | list | `[]` |  |
-| extraVolumes | list | `[]` |  |
-| extraVolumeMounts | list | `[]` |  |
-| extraContainers | list | `[]` |  |
-| minioAPIPort | string | `"9000"` |  |
-| minioConsolePort | string | `"9001"` |  |
-| DeploymentUpdate.type | string | `"RollingUpdate"` |  |
-| DeploymentUpdate.maxUnavailable | int | `0` |  |
-| DeploymentUpdate.maxSurge | string | `"100%"` |  |
-| StatefulSetUpdate.updateStrategy | string | `"RollingUpdate"` |  |
-| priorityClassName | string | `""` |  |
-| runtimeClassName | string | `""` |  |
-| rootUser | string | `""` |  |
-| rootPassword | string | `""` |  |
-| existingSecret | string | `""` |  |
-| certsPath | string | `"/etc/minio/certs/"` |  |
-| configPathmc | string | `"/etc/minio/mc/"` |  |
-| mountPath | string | `"/export"` |  |
-| bucketRoot | string | `""` |  |
-| drivesPerNode | int | `1` |  |
-| replicas | int | `16` |  |
-| pools | int | `1` |  |
-| tls.enabled | bool | `false` |  |
-| tls.certSecret | string | `""` |  |
-| tls.publicCrt | string | `"public.crt"` |  |
-| tls.privateKey | string | `"private.key"` |  |
-| trustedCertsSecret | string | `""` |  |
-| persistence.enabled | bool | `true` |  |
-| persistence.annotations | object | `{}` |  |
-| persistence.existingClaim | string | `""` |  |
-| persistence.storageClass | string | `""` |  |
-| persistence.VolumeName | string | `""` |  |
-| persistence.accessMode | string | `"ReadWriteOnce"` |  |
-| persistence.size | string | `"500Gi"` |  |
-| persistence.subPath | string | `""` |  |
-| service.type | string | `"ClusterIP"` |  |
-| service.clusterIP | string | `nil` |  |
-| service.port | string | `"9000"` |  |
-| service.nodePort | int | `32000` |  |
-| ingress.enabled | bool | `false` |  |
-| ingress.labels | object | `{}` |  |
-| ingress.annotations | object | `{}` |  |
-| ingress.path | string | `"/"` |  |
-| ingress.hosts[0] | string | `"minio-example.local"` |  |
-| ingress.tls | list | `[]` |  |
-| consoleService.type | string | `"ClusterIP"` |  |
-| consoleService.clusterIP | string | `nil` |  |
-| consoleService.port | string | `"9001"` |  |
-| consoleService.nodePort | int | `32001` |  |
-| consoleIngress.enabled | bool | `false` |  |
-| consoleIngress.labels | object | `{}` |  |
-| consoleIngress.annotations | object | `{}` |  |
-| consoleIngress.path | string | `"/"` |  |
-| consoleIngress.hosts[0] | string | `"console.minio-example.local"` |  |
-| consoleIngress.tls | list | `[]` |  |
-| nodeSelector | object | `{}` |  |
-| tolerations | list | `[]` |  |
-| affinity | object | `{}` |  |
-| topologySpreadConstraints | list | `[]` |  |
-| securityContext.enabled | bool | `true` |  |
-| securityContext.runAsUser | int | `1000` |  |
-| securityContext.runAsGroup | int | `1000` |  |
-| securityContext.fsGroup | int | `1000` |  |
-| securityContext.fsGroupChangePolicy | string | `"OnRootMismatch"` |  |
-| podAnnotations | object | `{}` |  |
-| podLabels | object | `{}` |  |
-| resources.requests.memory | string | `"16Gi"` |  |
-| policies | list | `[]` |  |
-| makePolicyJob.securityContext.enabled | bool | `false` |  |
-| makePolicyJob.securityContext.runAsUser | int | `1000` |  |
-| makePolicyJob.securityContext.runAsGroup | int | `1000` |  |
-| makePolicyJob.resources.requests.memory | string | `"128Mi"` |  |
-| makePolicyJob.exitCommand | string | `""` |  |
-| users[0].accessKey | string | `"console"` |  |
-| users[0].secretKey | string | `"console123"` |  |
-| users[0].policy | string | `"consoleAdmin"` |  |
-| makeUserJob.securityContext.enabled | bool | `false` |  |
-| makeUserJob.securityContext.runAsUser | int | `1000` |  |
-| makeUserJob.securityContext.runAsGroup | int | `1000` |  |
-| makeUserJob.resources.requests.memory | string | `"128Mi"` |  |
-| makeUserJob.exitCommand | string | `""` |  |
-| makeServiceAccountJob.securityContext.enabled | bool | `false` |  |
-| makeServiceAccountJob.securityContext.runAsUser | int | `1000` |  |
-| makeServiceAccountJob.securityContext.runAsGroup | int | `1000` |  |
-| makeServiceAccountJob.resources.requests.memory | string | `"128Mi"` |  |
-| makeServiceAccountJob.exitCommand | string | `""` |  |
-| buckets | string | `nil` |  |
-| makeBucketJob.securityContext.enabled | bool | `false` |  |
-| makeBucketJob.securityContext.runAsUser | int | `1000` |  |
-| makeBucketJob.securityContext.runAsGroup | int | `1000` |  |
-| makeBucketJob.resources.requests.memory | string | `"128Mi"` |  |
-| makeBucketJob.exitCommand | string | `""` |  |
-| customCommands | string | `nil` |  |
-| customCommandJob.securityContext.enabled | bool | `false` |  |
-| customCommandJob.securityContext.runAsUser | int | `1000` |  |
-| customCommandJob.securityContext.runAsGroup | int | `1000` |  |
-| customCommandJob.resources.requests.memory | string | `"128Mi"` |  |
-| customCommandJob.exitCommand | string | `""` |  |
-| postJob.podAnnotations | object | `{}` |  |
-| postJob.annotations | object | `{}` |  |
-| postJob.securityContext.enabled | bool | `false` |  |
-| postJob.securityContext.runAsUser | int | `1000` |  |
-| postJob.securityContext.runAsGroup | int | `1000` |  |
-| postJob.securityContext.fsGroup | int | `1000` |  |
-| postJob.nodeSelector | object | `{}` |  |
-| postJob.tolerations | list | `[]` |  |
-| postJob.affinity | object | `{}` |  |
-| environment | string | `nil` |  |
-| oidc.enabled | bool | `false` |  |
-| oidc.configUrl | string | `"https://identity-provider-url/.well-known/openid-configuration"` |  |
-| oidc.clientId | string | `"minio"` |  |
-| oidc.clientSecret | string | `""` |  |
-| oidc.claimName | string | `"policy"` |  |
-| oidc.scopes | string | `"openid,profile,email"` |  |
-| oidc.redirectUri | string | `"https://console-endpoint-url/oauth_callback"` |  |
-| oidc.claimPrefix | string | `""` |  |
-| oidc.comment | string | `""` |  |
-| networkPolicy.enabled | bool | `false` |  |
-| networkPolicy.allowExternal | bool | `true` |  |
-| podDisruptionBudget.enabled | bool | `false` |  |
-| podDisruptionBudget.maxUnavailable | int | `1` |  |
-| serviceAccount.create | bool | `true` |  |
-| serviceAccount.name | string | `"minio-sa"` |  |
-| metrics.serviceMonitor.enabled | bool | `false` |  |
-| metrics.serviceMonitor.includeNode | bool | `false` |  |
-| metrics.serviceMonitor.public | bool | `true` |  |
-| metrics.serviceMonitor.additionalLabels | object | `{}` |  |
-| metrics.serviceMonitor.relabelConfigs | object | `{}` |  |
-| metrics.serviceMonitor.relabelConfigsCluster | object | `{}` |  |
-| etcd.endpoints | list | `[]` |  |
-| etcd.pathPrefix | string | `""` |  |
-| etcd.corednsPathPrefix | string | `""` |  |
-| etcd.clientCert | string | `""` |  |
-| etcd.clientCertKey | string | `""` |  |
+| global.enabled | bool | `true` |  |
+| library.back-end | bool | `true` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
@@ -4340,6 +2567,543 @@ A Library Project
 |-----|------|---------|-------------|
 | global.enabled | bool | `true` |  |
 | library.back-end | bool | `true` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-library
+
+![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
+
+A Library Project
+
+**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/library>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| library.back-end | bool | `true` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# pas-frontend
+
+![Version: 2.0.6](https://img.shields.io/badge/Version-2.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.6](https://img.shields.io/badge/AppVersion-2.0.6-informational?style=flat-square)
+
+PAS frontend nginx container
+
+**Homepage:** <https://docker.sdelements.com>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <sdesupport@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/sd-elements/management_command_system>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageRegistryUsername | string | `"acmecorp"` |  |
+| global.imageRegistryPassword | string | `"SuperSecretPassword"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imagePullPolicy | string | `"IfNotPresent"` |  |
+| global.imageSource | string | `"sde/pas"` |  |
+| global.pas | object | `{}` |  |
+| networkPolicies.pas-frontend.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-frontend"` |  |
+| networkPolicies.pas-frontend.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-web"` |  |
+| networkPolicies.pas-frontend.ingress[0].ports[0].port | string | `"{{ index .Values \"port\" | int | default 8081 }}"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-library
+
+![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
+
+A Library Project
+
+**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/library>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| library.back-end | bool | `true` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-jitt
+
+![Version: 2024.4.3](https://img.shields.io/badge/Version-2024.4.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2024.4.3](https://img.shields.io/badge/AppVersion-2024.4.3-informational?style=flat-square)
+
+The Security Compass JITT Chart
+
+**Homepage:** <https://agra.sdelements.com/sd-elements/sde-training>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/sd-elements/sde-training>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imageSource | string | `"sde"` |  |
+| global.imagePullPolicy | string | `"IfNotPresent"` |  |
+| global.useStandalone | bool | `true` |  |
+| global.enableNestedDependencies | bool | `false` |  |
+| replicas | int | `1` |  |
+| resources.requests.memory | string | `"128Mi"` |  |
+| networkPolicies.jitt.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-jitt"` |  |
+| networkPolicies.jitt.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-web"` |  |
+| networkPolicies.jitt.ingress[0].ports[0].port | string | `"{{ index .Values \"httpsPort\" | int | default 7443 }}"` |  |
+| networkPolicies.jitt.ingress[0].ports[1].port | string | `"{{ index .Values \"httpPort\" | int | default 9080 }}"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# ingress-nginx
+
+![Version: 4.8.2](https://img.shields.io/badge/Version-4.8.2-informational?style=flat-square) ![AppVersion: 1.9.3](https://img.shields.io/badge/AppVersion-1.9.3-informational?style=flat-square)
+
+Ingress controller for Kubernetes using NGINX as a reverse proxy and load balancer
+
+**Homepage:** <https://github.com/kubernetes/ingress-nginx>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| rikatz |  |  |
+| strongjz |  |  |
+| tao12345666333 |  |  |
+
+## Source Code
+
+* <https://github.com/kubernetes/ingress-nginx>
+
+## Requirements
+
+Kubernetes: `>=1.20.0-0`
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| commonLabels | object | `{}` |  |
+| controller.name | string | `"controller"` |  |
+| controller.enableAnnotationValidations | bool | `false` |  |
+| controller.image.chroot | bool | `false` |  |
+| controller.image.registry | string | `"registry.k8s.io"` |  |
+| controller.image.image | string | `"ingress-nginx/controller"` |  |
+| controller.image.tag | string | `"v1.9.3"` |  |
+| controller.image.digest | string | `"sha256:8fd21d59428507671ce0fb47f818b1d859c92d2ad07bb7c947268d433030ba98"` |  |
+| controller.image.digestChroot | string | `"sha256:df4931fd6859fbf1a71e785f02a44b2f9a16f010ae852c442e9bb779cbefdc86"` |  |
+| controller.image.pullPolicy | string | `"IfNotPresent"` |  |
+| controller.image.runAsUser | int | `101` |  |
+| controller.image.allowPrivilegeEscalation | bool | `true` |  |
+| controller.existingPsp | string | `""` | Use an existing PSP instead of creating one |
+| controller.containerName | string | `"controller"` | Configures the controller container name |
+| controller.containerPort | object | `{"http":80,"https":443}` | Configures the ports that the nginx-controller listens on |
+| controller.config | object | `{}` | Will add custom configuration options to Nginx https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/ |
+| controller.configAnnotations | object | `{}` | Annotations to be added to the controller config configuration configmap. |
+| controller.proxySetHeaders | object | `{}` | Will add custom headers before sending traffic to backends according to https://github.com/kubernetes/ingress-nginx/tree/main/docs/examples/customization/custom-headers |
+| controller.addHeaders | object | `{}` | Will add custom headers before sending response traffic to the client according to: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#add-headers |
+| controller.dnsConfig | object | `{}` | Optionally customize the pod dnsConfig. |
+| controller.hostAliases | list | `[]` | Optionally customize the pod hostAliases. |
+| controller.hostname | object | `{}` | Optionally customize the pod hostname. |
+| controller.dnsPolicy | string | `"ClusterFirst"` | Optionally change this to ClusterFirstWithHostNet in case you have 'hostNetwork: true'. By default, while using host network, name resolution uses the host's DNS. If you wish nginx-controller to keep resolving names inside the k8s network, use ClusterFirstWithHostNet. |
+| controller.reportNodeInternalIp | bool | `false` | Bare-metal considerations via the host network https://kubernetes.github.io/ingress-nginx/deploy/baremetal/#via-the-host-network Ingress status was blank because there is no Service exposing the Ingress-Nginx Controller in a configuration using the host network, the default --publish-service flag used in standard cloud setups does not apply |
+| controller.watchIngressWithoutClass | bool | `false` | Process Ingress objects without ingressClass annotation/ingressClassName field Overrides value for --watch-ingress-without-class flag of the controller binary Defaults to false |
+| controller.ingressClassByName | bool | `false` | Process IngressClass per name (additionally as per spec.controller). |
+| controller.enableTopologyAwareRouting | bool | `false` | This configuration enables Topology Aware Routing feature, used together with service annotation service.kubernetes.io/topology-mode="auto" Defaults to false |
+| controller.allowSnippetAnnotations | bool | `false` | This configuration defines if Ingress Controller should allow users to set their own *-snippet annotations, otherwise this is forbidden / dropped when users add those annotations. Global snippets in ConfigMap are still respected |
+| controller.hostNetwork | bool | `false` | Required for use with CNI based kubernetes installations (such as ones set up by kubeadm), since CNI and hostport don't mix yet. Can be deprecated once https://github.com/kubernetes/kubernetes/issues/23920 is merged |
+| controller.hostPort.enabled | bool | `false` | Enable 'hostPort' or not |
+| controller.hostPort.ports.http | int | `80` | 'hostPort' http port |
+| controller.hostPort.ports.https | int | `443` | 'hostPort' https port |
+| controller.networkPolicy.enabled | bool | `false` | Enable 'networkPolicy' or not |
+| controller.electionID | string | `""` | Election ID to use for status update, by default it uses the controller name combined with a suffix of 'leader' |
+| controller.ingressClassResource.name | string | `"nginx"` | Name of the ingressClass |
+| controller.ingressClassResource.enabled | bool | `true` | Is this ingressClass enabled or not |
+| controller.ingressClassResource.default | bool | `false` | Is this the default ingressClass for the cluster |
+| controller.ingressClassResource.controllerValue | string | `"k8s.io/ingress-nginx"` | Controller-value of the controller that is processing this ingressClass |
+| controller.ingressClassResource.parameters | object | `{}` | Parameters is a link to a custom resource containing additional configuration for the controller. This is optional if the controller does not require extra parameters. |
+| controller.ingressClass | string | `"nginx"` | For backwards compatibility with ingress.class annotation, use ingressClass. Algorithm is as follows, first ingressClassName is considered, if not present, controller looks for ingress.class annotation |
+| controller.podLabels | object | `{}` | Labels to add to the pod container metadata |
+| controller.podSecurityContext | object | `{}` | Security Context policies for controller pods |
+| controller.sysctls | object | `{}` | See https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/ for notes on enabling and using sysctls |
+| controller.publishService | object | `{"enabled":true,"pathOverride":""}` | Allows customization of the source of the IP address or FQDN to report in the ingress status field. By default, it reads the information provided by the service. If disable, the status field reports the IP address of the node or nodes where an ingress controller pod is running. |
+| controller.publishService.enabled | bool | `true` | Enable 'publishService' or not |
+| controller.publishService.pathOverride | string | `""` | Allows overriding of the publish service to bind to Must be <namespace>/<service_name> |
+| controller.scope.enabled | bool | `false` | Enable 'scope' or not |
+| controller.scope.namespace | string | `""` | Namespace to limit the controller to; defaults to $(POD_NAMESPACE) |
+| controller.scope.namespaceSelector | string | `""` | When scope.enabled == false, instead of watching all namespaces, we watching namespaces whose labels only match with namespaceSelector. Format like foo=bar. Defaults to empty, means watching all namespaces. |
+| controller.configMapNamespace | string | `""` | Allows customization of the configmap / nginx-configmap namespace; defaults to $(POD_NAMESPACE) |
+| controller.tcp.configMapNamespace | string | `""` | Allows customization of the tcp-services-configmap; defaults to $(POD_NAMESPACE) |
+| controller.tcp.annotations | object | `{}` | Annotations to be added to the tcp config configmap |
+| controller.udp.configMapNamespace | string | `""` | Allows customization of the udp-services-configmap; defaults to $(POD_NAMESPACE) |
+| controller.udp.annotations | object | `{}` | Annotations to be added to the udp config configmap |
+| controller.maxmindLicenseKey | string | `""` | Maxmind license key to download GeoLite2 Databases. # https://blog.maxmind.com/2019/12/18/significant-changes-to-accessing-and-using-geolite2-databases |
+| controller.extraArgs | object | `{}` | Additional command line arguments to pass to Ingress-Nginx Controller E.g. to specify the default SSL certificate you can use |
+| controller.extraEnvs | list | `[]` | Additional environment variables to set |
+| controller.kind | string | `"Deployment"` | Use a `DaemonSet` or `Deployment` |
+| controller.annotations | object | `{}` | Annotations to be added to the controller Deployment or DaemonSet # |
+| controller.labels | object | `{}` | Labels to be added to the controller Deployment or DaemonSet and other resources that do not have option to specify labels # |
+| controller.updateStrategy | object | `{}` | The update strategy to apply to the Deployment or DaemonSet # |
+| controller.minReadySeconds | int | `0` | `minReadySeconds` to avoid killing pods before we are ready # |
+| controller.tolerations | list | `[]` | Node tolerations for server scheduling to nodes with taints # Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/ # |
+| controller.affinity | object | `{}` | Affinity and anti-affinity rules for server scheduling to nodes # Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity # |
+| controller.topologySpreadConstraints | list | `[]` | Topology spread constraints rely on node labels to identify the topology domain(s) that each Node is in. # Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/ # |
+| controller.terminationGracePeriodSeconds | int | `300` | `terminationGracePeriodSeconds` to avoid killing pods before we are ready # wait up to five minutes for the drain of connections # |
+| controller.nodeSelector | object | `{"kubernetes.io/os":"linux"}` | Node labels for controller pod assignment # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/ # |
+| controller.livenessProbe.httpGet.path | string | `"/healthz"` |  |
+| controller.livenessProbe.httpGet.port | int | `10254` |  |
+| controller.livenessProbe.httpGet.scheme | string | `"HTTP"` |  |
+| controller.livenessProbe.initialDelaySeconds | int | `10` |  |
+| controller.livenessProbe.periodSeconds | int | `10` |  |
+| controller.livenessProbe.timeoutSeconds | int | `1` |  |
+| controller.livenessProbe.successThreshold | int | `1` |  |
+| controller.livenessProbe.failureThreshold | int | `5` |  |
+| controller.readinessProbe.httpGet.path | string | `"/healthz"` |  |
+| controller.readinessProbe.httpGet.port | int | `10254` |  |
+| controller.readinessProbe.httpGet.scheme | string | `"HTTP"` |  |
+| controller.readinessProbe.initialDelaySeconds | int | `10` |  |
+| controller.readinessProbe.periodSeconds | int | `10` |  |
+| controller.readinessProbe.timeoutSeconds | int | `1` |  |
+| controller.readinessProbe.successThreshold | int | `1` |  |
+| controller.readinessProbe.failureThreshold | int | `3` |  |
+| controller.healthCheckPath | string | `"/healthz"` | Path of the health check endpoint. All requests received on the port defined by the healthz-port parameter are forwarded internally to this path. |
+| controller.healthCheckHost | string | `""` | Address to bind the health check endpoint. It is better to set this option to the internal node address if the Ingress-Nginx Controller is running in the `hostNetwork: true` mode. |
+| controller.podAnnotations | object | `{}` | Annotations to be added to controller pods # |
+| controller.replicaCount | int | `1` |  |
+| controller.minAvailable | int | `1` | Minimum available pods set in PodDisruptionBudget. Define either 'minAvailable' or 'maxUnavailable', never both. |
+| controller.resources.requests.cpu | string | `"100m"` |  |
+| controller.resources.requests.memory | string | `"90Mi"` |  |
+| controller.autoscaling.enabled | bool | `false` |  |
+| controller.autoscaling.annotations | object | `{}` |  |
+| controller.autoscaling.minReplicas | int | `1` |  |
+| controller.autoscaling.maxReplicas | int | `11` |  |
+| controller.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| controller.autoscaling.targetMemoryUtilizationPercentage | int | `50` |  |
+| controller.autoscaling.behavior | object | `{}` |  |
+| controller.autoscalingTemplate | list | `[]` |  |
+| controller.keda.apiVersion | string | `"keda.sh/v1alpha1"` |  |
+| controller.keda.enabled | bool | `false` |  |
+| controller.keda.minReplicas | int | `1` |  |
+| controller.keda.maxReplicas | int | `11` |  |
+| controller.keda.pollingInterval | int | `30` |  |
+| controller.keda.cooldownPeriod | int | `300` |  |
+| controller.keda.restoreToOriginalReplicaCount | bool | `false` |  |
+| controller.keda.scaledObject.annotations | object | `{}` |  |
+| controller.keda.triggers | list | `[]` |  |
+| controller.keda.behavior | object | `{}` |  |
+| controller.enableMimalloc | bool | `true` | Enable mimalloc as a drop-in replacement for malloc. # ref: https://github.com/microsoft/mimalloc # |
+| controller.customTemplate.configMapName | string | `""` |  |
+| controller.customTemplate.configMapKey | string | `""` |  |
+| controller.service.enabled | bool | `true` |  |
+| controller.service.appProtocol | bool | `true` | If enabled is adding an appProtocol option for Kubernetes service. An appProtocol field replacing annotations that were using for setting a backend protocol. Here is an example for AWS: service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http It allows choosing the protocol for each backend specified in the Kubernetes service. See the following GitHub issue for more details about the purpose: https://github.com/kubernetes/kubernetes/issues/40244 Will be ignored for Kubernetes versions older than 1.20 # |
+| controller.service.annotations | object | `{}` | Annotations are mandatory for the load balancer to come up. Varies with the cloud service. Values passed through helm tpl engine. |
+| controller.service.labels | object | `{}` |  |
+| controller.service.externalIPs | list | `[]` | List of IP addresses at which the controller services are available # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#external-ips # |
+| controller.service.loadBalancerIP | string | `""` | Used by cloud providers to connect the resulting `LoadBalancer` to a pre-existing static IP according to https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer |
+| controller.service.loadBalancerSourceRanges | list | `[]` |  |
+| controller.service.loadBalancerClass | string | `""` | Used by cloud providers to select a load balancer implementation other than the cloud provider default. https://kubernetes.io/docs/concepts/services-networking/service/#load-balancer-class |
+| controller.service.enableHttp | bool | `true` |  |
+| controller.service.enableHttps | bool | `true` |  |
+| controller.service.ipFamilyPolicy | string | `"SingleStack"` | Represents the dual-stack-ness requested or required by this Service. Possible values are SingleStack, PreferDualStack or RequireDualStack. The ipFamilies and clusterIPs fields depend on the value of this field. # Ref: https://kubernetes.io/docs/concepts/services-networking/dual-stack/ |
+| controller.service.ipFamilies | list | `["IPv4"]` | List of IP families (e.g. IPv4, IPv6) assigned to the service. This field is usually assigned automatically based on cluster configuration and the ipFamilyPolicy field. # Ref: https://kubernetes.io/docs/concepts/services-networking/dual-stack/ |
+| controller.service.ports.http | int | `80` |  |
+| controller.service.ports.https | int | `443` |  |
+| controller.service.targetPorts.http | string | `"http"` |  |
+| controller.service.targetPorts.https | string | `"https"` |  |
+| controller.service.type | string | `"LoadBalancer"` |  |
+| controller.service.nodePorts.http | string | `""` |  |
+| controller.service.nodePorts.https | string | `""` |  |
+| controller.service.nodePorts.tcp | object | `{}` |  |
+| controller.service.nodePorts.udp | object | `{}` |  |
+| controller.service.external.enabled | bool | `true` |  |
+| controller.service.internal.enabled | bool | `false` | Enables an additional internal load balancer (besides the external one). |
+| controller.service.internal.annotations | object | `{}` | Annotations are mandatory for the load balancer to come up. Varies with the cloud service. Values passed through helm tpl engine. |
+| controller.service.internal.loadBalancerIP | string | `""` | Used by cloud providers to connect the resulting internal LoadBalancer to a pre-existing static IP. Make sure to add to the service the needed annotation to specify the subnet which the static IP belongs to. For instance, `networking.gke.io/internal-load-balancer-subnet` for GCP and `service.beta.kubernetes.io/aws-load-balancer-subnets` for AWS. |
+| controller.service.internal.loadBalancerSourceRanges | list | `[]` | Restrict access For LoadBalancer service. Defaults to 0.0.0.0/0. |
+| controller.service.internal.ports | object | `{}` | Custom port mapping for internal service |
+| controller.service.internal.targetPorts | object | `{}` | Custom target port mapping for internal service |
+| controller.shareProcessNamespace | bool | `false` |  |
+| controller.extraContainers | list | `[]` | Additional containers to be added to the controller pod. See https://github.com/lemonldap-ng-controller/lemonldap-ng-controller as example. |
+| controller.extraVolumeMounts | list | `[]` | Additional volumeMounts to the controller main container. |
+| controller.extraVolumes | list | `[]` | Additional volumes to the controller pod. |
+| controller.extraInitContainers | list | `[]` | Containers, which are run before the app containers are started. |
+| controller.extraModules | list | `[]` | Modules, which are mounted into the core nginx image. See values.yaml for a sample to add opentelemetry module |
+| controller.opentelemetry.enabled | bool | `false` |  |
+| controller.opentelemetry.image | string | `"registry.k8s.io/ingress-nginx/opentelemetry:v20230721-3e2062ee5@sha256:13bee3f5223883d3ca62fee7309ad02d22ec00ff0d7033e3e9aca7a9f60fd472"` |  |
+| controller.opentelemetry.containerSecurityContext.allowPrivilegeEscalation | bool | `false` |  |
+| controller.opentelemetry.resources | object | `{}` |  |
+| controller.admissionWebhooks.annotations | object | `{}` |  |
+| controller.admissionWebhooks.enabled | bool | `true` |  |
+| controller.admissionWebhooks.extraEnvs | list | `[]` | Additional environment variables to set |
+| controller.admissionWebhooks.failurePolicy | string | `"Fail"` | Admission Webhook failure policy to use |
+| controller.admissionWebhooks.port | int | `8443` |  |
+| controller.admissionWebhooks.certificate | string | `"/usr/local/certificates/cert"` |  |
+| controller.admissionWebhooks.key | string | `"/usr/local/certificates/key"` |  |
+| controller.admissionWebhooks.namespaceSelector | object | `{}` |  |
+| controller.admissionWebhooks.objectSelector | object | `{}` |  |
+| controller.admissionWebhooks.labels | object | `{}` | Labels to be added to admission webhooks |
+| controller.admissionWebhooks.existingPsp | string | `""` | Use an existing PSP instead of creating one |
+| controller.admissionWebhooks.service.annotations | object | `{}` |  |
+| controller.admissionWebhooks.service.externalIPs | list | `[]` |  |
+| controller.admissionWebhooks.service.loadBalancerSourceRanges | list | `[]` |  |
+| controller.admissionWebhooks.service.servicePort | int | `443` |  |
+| controller.admissionWebhooks.service.type | string | `"ClusterIP"` |  |
+| controller.admissionWebhooks.createSecretJob.securityContext.allowPrivilegeEscalation | bool | `false` |  |
+| controller.admissionWebhooks.createSecretJob.resources | object | `{}` |  |
+| controller.admissionWebhooks.patchWebhookJob.securityContext.allowPrivilegeEscalation | bool | `false` |  |
+| controller.admissionWebhooks.patchWebhookJob.resources | object | `{}` |  |
+| controller.admissionWebhooks.patch.enabled | bool | `true` |  |
+| controller.admissionWebhooks.patch.image.registry | string | `"registry.k8s.io"` |  |
+| controller.admissionWebhooks.patch.image.image | string | `"ingress-nginx/kube-webhook-certgen"` |  |
+| controller.admissionWebhooks.patch.image.tag | string | `"v20231011-8b53cabe0"` |  |
+| controller.admissionWebhooks.patch.image.digest | string | `"sha256:a7943503b45d552785aa3b5e457f169a5661fb94d82b8a3373bcd9ebaf9aac80"` |  |
+| controller.admissionWebhooks.patch.image.pullPolicy | string | `"IfNotPresent"` |  |
+| controller.admissionWebhooks.patch.priorityClassName | string | `""` | Provide a priority class name to the webhook patching job # |
+| controller.admissionWebhooks.patch.podAnnotations | object | `{}` |  |
+| controller.admissionWebhooks.patch.nodeSelector."kubernetes.io/os" | string | `"linux"` |  |
+| controller.admissionWebhooks.patch.tolerations | list | `[]` |  |
+| controller.admissionWebhooks.patch.labels | object | `{}` | Labels to be added to patch job resources |
+| controller.admissionWebhooks.patch.securityContext.runAsNonRoot | bool | `true` |  |
+| controller.admissionWebhooks.patch.securityContext.runAsUser | int | `2000` |  |
+| controller.admissionWebhooks.patch.securityContext.fsGroup | int | `2000` |  |
+| controller.admissionWebhooks.certManager.enabled | bool | `false` |  |
+| controller.admissionWebhooks.certManager.rootCert.duration | string | `""` |  |
+| controller.admissionWebhooks.certManager.admissionCert.duration | string | `""` |  |
+| controller.metrics.port | int | `10254` |  |
+| controller.metrics.portName | string | `"metrics"` |  |
+| controller.metrics.enabled | bool | `false` |  |
+| controller.metrics.service.annotations | object | `{}` |  |
+| controller.metrics.service.labels | object | `{}` | Labels to be added to the metrics service resource |
+| controller.metrics.service.externalIPs | list | `[]` | List of IP addresses at which the stats-exporter service is available # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#external-ips # |
+| controller.metrics.service.loadBalancerSourceRanges | list | `[]` |  |
+| controller.metrics.service.servicePort | int | `10254` |  |
+| controller.metrics.service.type | string | `"ClusterIP"` |  |
+| controller.metrics.serviceMonitor.enabled | bool | `false` |  |
+| controller.metrics.serviceMonitor.additionalLabels | object | `{}` |  |
+| controller.metrics.serviceMonitor.namespace | string | `""` |  |
+| controller.metrics.serviceMonitor.namespaceSelector | object | `{}` |  |
+| controller.metrics.serviceMonitor.scrapeInterval | string | `"30s"` |  |
+| controller.metrics.serviceMonitor.targetLabels | list | `[]` |  |
+| controller.metrics.serviceMonitor.relabelings | list | `[]` |  |
+| controller.metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
+| controller.metrics.prometheusRule.enabled | bool | `false` |  |
+| controller.metrics.prometheusRule.additionalLabels | object | `{}` |  |
+| controller.metrics.prometheusRule.rules | list | `[]` |  |
+| controller.lifecycle | object | `{"preStop":{"exec":{"command":["/wait-shutdown"]}}}` | Improve connection draining when ingress controller pod is deleted using a lifecycle hook: With this new hook, we increased the default terminationGracePeriodSeconds from 30 seconds to 300, allowing the draining of connections up to five minutes. If the active connections end before that, the pod will terminate gracefully at that time. To effectively take advantage of this feature, the Configmap feature worker-shutdown-timeout new value is 240s instead of 10s. # |
+| controller.priorityClassName | string | `""` |  |
+| revisionHistoryLimit | int | `10` | Rollback limit # |
+| defaultBackend.enabled | bool | `false` |  |
+| defaultBackend.name | string | `"defaultbackend"` |  |
+| defaultBackend.image.registry | string | `"registry.k8s.io"` |  |
+| defaultBackend.image.image | string | `"defaultbackend-amd64"` |  |
+| defaultBackend.image.tag | string | `"1.5"` |  |
+| defaultBackend.image.pullPolicy | string | `"IfNotPresent"` |  |
+| defaultBackend.image.runAsUser | int | `65534` |  |
+| defaultBackend.image.runAsNonRoot | bool | `true` |  |
+| defaultBackend.image.readOnlyRootFilesystem | bool | `true` |  |
+| defaultBackend.image.allowPrivilegeEscalation | bool | `false` |  |
+| defaultBackend.existingPsp | string | `""` | Use an existing PSP instead of creating one |
+| defaultBackend.extraArgs | object | `{}` |  |
+| defaultBackend.serviceAccount.create | bool | `true` |  |
+| defaultBackend.serviceAccount.name | string | `""` |  |
+| defaultBackend.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| defaultBackend.extraEnvs | list | `[]` | Additional environment variables to set for defaultBackend pods |
+| defaultBackend.port | int | `8080` |  |
+| defaultBackend.livenessProbe.failureThreshold | int | `3` |  |
+| defaultBackend.livenessProbe.initialDelaySeconds | int | `30` |  |
+| defaultBackend.livenessProbe.periodSeconds | int | `10` |  |
+| defaultBackend.livenessProbe.successThreshold | int | `1` |  |
+| defaultBackend.livenessProbe.timeoutSeconds | int | `5` |  |
+| defaultBackend.readinessProbe.failureThreshold | int | `6` |  |
+| defaultBackend.readinessProbe.initialDelaySeconds | int | `0` |  |
+| defaultBackend.readinessProbe.periodSeconds | int | `5` |  |
+| defaultBackend.readinessProbe.successThreshold | int | `1` |  |
+| defaultBackend.readinessProbe.timeoutSeconds | int | `5` |  |
+| defaultBackend.updateStrategy | object | `{}` | The update strategy to apply to the Deployment or DaemonSet # |
+| defaultBackend.minReadySeconds | int | `0` | `minReadySeconds` to avoid killing pods before we are ready # |
+| defaultBackend.tolerations | list | `[]` | Node tolerations for server scheduling to nodes with taints # Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/ # |
+| defaultBackend.affinity | object | `{}` |  |
+| defaultBackend.podSecurityContext | object | `{}` | Security Context policies for controller pods See https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/ for notes on enabling and using sysctls # |
+| defaultBackend.containerSecurityContext | object | `{}` | Security Context policies for controller main container. See https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/ for notes on enabling and using sysctls # |
+| defaultBackend.podLabels | object | `{}` | Labels to add to the pod container metadata |
+| defaultBackend.nodeSelector | object | `{"kubernetes.io/os":"linux"}` | Node labels for default backend pod assignment # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/ # |
+| defaultBackend.podAnnotations | object | `{}` | Annotations to be added to default backend pods # |
+| defaultBackend.replicaCount | int | `1` |  |
+| defaultBackend.minAvailable | int | `1` |  |
+| defaultBackend.resources | object | `{}` |  |
+| defaultBackend.extraVolumeMounts | list | `[]` |  |
+| defaultBackend.extraVolumes | list | `[]` |  |
+| defaultBackend.autoscaling.annotations | object | `{}` |  |
+| defaultBackend.autoscaling.enabled | bool | `false` |  |
+| defaultBackend.autoscaling.minReplicas | int | `1` |  |
+| defaultBackend.autoscaling.maxReplicas | int | `2` |  |
+| defaultBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| defaultBackend.autoscaling.targetMemoryUtilizationPercentage | int | `50` |  |
+| defaultBackend.networkPolicy.enabled | bool | `false` | Enable 'networkPolicy' or not |
+| defaultBackend.service.annotations | object | `{}` |  |
+| defaultBackend.service.externalIPs | list | `[]` | List of IP addresses at which the default backend service is available # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#external-ips # |
+| defaultBackend.service.loadBalancerSourceRanges | list | `[]` |  |
+| defaultBackend.service.servicePort | int | `80` |  |
+| defaultBackend.service.type | string | `"ClusterIP"` |  |
+| defaultBackend.priorityClassName | string | `""` |  |
+| defaultBackend.labels | object | `{}` | Labels to be added to the default backend resources |
+| rbac.create | bool | `true` |  |
+| rbac.scope | bool | `false` |  |
+| podSecurityPolicy.enabled | bool | `false` |  |
+| serviceAccount.create | bool | `true` |  |
+| serviceAccount.name | string | `""` |  |
+| serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| serviceAccount.annotations | object | `{}` | Annotations for the controller service account |
+| imagePullSecrets | list | `[]` | Optional array of imagePullSecrets containing private registry credentials # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/ |
+| tcp | object | `{}` | TCP service key-value pairs # Ref: https://github.com/kubernetes/ingress-nginx/blob/main/docs/user-guide/exposing-tcp-udp-services.md # |
+| udp | object | `{}` | UDP service key-value pairs # Ref: https://github.com/kubernetes/ingress-nginx/blob/main/docs/user-guide/exposing-tcp-udp-services.md # |
+| portNamePrefix | string | `""` | Prefix for TCP and UDP ports names in ingress controller service # Some cloud providers, like Yandex Cloud may have a requirements for a port name regex to support cloud load balancer integration |
+| dhParam | string | `""` | A base64-encoded Diffie-Hellman parameter. This can be generated with: `openssl dhparam 4096 2> /dev/null | base64` # Ref: https://github.com/kubernetes/ingress-nginx/tree/main/docs/examples/customization/ssl-dh-param |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-library
+
+![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
+
+A Library Project
+
+**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/library>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| library.back-end | bool | `true` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# pas-plugin-worker
+
+![Version: 2.0.6](https://img.shields.io/badge/Version-2.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.6](https://img.shields.io/badge/AppVersion-2.0.6-informational?style=flat-square)
+
+SD Elements PAS Plugin Worker Service
+
+**Homepage:** <https://docker.sdelements.com>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <sdesupport@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/sd-elements/management_command_system>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://charts.bitnami.com/bitnami | rabbitmq | 11.14.4 |
+| https://charts.min.io/ | minio | 5.0.7 |
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-datastore | 1.0.2 |
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageRegistryUsername | string | `"acmecorp"` |  |
+| global.imageRegistryPassword | string | `"SuperSecretPassword"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imageSource | string | `"sde"` |  |
+| global.imagePullPolicy | string | `"IfNotPresent"` |  |
+| global.pas.broker | object | `{}` |  |
+| global.pas.sharedStorage | object | `{}` |  |
+| global.pas.datastore | string | `nil` |  |
+| global.broker.adminVhost | string | `"rabbit"` |  |
+| global.sharedStorage | object | `{}` |  |
+| global.thirdPartyCACertificates.enabled | bool | `false` |  |
+| useBrokerSubchart | bool | `true` |  |
+| minio.enabled | bool | `false` |  |
+| datastore.enabled | bool | `false` |  |
+| resultBackend | string | `"rpc://"` |  |
+| broker | object | `{}` |  |
+| rabbitmq.nameOverride | string | `"broker"` |  |
+| rabbitmq.image.repository | string | `"sde-docker-prod/sde/rabbitmq"` |  |
+| rabbitmq.tls | object | `{}` |  |
+| rabbitmq.auth.username | string | `"rabbit"` |  |
+| rabbitmq.extraConfiguration | string | `"default_vhost = {{ .Values.global.broker.adminVhost }}"` |  |
+| rabbitmq.resources.requests.cpu | string | `"10m"` |  |
+| rabbitmq.resources.requests.memory | string | `"150Mi"` |  |
+| rabbitmq.resources.limits.cpu | int | `2` |  |
+| rabbitmq.resources.limits.memory | string | `"2048Mi"` |  |
+| sharedStorage | object | `{}` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
@@ -4427,6 +3191,238 @@ SD Elements Pluggable Framework
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-database
+
+![Version: 1.3.6](https://img.shields.io/badge/Version-1.3.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.6](https://img.shields.io/badge/AppVersion-1.3.6-informational?style=flat-square)
+
+The Security Compass Database chart
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://sdelements.jfrog.io/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| global.enableNestedDependencies | bool | `false` |  |
+| global.imageRegistry | string | `"sdelements.jfrog.io"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imageSource | string | `"sde"` |  |
+| global.imagePullPolicy | string | `"Always"` |  |
+| commands | object | `{}` |  |
+| replicas | int | `1` |  |
+| resources.requests.memory | string | `"512Mi"` |  |
+| networkPolicies.database.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-database"` |  |
+| networkPolicies.database.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
+| networkPolicies.database.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
+| networkPolicies.database.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
+| networkPolicies.database.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
+| networkPolicies.database.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-reporting"` |  |
+| networkPolicies.database.ingress[0].selectors[5].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-async-worker"` |  |
+| networkPolicies.database.ingress[0].selectors[6].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
+| networkPolicies.database.ingress[0].selectors[7].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
+| networkPolicies.database.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
+| networkPolicies.database.ingress[0].selectors[9].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
+| networkPolicies.database.ingress[0].selectors[10].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
+| networkPolicies.database.ingress[0].selectors[11].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"` |  |
+| networkPolicies.database.ingress[0].selectors[12].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
+| networkPolicies.database.ingress[0].selectors[13].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"` |  |
+| networkPolicies.database.ingress[0].selectors[14].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"` |  |
+| networkPolicies.database.ingress[0].selectors[15].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"` |  |
+| networkPolicies.database.ingress[0].selectors[16].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"` |  |
+| networkPolicies.database.ingress[0].selectors[17].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"` |  |
+| networkPolicies.database.ingress[0].ports[0].port | string | `"{{ include \"database.port\" . }}"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# common
+
+![Version: 2.2.4](https://img.shields.io/badge/Version-2.2.4-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square) ![AppVersion: 2.2.4](https://img.shields.io/badge/AppVersion-2.2.4-informational?style=flat-square)
+
+A Library Helm Chart for grouping common logic between bitnami charts. This chart is not deployable by itself.
+
+**Homepage:** <https://github.com/bitnami/charts/tree/main/bitnami/common>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Bitnami |  | <https://github.com/bitnami/charts> |
+
+## Source Code
+
+* <https://github.com/bitnami/charts>
+* <https://www.bitnami.com/>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| exampleValue | string | `"common-chart"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-datastore
+
+![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.2](https://img.shields.io/badge/AppVersion-1.0.2-informational?style=flat-square)
+
+The Security Compass datastore (Redis)
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/datastore>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://sdelements.jfrog.io/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| global.enableNestedDependencies | bool | `false` |  |
+| global.imageRegistry | string | `"sdelements.jfrog.io"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imageSource | string | `"sde"` |  |
+| global.imagePullPolicy | string | `"IfNotPresent"` |  |
+| replicas | int | `1` |  |
+| resources | object | `{}` |  |
+| networkPolicies.datastore.podSelector.matchLabels.name | string | `"{{ include \"datastore.deploymentName\" . }}"` |  |
+| networkPolicies.datastore.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
+| networkPolicies.datastore.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-async-worker"` |  |
+| networkPolicies.datastore.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-plugin-worker"` |  |
+| networkPolicies.datastore.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
+| networkPolicies.datastore.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
+| networkPolicies.datastore.ingress[0].selectors[5].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
+| networkPolicies.datastore.ingress[0].selectors[6].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
+| networkPolicies.datastore.ingress[0].selectors[7].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-reporting"` |  |
+| networkPolicies.datastore.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
+| networkPolicies.datastore.ingress[0].selectors[9].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
+| networkPolicies.datastore.ingress[0].selectors[10].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
+| networkPolicies.datastore.ingress[0].selectors[11].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
+| networkPolicies.datastore.ingress[0].selectors[12].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"` |  |
+| networkPolicies.datastore.ingress[0].selectors[13].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
+| networkPolicies.datastore.ingress[0].selectors[14].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"` |  |
+| networkPolicies.datastore.ingress[0].selectors[15].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"` |  |
+| networkPolicies.datastore.ingress[0].selectors[16].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"` |  |
+| networkPolicies.datastore.ingress[0].selectors[17].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"` |  |
+| networkPolicies.datastore.ingress[0].selectors[18].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"` |  |
+| networkPolicies.datastore.ingress[0].selectors[18].namespaceSelector.matchLabels."kubernetes.io/metadata.name" | string | `"{{ .Release.Namespace }}"` |  |
+| networkPolicies.datastore.ingress[0].ports[0].port | string | `"{{ include \"datastore.port\" . }}"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# common
+
+![Version: 2.22.0](https://img.shields.io/badge/Version-2.22.0-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square) ![AppVersion: 2.22.0](https://img.shields.io/badge/AppVersion-2.22.0-informational?style=flat-square)
+
+A Library Helm Chart for grouping common logic between bitnami charts. This chart is not deployable by itself.
+
+**Homepage:** <https://bitnami.com>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Broadcom, Inc. All Rights Reserved. |  | <https://github.com/bitnami/charts> |
+
+## Source Code
+
+* <https://github.com/bitnami/charts/tree/main/bitnami/common>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| exampleValue | string | `"common-chart"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-datastore
+
+![Version: 1.0.14](https://img.shields.io/badge/Version-1.0.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.14](https://img.shields.io/badge/AppVersion-1.0.14-informational?style=flat-square)
+
+The Security Compass datastore (Redis)
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/datastore>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://sdelements.jfrog.io/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| global.enableNestedDependencies | bool | `false` |  |
+| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imageSource | string | `"sde"` |  |
+| global.imagePullPolicy | string | `"IfNotPresent"` |  |
+| replicas | int | `1` |  |
+| resources | object | `{}` |  |
+| pdb.create | bool | `false` |  |
+| pdb.minAvailable | int | `1` |  |
+| pdb.maxUnavailable | string | `""` |  |
+| networkPolicies.datastore.podSelector.matchLabels.name | string | `"{{ include \"datastore.deploymentName\" . }}"` |  |
+| networkPolicies.datastore.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
+| networkPolicies.datastore.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-async-worker"` |  |
+| networkPolicies.datastore.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-plugin-worker"` |  |
+| networkPolicies.datastore.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
+| networkPolicies.datastore.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
+| networkPolicies.datastore.ingress[0].selectors[5].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
+| networkPolicies.datastore.ingress[0].selectors[6].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
+| networkPolicies.datastore.ingress[0].selectors[7].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-reporting"` |  |
+| networkPolicies.datastore.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
+| networkPolicies.datastore.ingress[0].selectors[9].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
+| networkPolicies.datastore.ingress[0].selectors[10].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
+| networkPolicies.datastore.ingress[0].selectors[11].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
+| networkPolicies.datastore.ingress[0].selectors[12].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"` |  |
+| networkPolicies.datastore.ingress[0].selectors[13].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
+| networkPolicies.datastore.ingress[0].selectors[14].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"` |  |
+| networkPolicies.datastore.ingress[0].selectors[15].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"` |  |
+| networkPolicies.datastore.ingress[0].selectors[16].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"` |  |
+| networkPolicies.datastore.ingress[0].selectors[17].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"` |  |
+| networkPolicies.datastore.ingress[0].selectors[18].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"` |  |
+| networkPolicies.datastore.ingress[0].selectors[19].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-reindex-db"` |  |
+| networkPolicies.datastore.ingress[0].selectors[20].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-license-count-report"` |  |
+| networkPolicies.datastore.ingress[0].ports[0].port | string | `"{{ include \"datastore.port\" . }}"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 # sc-library
 
 ![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
@@ -4451,6 +3447,342 @@ A Library Project
 |-----|------|---------|-------------|
 | global.enabled | bool | `true` |  |
 | library.back-end | bool | `true` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-mail
+
+![Version: 0.1.18](https://img.shields.io/badge/Version-0.1.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.18](https://img.shields.io/badge/AppVersion-0.1.18-informational?style=flat-square)
+
+The Security Compass SMTP mail relay (Exim)
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/mail>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| global.enableNestedDependencies | bool | `false` |  |
+| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imageSource | string | `"sde"` |  |
+| global.imagePullPolicy | string | `"IfNotPresent"` |  |
+| replicas | int | `1` |  |
+| config.tls | object | `{}` |  |
+| config.mailFrom | string | `"noreply@securitycompass.com"` |  |
+| service.type | string | `"ClusterIP"` |  |
+| service.port | int | `25` |  |
+| createServiceAccount | bool | `true` |  |
+| podSecurityContext | object | `{}` |  |
+| securityContext | object | `{}` |  |
+| nodeSelector | object | `{}` |  |
+| networkPolicies.mailer.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-mailer"` |  |
+| networkPolicies.mailer.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
+| networkPolicies.mailer.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
+| networkPolicies.mailer.ingress[0].selectors[2].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
+| networkPolicies.mailer.ingress[0].selectors[3].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-license-count-report"` |  |
+| networkPolicies.mailer.ingress[0].ports[0].port | string | `"{{ index .Values \"localPort\" | int | default 8025 }}"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# minio
+
+![Version: 5.0.14](https://img.shields.io/badge/Version-5.0.14-informational?style=flat-square) ![AppVersion: RELEASE.2023-09-30T07-02-29Z](https://img.shields.io/badge/AppVersion-RELEASE.2023--09--30T07--02--29Z-informational?style=flat-square)
+
+Multi-Cloud Object Storage
+
+**Homepage:** <https://min.io>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| MinIO, Inc | <dev@minio.io> |  |
+
+## Source Code
+
+* <https://github.com/minio/minio>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| nameOverride | string | `""` |  |
+| fullnameOverride | string | `""` |  |
+| clusterDomain | string | `"cluster.local"` |  |
+| image.repository | string | `"quay.io/minio/minio"` |  |
+| image.tag | string | `"RELEASE.2023-09-30T07-02-29Z"` |  |
+| image.pullPolicy | string | `"IfNotPresent"` |  |
+| imagePullSecrets | list | `[]` |  |
+| mcImage.repository | string | `"quay.io/minio/mc"` |  |
+| mcImage.tag | string | `"RELEASE.2023-09-29T16-41-22Z"` |  |
+| mcImage.pullPolicy | string | `"IfNotPresent"` |  |
+| mode | string | `"distributed"` |  |
+| additionalLabels | object | `{}` |  |
+| additionalAnnotations | object | `{}` |  |
+| ignoreChartChecksums | bool | `false` |  |
+| extraArgs | list | `[]` |  |
+| extraVolumes | list | `[]` |  |
+| extraVolumeMounts | list | `[]` |  |
+| extraContainers | list | `[]` |  |
+| minioAPIPort | string | `"9000"` |  |
+| minioConsolePort | string | `"9001"` |  |
+| deploymentUpdate.type | string | `"RollingUpdate"` |  |
+| deploymentUpdate.maxUnavailable | int | `0` |  |
+| deploymentUpdate.maxSurge | string | `"100%"` |  |
+| statefulSetUpdate.updateStrategy | string | `"RollingUpdate"` |  |
+| priorityClassName | string | `""` |  |
+| runtimeClassName | string | `""` |  |
+| rootUser | string | `""` |  |
+| rootPassword | string | `""` |  |
+| existingSecret | string | `""` |  |
+| certsPath | string | `"/etc/minio/certs/"` |  |
+| configPathmc | string | `"/etc/minio/mc/"` |  |
+| mountPath | string | `"/export"` |  |
+| bucketRoot | string | `""` |  |
+| drivesPerNode | int | `1` |  |
+| replicas | int | `16` |  |
+| pools | int | `1` |  |
+| tls.enabled | bool | `false` |  |
+| tls.certSecret | string | `""` |  |
+| tls.publicCrt | string | `"public.crt"` |  |
+| tls.privateKey | string | `"private.key"` |  |
+| trustedCertsSecret | string | `""` |  |
+| persistence.enabled | bool | `true` |  |
+| persistence.annotations | object | `{}` |  |
+| persistence.existingClaim | string | `""` |  |
+| persistence.storageClass | string | `""` |  |
+| persistence.volumeName | string | `""` |  |
+| persistence.accessMode | string | `"ReadWriteOnce"` |  |
+| persistence.size | string | `"500Gi"` |  |
+| persistence.subPath | string | `""` |  |
+| service.type | string | `"ClusterIP"` |  |
+| service.clusterIP | string | `nil` |  |
+| service.port | string | `"9000"` |  |
+| service.nodePort | int | `32000` |  |
+| service.loadBalancerIP | string | `nil` |  |
+| service.externalIPs | list | `[]` |  |
+| service.annotations | object | `{}` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.ingressClassName | string | `nil` |  |
+| ingress.labels | object | `{}` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.path | string | `"/"` |  |
+| ingress.hosts[0] | string | `"minio-example.local"` |  |
+| ingress.tls | list | `[]` |  |
+| consoleService.type | string | `"ClusterIP"` |  |
+| consoleService.clusterIP | string | `nil` |  |
+| consoleService.port | string | `"9001"` |  |
+| consoleService.nodePort | int | `32001` |  |
+| consoleService.loadBalancerIP | string | `nil` |  |
+| consoleService.externalIPs | list | `[]` |  |
+| consoleService.annotations | object | `{}` |  |
+| consoleIngress.enabled | bool | `false` |  |
+| consoleIngress.ingressClassName | string | `nil` |  |
+| consoleIngress.labels | object | `{}` |  |
+| consoleIngress.annotations | object | `{}` |  |
+| consoleIngress.path | string | `"/"` |  |
+| consoleIngress.hosts[0] | string | `"console.minio-example.local"` |  |
+| consoleIngress.tls | list | `[]` |  |
+| nodeSelector | object | `{}` |  |
+| tolerations | list | `[]` |  |
+| affinity | object | `{}` |  |
+| topologySpreadConstraints | list | `[]` |  |
+| securityContext.enabled | bool | `true` |  |
+| securityContext.runAsUser | int | `1000` |  |
+| securityContext.runAsGroup | int | `1000` |  |
+| securityContext.fsGroup | int | `1000` |  |
+| securityContext.fsGroupChangePolicy | string | `"OnRootMismatch"` |  |
+| podAnnotations | object | `{}` |  |
+| podLabels | object | `{}` |  |
+| resources.requests.memory | string | `"16Gi"` |  |
+| policies | list | `[]` |  |
+| makePolicyJob.securityContext.enabled | bool | `false` |  |
+| makePolicyJob.securityContext.runAsUser | int | `1000` |  |
+| makePolicyJob.securityContext.runAsGroup | int | `1000` |  |
+| makePolicyJob.resources.requests.memory | string | `"128Mi"` |  |
+| makePolicyJob.exitCommand | string | `""` |  |
+| users[0].accessKey | string | `"console"` |  |
+| users[0].secretKey | string | `"console123"` |  |
+| users[0].policy | string | `"consoleAdmin"` |  |
+| makeUserJob.securityContext.enabled | bool | `false` |  |
+| makeUserJob.securityContext.runAsUser | int | `1000` |  |
+| makeUserJob.securityContext.runAsGroup | int | `1000` |  |
+| makeUserJob.resources.requests.memory | string | `"128Mi"` |  |
+| makeUserJob.exitCommand | string | `""` |  |
+| svcaccts | list | `[]` |  |
+| makeServiceAccountJob.securityContext.enabled | bool | `false` |  |
+| makeServiceAccountJob.securityContext.runAsUser | int | `1000` |  |
+| makeServiceAccountJob.securityContext.runAsGroup | int | `1000` |  |
+| makeServiceAccountJob.resources.requests.memory | string | `"128Mi"` |  |
+| makeServiceAccountJob.exitCommand | string | `""` |  |
+| buckets | list | `[]` |  |
+| makeBucketJob.securityContext.enabled | bool | `false` |  |
+| makeBucketJob.securityContext.runAsUser | int | `1000` |  |
+| makeBucketJob.securityContext.runAsGroup | int | `1000` |  |
+| makeBucketJob.resources.requests.memory | string | `"128Mi"` |  |
+| makeBucketJob.exitCommand | string | `""` |  |
+| customCommands | string | `nil` |  |
+| customCommandJob.securityContext.enabled | bool | `false` |  |
+| customCommandJob.securityContext.runAsUser | int | `1000` |  |
+| customCommandJob.securityContext.runAsGroup | int | `1000` |  |
+| customCommandJob.resources.requests.memory | string | `"128Mi"` |  |
+| customCommandJob.exitCommand | string | `""` |  |
+| postJob.podAnnotations | object | `{}` |  |
+| postJob.annotations | object | `{}` |  |
+| postJob.securityContext.enabled | bool | `false` |  |
+| postJob.securityContext.runAsUser | int | `1000` |  |
+| postJob.securityContext.runAsGroup | int | `1000` |  |
+| postJob.securityContext.fsGroup | int | `1000` |  |
+| postJob.nodeSelector | object | `{}` |  |
+| postJob.tolerations | list | `[]` |  |
+| postJob.affinity | object | `{}` |  |
+| environment | string | `nil` |  |
+| extraSecret | string | `nil` |  |
+| oidc.enabled | bool | `false` |  |
+| oidc.configUrl | string | `"https://identity-provider-url/.well-known/openid-configuration"` |  |
+| oidc.clientId | string | `"minio"` |  |
+| oidc.clientSecret | string | `""` |  |
+| oidc.existingClientSecretName | string | `""` |  |
+| oidc.existingClientSecretKey | string | `""` |  |
+| oidc.claimName | string | `"policy"` |  |
+| oidc.scopes | string | `"openid,profile,email"` |  |
+| oidc.redirectUri | string | `"https://console-endpoint-url/oauth_callback"` |  |
+| oidc.claimPrefix | string | `""` |  |
+| oidc.comment | string | `""` |  |
+| networkPolicy.enabled | bool | `false` |  |
+| networkPolicy.allowExternal | bool | `true` |  |
+| podDisruptionBudget.enabled | bool | `false` |  |
+| podDisruptionBudget.maxUnavailable | int | `1` |  |
+| serviceAccount.create | bool | `true` |  |
+| serviceAccount.name | string | `"minio-sa"` |  |
+| metrics.serviceMonitor.enabled | bool | `false` |  |
+| metrics.serviceMonitor.includeNode | bool | `false` |  |
+| metrics.serviceMonitor.public | bool | `true` |  |
+| metrics.serviceMonitor.additionalLabels | object | `{}` |  |
+| metrics.serviceMonitor.annotations | object | `{}` |  |
+| metrics.serviceMonitor.relabelConfigs | object | `{}` |  |
+| metrics.serviceMonitor.relabelConfigsCluster | object | `{}` |  |
+| metrics.serviceMonitor.namespace | string | `nil` |  |
+| metrics.serviceMonitor.interval | string | `nil` |  |
+| metrics.serviceMonitor.scrapeTimeout | string | `nil` |  |
+| etcd.endpoints | list | `[]` |  |
+| etcd.pathPrefix | string | `""` |  |
+| etcd.corednsPathPrefix | string | `""` |  |
+| etcd.clientCert | string | `""` |  |
+| etcd.clientCertKey | string | `""` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-library
+
+![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
+
+A Library Project
+
+**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/library>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| library.back-end | bool | `true` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# pas-async-worker
+
+![Version: 2.0.6](https://img.shields.io/badge/Version-2.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.6](https://img.shields.io/badge/AppVersion-2.0.6-informational?style=flat-square)
+
+SD Elements PAS Async Worker Service
+
+**Homepage:** <https://docker.sdelements.com>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <sdesupport@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/sd-elements/management_command_system>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://charts.bitnami.com/bitnami | rabbitmq | 11.14.4 |
+| https://charts.min.io/ | minio | 5.0.7 |
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-database | 1.3.5 |
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-datastore | 1.0.2 |
+| https://repository.securitycompass.com/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.imageRegistry | string | `"repository.securitycompass.com"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageRegistryUsername | string | `"acmecorp"` |  |
+| global.imageRegistryPassword | string | `"SuperSecretPassword"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imageSource | string | `"sde"` |  |
+| global.imagePullPolicy | string | `"IfNotPresent"` |  |
+| global.pas.broker | object | `{}` |  |
+| global.pas.database | object | `{}` |  |
+| global.pas.sharedStorage | object | `{}` |  |
+| global.pas.datastore | object | `{}` |  |
+| global.database.adminClientUser | string | `"sde"` |  |
+| global.broker.adminVhost | string | `"sde"` |  |
+| global.sharedStorage | object | `{}` |  |
+| global.datastore | object | `{}` |  |
+| global.thirdPartyCACertificates.enabled | bool | `false` |  |
+| useBrokerSubchart | bool | `true` |  |
+| useDatabaseSubchart | bool | `true` |  |
+| minio.enabled | bool | `false` |  |
+| datastore.enabled | bool | `false` |  |
+| useLocalDevDbConfig | bool | `true` |  |
+| resultBackend | string | `"rpc://"` |  |
+| rabbitmq.nameOverride | string | `"broker"` |  |
+| rabbitmq.image.repository | string | `"sde-docker-prod/sde/rabbitmq"` |  |
+| rabbitmq.tls | object | `{}` |  |
+| rabbitmq.auth.username | string | `"rabbit"` |  |
+| rabbitmq.extraConfiguration | string | `"default_vhost = {{ .Values.global.broker.adminVhost }}"` |  |
+| rabbitmq.resources.requests.cpu | string | `"10m"` |  |
+| rabbitmq.resources.requests.memory | string | `"150Mi"` |  |
+| rabbitmq.resources.limits.cpu | int | `2` |  |
+| rabbitmq.resources.limits.memory | string | `"2048Mi"` |  |
+| database | object | `{}` |  |
+| broker | object | `{}` |  |
+| sharedStorage | object | `{}` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
@@ -4753,6 +4085,647 @@ RabbitMQ is an open source general-purpose message broker that is designed for c
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-database
+
+![Version: 1.3.5](https://img.shields.io/badge/Version-1.3.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.5](https://img.shields.io/badge/AppVersion-1.3.5-informational?style=flat-square)
+
+The Security Compass Database chart
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://sdelements.jfrog.io/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| global.enableNestedDependencies | bool | `false` |  |
+| global.imageRegistry | string | `"sdelements.jfrog.io"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imageSource | string | `"sde"` |  |
+| global.imagePullPolicy | string | `"Always"` |  |
+| commands | object | `{}` |  |
+| replicas | int | `1` |  |
+| resources.requests.memory | string | `"512Mi"` |  |
+| networkPolicies.database.podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-database"` |  |
+| networkPolicies.database.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
+| networkPolicies.database.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
+| networkPolicies.database.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
+| networkPolicies.database.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
+| networkPolicies.database.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-reporting"` |  |
+| networkPolicies.database.ingress[0].selectors[5].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-async-worker"` |  |
+| networkPolicies.database.ingress[0].selectors[6].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
+| networkPolicies.database.ingress[0].selectors[7].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
+| networkPolicies.database.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
+| networkPolicies.database.ingress[0].selectors[9].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
+| networkPolicies.database.ingress[0].selectors[10].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
+| networkPolicies.database.ingress[0].selectors[11].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"` |  |
+| networkPolicies.database.ingress[0].selectors[12].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
+| networkPolicies.database.ingress[0].selectors[13].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"` |  |
+| networkPolicies.database.ingress[0].selectors[14].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"` |  |
+| networkPolicies.database.ingress[0].selectors[15].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"` |  |
+| networkPolicies.database.ingress[0].selectors[16].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"` |  |
+| networkPolicies.database.ingress[0].selectors[17].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"` |  |
+| networkPolicies.database.ingress[0].ports[0].port | string | `"{{ include \"database.port\" . }}"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-library
+
+![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
+
+A Library Project
+
+**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/library>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| library.back-end | bool | `true` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-datastore
+
+![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.2](https://img.shields.io/badge/AppVersion-1.0.2-informational?style=flat-square)
+
+The Security Compass datastore (Redis)
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/datastore>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://sdelements.jfrog.io/artifactory/sde-helm-dev | sc-library | 1.1.4 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| global.enableNestedDependencies | bool | `false` |  |
+| global.imageRegistry | string | `"sdelements.jfrog.io"` |  |
+| global.imageRegistryFormat | string | `"%s/sde-docker-%s/%s/%s:%s"` |  |
+| global.imageOrganization | string | `"prod"` |  |
+| global.imageSource | string | `"sde"` |  |
+| global.imagePullPolicy | string | `"IfNotPresent"` |  |
+| replicas | int | `1` |  |
+| resources | object | `{}` |  |
+| networkPolicies.datastore.podSelector.matchLabels.name | string | `"{{ include \"datastore.deploymentName\" . }}"` |  |
+| networkPolicies.datastore.ingress[0].selectors[0].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-api"` |  |
+| networkPolicies.datastore.ingress[0].selectors[1].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-async-worker"` |  |
+| networkPolicies.datastore.ingress[0].selectors[2].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-pas-plugin-worker"` |  |
+| networkPolicies.datastore.ingress[0].selectors[3].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-10"` |  |
+| networkPolicies.datastore.ingress[0].selectors[4].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-17"` |  |
+| networkPolicies.datastore.ingress[0].selectors[5].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-15-sde-medium"` |  |
+| networkPolicies.datastore.ingress[0].selectors[6].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-worker-18-sde-low"` |  |
+| networkPolicies.datastore.ingress[0].selectors[7].podSelector.matchLabels.name | string | `"{{ include \"library.trimmedName\" . }}-reporting"` |  |
+| networkPolicies.datastore.ingress[0].selectors[8].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-hourly"` |  |
+| networkPolicies.datastore.ingress[0].selectors[9].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-daily"` |  |
+| networkPolicies.datastore.ingress[0].selectors[10].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-weekly"` |  |
+| networkPolicies.datastore.ingress[0].selectors[11].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-alm-monthly"` |  |
+| networkPolicies.datastore.ingress[0].selectors[12].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-cancel-external-sync-jobs"` |  |
+| networkPolicies.datastore.ingress[0].selectors[13].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-database-backup"` |  |
+| networkPolicies.datastore.ingress[0].selectors[14].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-clear-expired-sessions"` |  |
+| networkPolicies.datastore.ingress[0].selectors[15].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-refresh-task-relevance"` |  |
+| networkPolicies.datastore.ingress[0].selectors[16].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-metrics"` |  |
+| networkPolicies.datastore.ingress[0].selectors[17].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-send-new-relevant-task-notifications"` |  |
+| networkPolicies.datastore.ingress[0].selectors[18].podSelector.matchLabels.app | string | `"{{ include \"library.trimmedName\" . | trunc 10 }}-job-time-since"` |  |
+| networkPolicies.datastore.ingress[0].selectors[18].namespaceSelector.matchLabels."kubernetes.io/metadata.name" | string | `"{{ .Release.Namespace }}"` |  |
+| networkPolicies.datastore.ingress[0].ports[0].port | string | `"{{ include \"datastore.port\" . }}"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# rabbitmq
+
+![Version: 11.14.4](https://img.shields.io/badge/Version-11.14.4-informational?style=flat-square) ![AppVersion: 3.11.15](https://img.shields.io/badge/AppVersion-3.11.15-informational?style=flat-square)
+
+RabbitMQ is an open source general-purpose message broker that is designed for consistent, highly-available messaging scenarios (both synchronous and asynchronous).
+
+**Homepage:** <https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Bitnami |  | <https://github.com/bitnami/charts> |
+
+## Source Code
+
+* <https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq>
+* <https://www.rabbitmq.com>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| oci://registry-1.docker.io/bitnamicharts | common | 2.x.x |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.imageRegistry | string | `""` |  |
+| global.imagePullSecrets | list | `[]` |  |
+| global.storageClass | string | `""` |  |
+| image.registry | string | `"docker.io"` |  |
+| image.repository | string | `"bitnami/rabbitmq"` |  |
+| image.tag | string | `"3.11.15-debian-11-r0"` |  |
+| image.digest | string | `""` |  |
+| image.debug | bool | `false` |  |
+| image.pullPolicy | string | `"IfNotPresent"` |  |
+| image.pullSecrets | list | `[]` |  |
+| nameOverride | string | `""` |  |
+| fullnameOverride | string | `""` |  |
+| namespaceOverride | string | `""` |  |
+| kubeVersion | string | `""` |  |
+| clusterDomain | string | `"cluster.local"` |  |
+| extraDeploy | list | `[]` |  |
+| commonAnnotations | object | `{}` |  |
+| servicenameOverride | string | `""` |  |
+| commonLabels | object | `{}` |  |
+| serviceBindings.enabled | bool | `false` |  |
+| diagnosticMode.enabled | bool | `false` |  |
+| diagnosticMode.command[0] | string | `"sleep"` |  |
+| diagnosticMode.args[0] | string | `"infinity"` |  |
+| hostAliases | list | `[]` |  |
+| dnsPolicy | string | `""` |  |
+| dnsConfig | object | `{}` |  |
+| auth.username | string | `"user"` |  |
+| auth.password | string | `""` |  |
+| auth.securePassword | bool | `true` |  |
+| auth.existingPasswordSecret | string | `""` |  |
+| auth.enableLoopbackUser | bool | `false` |  |
+| auth.erlangCookie | string | `""` |  |
+| auth.existingErlangSecret | string | `""` |  |
+| auth.tls.enabled | bool | `false` |  |
+| auth.tls.autoGenerated | bool | `false` |  |
+| auth.tls.failIfNoPeerCert | bool | `true` |  |
+| auth.tls.sslOptionsVerify | string | `"verify_peer"` |  |
+| auth.tls.sslOptionsPassword.enabled | bool | `false` |  |
+| auth.tls.sslOptionsPassword.existingSecret | string | `""` |  |
+| auth.tls.sslOptionsPassword.key | string | `""` |  |
+| auth.tls.sslOptionsPassword.password | string | `""` |  |
+| auth.tls.caCertificate | string | `""` |  |
+| auth.tls.serverCertificate | string | `""` |  |
+| auth.tls.serverKey | string | `""` |  |
+| auth.tls.existingSecret | string | `""` |  |
+| auth.tls.existingSecretFullChain | bool | `false` |  |
+| auth.tls.overrideCaCertificate | string | `""` |  |
+| logs | string | `"-"` |  |
+| ulimitNofiles | string | `"65536"` |  |
+| maxAvailableSchedulers | string | `""` |  |
+| onlineSchedulers | string | `""` |  |
+| memoryHighWatermark.enabled | bool | `false` |  |
+| memoryHighWatermark.type | string | `"relative"` |  |
+| memoryHighWatermark.value | float | `0.4` |  |
+| plugins | string | `"rabbitmq_management rabbitmq_peer_discovery_k8s"` |  |
+| communityPlugins | string | `""` |  |
+| extraPlugins | string | `"rabbitmq_auth_backend_ldap"` |  |
+| clustering.enabled | bool | `true` |  |
+| clustering.addressType | string | `"hostname"` |  |
+| clustering.rebalance | bool | `false` |  |
+| clustering.forceBoot | bool | `false` |  |
+| clustering.partitionHandling | string | `"autoheal"` |  |
+| loadDefinition.enabled | bool | `false` |  |
+| loadDefinition.file | string | `"/app/load_definition.json"` |  |
+| loadDefinition.existingSecret | string | `""` |  |
+| command | list | `[]` |  |
+| args | list | `[]` |  |
+| lifecycleHooks | object | `{}` |  |
+| terminationGracePeriodSeconds | int | `120` |  |
+| extraEnvVars | list | `[]` |  |
+| extraEnvVarsCM | string | `""` |  |
+| extraEnvVarsSecret | string | `""` |  |
+| containerPorts.amqp | int | `5672` |  |
+| containerPorts.amqpTls | int | `5671` |  |
+| containerPorts.dist | int | `25672` |  |
+| containerPorts.manager | int | `15672` |  |
+| containerPorts.epmd | int | `4369` |  |
+| containerPorts.metrics | int | `9419` |  |
+| initScripts | object | `{}` |  |
+| initScriptsCM | string | `""` |  |
+| initScriptsSecret | string | `""` |  |
+| extraContainerPorts | list | `[]` |  |
+| tcpListenOptions.backlog | int | `128` |  |
+| tcpListenOptions.nodelay | bool | `true` |  |
+| tcpListenOptions.linger.lingerOn | bool | `true` |  |
+| tcpListenOptions.linger.timeout | int | `0` |  |
+| tcpListenOptions.keepalive | bool | `false` |  |
+| configuration | string | `"## Username and password\n##\ndefault_user = {{ .Values.auth.username }}\n{{- if and (not .Values.auth.securePassword) .Values.auth.password }}\ndefault_pass = {{ .Values.auth.password }}\n{{- end }}\n{{- if .Values.clustering.enabled }}\n## Clustering\n##\ncluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s\ncluster_formation.k8s.host = kubernetes.default\ncluster_formation.node_cleanup.interval = 10\ncluster_formation.node_cleanup.only_log_warning = true\ncluster_partition_handling = {{ .Values.clustering.partitionHandling }}\n{{- end }}\n{{ if and .Values.clustering.enabled .Values.loadDefinition.enabled }}\ncluster_formation.target_cluster_size_hint = {{ .Values.replicaCount }}\n{{ end }}\n{{- if .Values.loadDefinition.enabled }}\nload_definitions = {{ .Values.loadDefinition.file }}\n{{- end }}\n# queue master locator\nqueue_master_locator = min-masters\n# enable loopback user\n{{- if not (empty .Values.auth.username) }}\nloopback_users.{{ .Values.auth.username }} = {{ .Values.auth.enableLoopbackUser }}\n{{- else}}\nloopback_users.guest = {{ .Values.auth.enableLoopbackUser }}\n{{- end }}\n{{ template \"rabbitmq.extraConfiguration\" . }}\n{{- if .Values.auth.tls.enabled }}\nssl_options.verify = {{ .Values.auth.tls.sslOptionsVerify }}\nlisteners.ssl.default = {{ .Values.service.ports.amqpTls }}\nssl_options.fail_if_no_peer_cert = {{ .Values.auth.tls.failIfNoPeerCert }}\nssl_options.cacertfile = /opt/bitnami/rabbitmq/certs/ca_certificate.pem\nssl_options.certfile = /opt/bitnami/rabbitmq/certs/server_certificate.pem\nssl_options.keyfile = /opt/bitnami/rabbitmq/certs/server_key.pem\n{{- if .Values.auth.tls.sslOptionsPassword.enabled }}\nssl_options.password = {{ template \"rabbitmq.tlsSslOptionsPassword\" . }}\n{{- end }}\n{{- end }}\n{{- if .Values.ldap.enabled }}\nauth_backends.1.authn = ldap\nauth_backends.1.authz = {{ ternary \"ldap\" \"internal\" .Values.ldap.authorisationEnabled }}\nauth_backends.2 = internal\n{{- $host :=  list }}\n{{- $port :=  ternary 636 389 .Values.ldap.tls.enabled }}\n{{- if .Values.ldap.uri }}\n{{- $hostPort := get (urlParse .Values.ldap.uri) \"host\" }}\n{{- $host = list (index (splitList \":\" $hostPort) 0) -}}\n{{- if (contains \":\" $hostPort) }}\n{{- $port = index (splitList \":\" $hostPort) 1 -}}\n{{- end }}\n{{- end }}\n{{- range $index, $server := concat $host .Values.ldap.servers }}\nauth_ldap.servers.{{ add $index 1 }} = {{ $server }}\n{{- end }}\nauth_ldap.port = {{ coalesce .Values.ldap.port $port }}\n{{- if or .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\nauth_ldap.user_dn_pattern = {{ coalesce .Values.ldap.user_dn_pattern .Values.ldap.userDnPattern }}\n{{- end }}\n{{- if .Values.ldap.basedn }}\nauth_ldap.dn_lookup_base = {{ .Values.ldap.basedn }}\n{{- end }}\n{{- if .Values.ldap.uidField }}\nauth_ldap.dn_lookup_attribute = {{ .Values.ldap.uidField }}\n{{- end }}\n{{- if .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.user_dn = {{ .Values.ldap.binddn }}\nauth_ldap.dn_lookup_bind.password = {{ required \"'ldap.bindpw' is required when 'ldap.binddn' is defined\" .Values.ldap.bindpw }}\n{{- end }}\n{{- if .Values.ldap.tls.enabled }}\nauth_ldap.use_ssl = {{ not .Values.ldap.tls.startTls }}\nauth_ldap.use_starttls = {{ .Values.ldap.tls.startTls }}\n{{- if .Values.ldap.tls.CAFilename }}\nauth_ldap.ssl_options.cacertfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.CAFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.certfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ .Values.ldap.tls.certFilename }}\nauth_ldap.ssl_options.keyfile = {{ .Values.ldap.tls.certificatesMountPath }}/{{ required \"'ldap.tls.certKeyFilename' is required when 'ldap.tls.certFilename' is defined\" .Values.ldap.tls.certKeyFilename }}\n{{- end }}\n{{- if .Values.ldap.tls.skipVerify }}\nauth_ldap.ssl_options.verify = verify_none\nauth_ldap.ssl_options.fail_if_no_peer_cert = false\n{{- else if .Values.ldap.tls.verify }}\nauth_ldap.ssl_options.verify = {{ .Values.ldap.tls.verify }}\n{{- end }}\n{{- end }}\n{{- end }}\n{{- if .Values.metrics.enabled }}\n## Prometheus metrics\n##\nprometheus.tcp.port = {{ .Values.containerPorts.metrics }}\n{{- end }}\n{{- if .Values.memoryHighWatermark.enabled }}\n## Memory Threshold\n##\ntotal_memory_available_override_value = {{ include \"rabbitmq.toBytes\" .Values.resources.limits.memory }}\nvm_memory_high_watermark.{{ .Values.memoryHighWatermark.type }} = {{ .Values.memoryHighWatermark.value }}\n## TCP Listen Options\n##\ntcp_listen_options.backlog = {{ .Values.tcpListenOptions.backlog }}\ntcp_listen_options.nodelay = {{ .Values.tcpListenOptions.nodelay }}\ntcp_listen_options.linger.on      = {{ .Values.tcpListenOptions.linger.lingerOn }}\ntcp_listen_options.linger.timeout = {{ .Values.tcpListenOptions.linger.timeout }}\ntcp_listen_options.keepalive = {{ .Values.tcpListenOptions.keepalive }}\n{{- end }}"` |  |
+| configurationExistingSecret | string | `""` |  |
+| extraConfiguration | string | `"#default_vhost = {{ .Release.Namespace }}-vhost\n#disk_free_limit.absolute = 50MB"` |  |
+| extraConfigurationExistingSecret | string | `""` |  |
+| advancedConfiguration | string | `""` |  |
+| advancedConfigurationExistingSecret | string | `""` |  |
+| featureFlags | string | `""` |  |
+| ldap.enabled | bool | `false` |  |
+| ldap.uri | string | `""` |  |
+| ldap.servers | list | `[]` |  |
+| ldap.port | string | `""` |  |
+| ldap.userDnPattern | string | `""` |  |
+| ldap.binddn | string | `""` |  |
+| ldap.bindpw | string | `""` |  |
+| ldap.basedn | string | `""` |  |
+| ldap.uidField | string | `""` |  |
+| ldap.authorisationEnabled | bool | `false` |  |
+| ldap.tls.enabled | bool | `false` |  |
+| ldap.tls.startTls | bool | `false` |  |
+| ldap.tls.skipVerify | bool | `false` |  |
+| ldap.tls.verify | string | `"verify_peer"` |  |
+| ldap.tls.certificatesMountPath | string | `"/opt/bitnami/rabbitmq/ldap/certs"` |  |
+| ldap.tls.certificatesSecret | string | `""` |  |
+| ldap.tls.CAFilename | string | `""` |  |
+| ldap.tls.certFilename | string | `""` |  |
+| ldap.tls.certKeyFilename | string | `""` |  |
+| extraVolumeMounts | list | `[]` |  |
+| extraVolumes | list | `[]` |  |
+| extraSecrets | object | `{}` |  |
+| extraSecretsPrependReleaseName | bool | `false` |  |
+| replicaCount | int | `1` |  |
+| schedulerName | string | `""` |  |
+| podManagementPolicy | string | `"OrderedReady"` |  |
+| podLabels | object | `{}` |  |
+| podAnnotations | object | `{}` |  |
+| updateStrategy.type | string | `"RollingUpdate"` |  |
+| statefulsetLabels | object | `{}` |  |
+| statefulsetAnnotations | object | `{}` |  |
+| priorityClassName | string | `""` |  |
+| podAffinityPreset | string | `""` |  |
+| podAntiAffinityPreset | string | `"soft"` |  |
+| nodeAffinityPreset.type | string | `""` |  |
+| nodeAffinityPreset.key | string | `""` |  |
+| nodeAffinityPreset.values | list | `[]` |  |
+| affinity | object | `{}` |  |
+| nodeSelector | object | `{}` |  |
+| tolerations | list | `[]` |  |
+| topologySpreadConstraints | list | `[]` |  |
+| podSecurityContext.enabled | bool | `true` |  |
+| podSecurityContext.fsGroup | int | `1001` |  |
+| containerSecurityContext.enabled | bool | `true` |  |
+| containerSecurityContext.runAsUser | int | `1001` |  |
+| containerSecurityContext.runAsNonRoot | bool | `true` |  |
+| resources.limits | object | `{}` |  |
+| resources.requests | object | `{}` |  |
+| livenessProbe.enabled | bool | `true` |  |
+| livenessProbe.initialDelaySeconds | int | `120` |  |
+| livenessProbe.timeoutSeconds | int | `20` |  |
+| livenessProbe.periodSeconds | int | `30` |  |
+| livenessProbe.failureThreshold | int | `6` |  |
+| livenessProbe.successThreshold | int | `1` |  |
+| readinessProbe.enabled | bool | `true` |  |
+| readinessProbe.initialDelaySeconds | int | `10` |  |
+| readinessProbe.timeoutSeconds | int | `20` |  |
+| readinessProbe.periodSeconds | int | `30` |  |
+| readinessProbe.failureThreshold | int | `3` |  |
+| readinessProbe.successThreshold | int | `1` |  |
+| startupProbe.enabled | bool | `false` |  |
+| startupProbe.initialDelaySeconds | int | `10` |  |
+| startupProbe.timeoutSeconds | int | `20` |  |
+| startupProbe.periodSeconds | int | `30` |  |
+| startupProbe.failureThreshold | int | `3` |  |
+| startupProbe.successThreshold | int | `1` |  |
+| customLivenessProbe | object | `{}` |  |
+| customReadinessProbe | object | `{}` |  |
+| customStartupProbe | object | `{}` |  |
+| initContainers | list | `[]` |  |
+| sidecars | list | `[]` |  |
+| pdb.create | bool | `false` |  |
+| pdb.minAvailable | int | `1` |  |
+| pdb.maxUnavailable | string | `""` |  |
+| serviceAccount.create | bool | `true` |  |
+| serviceAccount.name | string | `""` |  |
+| serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| serviceAccount.annotations | object | `{}` |  |
+| rbac.create | bool | `true` |  |
+| persistence.enabled | bool | `true` |  |
+| persistence.storageClass | string | `""` |  |
+| persistence.selector | object | `{}` |  |
+| persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| persistence.existingClaim | string | `""` |  |
+| persistence.mountPath | string | `"/bitnami/rabbitmq/mnesia"` |  |
+| persistence.subPath | string | `""` |  |
+| persistence.size | string | `"8Gi"` |  |
+| persistence.annotations | object | `{}` |  |
+| persistence.labels | object | `{}` |  |
+| service.type | string | `"ClusterIP"` |  |
+| service.portEnabled | bool | `true` |  |
+| service.distPortEnabled | bool | `true` |  |
+| service.managerPortEnabled | bool | `true` |  |
+| service.epmdPortEnabled | bool | `true` |  |
+| service.ports.amqp | int | `5672` |  |
+| service.ports.amqpTls | int | `5671` |  |
+| service.ports.dist | int | `25672` |  |
+| service.ports.manager | int | `15672` |  |
+| service.ports.metrics | int | `9419` |  |
+| service.ports.epmd | int | `4369` |  |
+| service.portNames.amqp | string | `"amqp"` |  |
+| service.portNames.amqpTls | string | `"amqp-ssl"` |  |
+| service.portNames.dist | string | `"dist"` |  |
+| service.portNames.manager | string | `"http-stats"` |  |
+| service.portNames.metrics | string | `"metrics"` |  |
+| service.portNames.epmd | string | `"epmd"` |  |
+| service.nodePorts.amqp | string | `""` |  |
+| service.nodePorts.amqpTls | string | `""` |  |
+| service.nodePorts.dist | string | `""` |  |
+| service.nodePorts.manager | string | `""` |  |
+| service.nodePorts.epmd | string | `""` |  |
+| service.nodePorts.metrics | string | `""` |  |
+| service.extraPorts | list | `[]` |  |
+| service.loadBalancerSourceRanges | list | `[]` |  |
+| service.externalIPs | list | `[]` |  |
+| service.externalTrafficPolicy | string | `"Cluster"` |  |
+| service.loadBalancerIP | string | `""` |  |
+| service.clusterIP | string | `""` |  |
+| service.labels | object | `{}` |  |
+| service.annotations | object | `{}` |  |
+| service.annotationsHeadless | object | `{}` |  |
+| service.headless.annotations | object | `{}` |  |
+| service.sessionAffinity | string | `"None"` |  |
+| service.sessionAffinityConfig | object | `{}` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.path | string | `"/"` |  |
+| ingress.pathType | string | `"ImplementationSpecific"` |  |
+| ingress.hostname | string | `"rabbitmq.local"` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.tls | bool | `false` |  |
+| ingress.selfSigned | bool | `false` |  |
+| ingress.extraHosts | list | `[]` |  |
+| ingress.extraPaths | list | `[]` |  |
+| ingress.extraRules | list | `[]` |  |
+| ingress.extraTls | list | `[]` |  |
+| ingress.secrets | list | `[]` |  |
+| ingress.ingressClassName | string | `""` |  |
+| ingress.existingSecret | string | `""` |  |
+| networkPolicy.enabled | bool | `false` |  |
+| networkPolicy.allowExternal | bool | `true` |  |
+| networkPolicy.additionalRules | list | `[]` |  |
+| metrics.enabled | bool | `false` |  |
+| metrics.plugins | string | `"rabbitmq_prometheus"` |  |
+| metrics.podAnnotations."prometheus.io/scrape" | string | `"true"` |  |
+| metrics.podAnnotations."prometheus.io/port" | string | `"{{ .Values.service.ports.metrics }}"` |  |
+| metrics.serviceMonitor.enabled | bool | `false` |  |
+| metrics.serviceMonitor.namespace | string | `""` |  |
+| metrics.serviceMonitor.interval | string | `"30s"` |  |
+| metrics.serviceMonitor.scrapeTimeout | string | `""` |  |
+| metrics.serviceMonitor.jobLabel | string | `""` |  |
+| metrics.serviceMonitor.relabelings | list | `[]` |  |
+| metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
+| metrics.serviceMonitor.honorLabels | bool | `false` |  |
+| metrics.serviceMonitor.targetLabels | object | `{}` |  |
+| metrics.serviceMonitor.podTargetLabels | object | `{}` |  |
+| metrics.serviceMonitor.path | string | `""` |  |
+| metrics.serviceMonitor.selector | object | `{}` |  |
+| metrics.serviceMonitor.labels | object | `{}` |  |
+| metrics.serviceMonitor.annotations | object | `{}` |  |
+| metrics.prometheusRule.enabled | bool | `false` |  |
+| metrics.prometheusRule.additionalLabels | object | `{}` |  |
+| metrics.prometheusRule.namespace | string | `""` |  |
+| metrics.prometheusRule.rules | list | `[]` |  |
+| volumePermissions.enabled | bool | `false` |  |
+| volumePermissions.image.registry | string | `"docker.io"` |  |
+| volumePermissions.image.repository | string | `"bitnami/bitnami-shell"` |  |
+| volumePermissions.image.tag | string | `"11-debian-11-r111"` |  |
+| volumePermissions.image.digest | string | `""` |  |
+| volumePermissions.image.pullPolicy | string | `"IfNotPresent"` |  |
+| volumePermissions.image.pullSecrets | list | `[]` |  |
+| volumePermissions.resources.limits | object | `{}` |  |
+| volumePermissions.resources.requests | object | `{}` |  |
+| volumePermissions.containerSecurityContext.runAsUser | int | `0` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-library
+
+![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
+
+A Library Project
+
+**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/library>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| library.back-end | bool | `true` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# minio
+
+![Version: 5.0.7](https://img.shields.io/badge/Version-5.0.7-informational?style=flat-square) ![AppVersion: RELEASE.2023-02-10T18-48-39Z](https://img.shields.io/badge/AppVersion-RELEASE.2023--02--10T18--48--39Z-informational?style=flat-square)
+
+Multi-Cloud Object Storage
+
+**Homepage:** <https://min.io>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| MinIO, Inc | <dev@minio.io> |  |
+
+## Source Code
+
+* <https://github.com/minio/minio>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| nameOverride | string | `""` |  |
+| fullnameOverride | string | `""` |  |
+| clusterDomain | string | `"cluster.local"` |  |
+| image.repository | string | `"quay.io/minio/minio"` |  |
+| image.tag | string | `"RELEASE.2023-02-10T18-48-39Z"` |  |
+| image.pullPolicy | string | `"IfNotPresent"` |  |
+| imagePullSecrets | list | `[]` |  |
+| mcImage.repository | string | `"quay.io/minio/mc"` |  |
+| mcImage.tag | string | `"RELEASE.2023-01-28T20-29-38Z"` |  |
+| mcImage.pullPolicy | string | `"IfNotPresent"` |  |
+| mode | string | `"distributed"` |  |
+| additionalLabels | object | `{}` |  |
+| additionalAnnotations | object | `{}` |  |
+| ignoreChartChecksums | bool | `false` |  |
+| extraArgs | list | `[]` |  |
+| extraVolumes | list | `[]` |  |
+| extraVolumeMounts | list | `[]` |  |
+| extraContainers | list | `[]` |  |
+| minioAPIPort | string | `"9000"` |  |
+| minioConsolePort | string | `"9001"` |  |
+| DeploymentUpdate.type | string | `"RollingUpdate"` |  |
+| DeploymentUpdate.maxUnavailable | int | `0` |  |
+| DeploymentUpdate.maxSurge | string | `"100%"` |  |
+| StatefulSetUpdate.updateStrategy | string | `"RollingUpdate"` |  |
+| priorityClassName | string | `""` |  |
+| runtimeClassName | string | `""` |  |
+| rootUser | string | `""` |  |
+| rootPassword | string | `""` |  |
+| existingSecret | string | `""` |  |
+| certsPath | string | `"/etc/minio/certs/"` |  |
+| configPathmc | string | `"/etc/minio/mc/"` |  |
+| mountPath | string | `"/export"` |  |
+| bucketRoot | string | `""` |  |
+| drivesPerNode | int | `1` |  |
+| replicas | int | `16` |  |
+| pools | int | `1` |  |
+| tls.enabled | bool | `false` |  |
+| tls.certSecret | string | `""` |  |
+| tls.publicCrt | string | `"public.crt"` |  |
+| tls.privateKey | string | `"private.key"` |  |
+| trustedCertsSecret | string | `""` |  |
+| persistence.enabled | bool | `true` |  |
+| persistence.annotations | object | `{}` |  |
+| persistence.existingClaim | string | `""` |  |
+| persistence.storageClass | string | `""` |  |
+| persistence.VolumeName | string | `""` |  |
+| persistence.accessMode | string | `"ReadWriteOnce"` |  |
+| persistence.size | string | `"500Gi"` |  |
+| persistence.subPath | string | `""` |  |
+| service.type | string | `"ClusterIP"` |  |
+| service.clusterIP | string | `nil` |  |
+| service.port | string | `"9000"` |  |
+| service.nodePort | int | `32000` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.labels | object | `{}` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.path | string | `"/"` |  |
+| ingress.hosts[0] | string | `"minio-example.local"` |  |
+| ingress.tls | list | `[]` |  |
+| consoleService.type | string | `"ClusterIP"` |  |
+| consoleService.clusterIP | string | `nil` |  |
+| consoleService.port | string | `"9001"` |  |
+| consoleService.nodePort | int | `32001` |  |
+| consoleIngress.enabled | bool | `false` |  |
+| consoleIngress.labels | object | `{}` |  |
+| consoleIngress.annotations | object | `{}` |  |
+| consoleIngress.path | string | `"/"` |  |
+| consoleIngress.hosts[0] | string | `"console.minio-example.local"` |  |
+| consoleIngress.tls | list | `[]` |  |
+| nodeSelector | object | `{}` |  |
+| tolerations | list | `[]` |  |
+| affinity | object | `{}` |  |
+| topologySpreadConstraints | list | `[]` |  |
+| securityContext.enabled | bool | `true` |  |
+| securityContext.runAsUser | int | `1000` |  |
+| securityContext.runAsGroup | int | `1000` |  |
+| securityContext.fsGroup | int | `1000` |  |
+| securityContext.fsGroupChangePolicy | string | `"OnRootMismatch"` |  |
+| podAnnotations | object | `{}` |  |
+| podLabels | object | `{}` |  |
+| resources.requests.memory | string | `"16Gi"` |  |
+| policies | list | `[]` |  |
+| makePolicyJob.securityContext.enabled | bool | `false` |  |
+| makePolicyJob.securityContext.runAsUser | int | `1000` |  |
+| makePolicyJob.securityContext.runAsGroup | int | `1000` |  |
+| makePolicyJob.resources.requests.memory | string | `"128Mi"` |  |
+| makePolicyJob.exitCommand | string | `""` |  |
+| users[0].accessKey | string | `"console"` |  |
+| users[0].secretKey | string | `"console123"` |  |
+| users[0].policy | string | `"consoleAdmin"` |  |
+| makeUserJob.securityContext.enabled | bool | `false` |  |
+| makeUserJob.securityContext.runAsUser | int | `1000` |  |
+| makeUserJob.securityContext.runAsGroup | int | `1000` |  |
+| makeUserJob.resources.requests.memory | string | `"128Mi"` |  |
+| makeUserJob.exitCommand | string | `""` |  |
+| makeServiceAccountJob.securityContext.enabled | bool | `false` |  |
+| makeServiceAccountJob.securityContext.runAsUser | int | `1000` |  |
+| makeServiceAccountJob.securityContext.runAsGroup | int | `1000` |  |
+| makeServiceAccountJob.resources.requests.memory | string | `"128Mi"` |  |
+| makeServiceAccountJob.exitCommand | string | `""` |  |
+| buckets | string | `nil` |  |
+| makeBucketJob.securityContext.enabled | bool | `false` |  |
+| makeBucketJob.securityContext.runAsUser | int | `1000` |  |
+| makeBucketJob.securityContext.runAsGroup | int | `1000` |  |
+| makeBucketJob.resources.requests.memory | string | `"128Mi"` |  |
+| makeBucketJob.exitCommand | string | `""` |  |
+| customCommands | string | `nil` |  |
+| customCommandJob.securityContext.enabled | bool | `false` |  |
+| customCommandJob.securityContext.runAsUser | int | `1000` |  |
+| customCommandJob.securityContext.runAsGroup | int | `1000` |  |
+| customCommandJob.resources.requests.memory | string | `"128Mi"` |  |
+| customCommandJob.exitCommand | string | `""` |  |
+| postJob.podAnnotations | object | `{}` |  |
+| postJob.annotations | object | `{}` |  |
+| postJob.securityContext.enabled | bool | `false` |  |
+| postJob.securityContext.runAsUser | int | `1000` |  |
+| postJob.securityContext.runAsGroup | int | `1000` |  |
+| postJob.securityContext.fsGroup | int | `1000` |  |
+| postJob.nodeSelector | object | `{}` |  |
+| postJob.tolerations | list | `[]` |  |
+| postJob.affinity | object | `{}` |  |
+| environment | string | `nil` |  |
+| oidc.enabled | bool | `false` |  |
+| oidc.configUrl | string | `"https://identity-provider-url/.well-known/openid-configuration"` |  |
+| oidc.clientId | string | `"minio"` |  |
+| oidc.clientSecret | string | `""` |  |
+| oidc.claimName | string | `"policy"` |  |
+| oidc.scopes | string | `"openid,profile,email"` |  |
+| oidc.redirectUri | string | `"https://console-endpoint-url/oauth_callback"` |  |
+| oidc.claimPrefix | string | `""` |  |
+| oidc.comment | string | `""` |  |
+| networkPolicy.enabled | bool | `false` |  |
+| networkPolicy.allowExternal | bool | `true` |  |
+| podDisruptionBudget.enabled | bool | `false` |  |
+| podDisruptionBudget.maxUnavailable | int | `1` |  |
+| serviceAccount.create | bool | `true` |  |
+| serviceAccount.name | string | `"minio-sa"` |  |
+| metrics.serviceMonitor.enabled | bool | `false` |  |
+| metrics.serviceMonitor.includeNode | bool | `false` |  |
+| metrics.serviceMonitor.public | bool | `true` |  |
+| metrics.serviceMonitor.additionalLabels | object | `{}` |  |
+| metrics.serviceMonitor.relabelConfigs | object | `{}` |  |
+| metrics.serviceMonitor.relabelConfigsCluster | object | `{}` |  |
+| etcd.endpoints | list | `[]` |  |
+| etcd.pathPrefix | string | `""` |  |
+| etcd.corednsPathPrefix | string | `""` |  |
+| etcd.clientCert | string | `""` |  |
+| etcd.clientCertKey | string | `""` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 # common
 
 ![Version: 2.2.4](https://img.shields.io/badge/Version-2.2.4-informational?style=flat-square) ![Type: library](https://img.shields.io/badge/Type-library-informational?style=flat-square) ![AppVersion: 2.2.4](https://img.shields.io/badge/AppVersion-2.2.4-informational?style=flat-square)
@@ -4777,6 +4750,33 @@ A Library Helm Chart for grouping common logic between bitnami charts. This char
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | exampleValue | string | `"common-chart"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+# sc-library
+
+![Version: 1.1.4](https://img.shields.io/badge/Version-1.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.4](https://img.shields.io/badge/AppVersion-1.1.4-informational?style=flat-square)
+
+A Library Project
+
+**Homepage:** <https://agra.sdelements.com/deployment/containers/library>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Security Compass Technologies Ltd. | <devops-support@securitycompass.com> | <https://www.securitycompass.com/> |
+
+## Source Code
+
+* <https://agra.sdelements.com/deployment/containers/library>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global.enabled | bool | `true` |  |
+| library.back-end | bool | `true` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
