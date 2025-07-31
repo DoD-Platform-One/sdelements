@@ -43,7 +43,9 @@ spec:
           annotations: {{- toYaml . | nindent 12 }}
       {{- end }}
         spec:
-          storageClassName: {{ dig "storageClassName" "" . }}
+          {{- with .storageClassName }}
+          storageClassName: {{ . | quote }}
+          {{- end }}
           accessModes:
             - ReadWriteOnce
           resources:

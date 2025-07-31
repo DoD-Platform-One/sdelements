@@ -8,9 +8,6 @@ sdelements:
     path: chart
   flux:
     timeout: 30m
-    # This should really work but for whatever reason kyverno will also depends on it and puts helm release into an infinite dependency loop
-    #dependsOn:
-    #  - name: minio-operator
   values:
     global:
       storageClass: local-path
@@ -40,20 +37,6 @@ sdelements:
       auth:
         password: default
         erlangCookie: default
-    minio:
-      enabled: false
-      rootUser: admin
-      rootPassword: password
-      tls:
-        enabled: false
-      buckets:
-        - name: sde-bucket            # should match global.sharedStorage.bucketName
-          policy: none
-          purge: false
-      users:
-        - accessKey: accesskey    # should match global.sharedStorage.s3AccessKey
-          secretKey: secretkey    # should match global.sharedStorage.s3SecretKey
-          policy: readwrite
     minio-tenant:
       enabled: true
       tenant:
@@ -73,7 +56,7 @@ sdelements:
     istio:
       enabled: true
       gateways:
-        - istio-system/public
+        - istio-system/public-ingressgateway
       host: sdelements.dev.bigbang.mil
     bbtests:
       enabled: false
@@ -123,6 +106,8 @@ loki:
   enabled: false
 
 # Monitoring
+alloy:
+  enabled: false
 monitoring:
   enabled: false
 grafana:
